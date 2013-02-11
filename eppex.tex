@@ -1,4 +1,159 @@
 \chapter{Eppex}
 \label{chap:eppex}
 
+\Eppex{} is phrase pairs extraction and scoring tool capable of obtaining
+approximate frequency counts of extracted phrase pairs via Lossy Counting algorithm
+(thus the name \eppex{}, an acronym for \emph{epochal phrase pairs extraction}).
+It is designed to be an alternative to standard phrase extraction and scoring tools,
+replacing most of the functionality of steps 5 and 6 of \emph{train-model.perl} script.
+\Eppex{} input and output interface is fully compatible with those of the replaced tools.
 
+During \eppex{} runtime only physical memory is utilized, so in general it
+does its job considerably faster than default phrase extraction and scoring components.
+On the other hand much more of physical memory is needed on processing machine.
+Benchmarked time/memory trade-offs are further examined in \Cref{chap:results}.
+
+\Eppex{} memory demands may be limited by setting more restrictive support and error thresholds,
+but aggressive pruning may lead to significant loss of phrase table quality --
+experimentally measured trade-offs are also discussed in \Cref{chap:results}.
+
+\section{Implementation}
+
+\emph{Eppex} is implemented as command-line program written in C++.
+Similarly to Moses, its primary target platform is Linux system with \emph{gcc} toolset,
+but its implementation does not employ any platform-dependent functionality,
+so porting should be rather straight-forward.
+For details of how to install \eppex{} please refer to \Aref{chap:installation}.
+In short: if your system have Boost library set up and a recent version of C++ compiler
+-- one with STL implementation of hash tables introduced with \emph{C++11} standard --
+you should have no problems installing and running \eppex{}.
+
+% TODO: Info on GCC versions with std::unordered_ implementation.
+
+% TODO: Mention implementation tricks and tweaks:
+% Murmur hash, boost pools, std c++11 hash tables, indexed storages, gzipped I/O
+
+\section{Usage}
+
+As mentioned above, \emph{eppex} is a command line tool.
+
+\Eppex{} requires three input files:
+the target side part of corpus, the source side part of corpus and the alignment information.
+Depending on your goal, you may use \eppex{} to:
+\begin{itemize}
+ \item collect aggregated counts of phrase pairs of same lengths
+ \item generate direct and inverse extract files (as alternative to \emph{extract} tool)
+ \item construct phrase table (as alternative to both \emph{extract} and \emph{score} tools)
+\end{itemize}
+
+Eppex is a drop-in replacement -- it expects to be fed the same input files
+as \emph{extract} component of \emph{phrase-extract} toolset and produces
+the same output file as scoring components.
+
+\subsection{Terminology}
+
+% Introduce the definitions of:
+% - phrase pair length
+% - positive and negative lossy counting limits
+% - lambda parameter
+
+A phrase pair length is defined as the length of its longest compound.
+
+A more comfortable way of spe
+
+\subsection{Command line options}
+
+It can be used to produce the following output:
+\begin{itemize}
+ \item \emph{counts file} - file with frequency counts for each phrase pair
+  length up to given limit (set via \verb|--max-phrase-len| option)
+ \item \emph{extract files} - direct and inverse extract files. These files are the
+  same as the output files produced in step 5 of \emph{train-model.perl} pipeline,
+  except that the frequency count of each phrase pairs is not determined by
+  the number of times it occurs in the files but for space efficiency it is
+  dumped as an additional, 4-th field of each phrase pair record (this format
+  is properly recognized by \emph{phrase-extract/scorer}).
+ \item \emph{phrase table file} - the ultimate phrase table.
+\end{itemize}
+
+The command line syntax for \emph{eppex} is following:
+
+\begin{verbatim}
+  ./eppex tgt src align [dir-lex-table [inv-lex-table]] <options>
+\end{verbatim}
+
+The positional arguments are:
+\begin{itemize}
+ \item \verb|tgt| - path to target language corpus (required).
+  May be also provided via \verb|--tgt| option.
+ \item \verb|src| - path to source language corpus (required).
+  May be also provided via \verb|--src| option.
+ \item \verb|align| - path to alignments file (required).
+  May be also provided via \verb|--align| option.
+ \item \verb|dir-lex-table| - path to direct lexical table (optional).
+  May be also provided via \verb|--dir-lex-table| option. 
+ \item \verb|inv-lex-table| - path to inverse lexical table (optional).
+  May be also provided via \verb|--inv-lex-table| option. 
+\end{itemize}
+
+Options related to phrase pairs counting:
+\begin{itemize}
+ \item \verb|--counts-file| - path to file with phrase pairs counts.
+ \item \verb|--reuse-counts| - use counts from the provided file instead
+  of counting anew (skips counting mode).
+ \item \verb|--max-phrase-len| - maximum length of extracted phrases.
+\end{itemize}
+
+Options related to phrase pairs extraction:
+\begin{itemize}
+ \item \verb|--extract-file| - path to file for extracted phrase pairs.
+  The inverse file has $.inv$ extension attached to its name automatically.
+ \item \verb|--thresholds| - a space separated list of \emph{error} and \emph{support}
+  thresholds for lossy counting. For each phrase pair length or range of lengths a separate lossy counter
+  can be specified, for example: 1:0.5:1.5 2-3:1.0:2.0 4-7:3.0:5.0
+ \item \verb|--limits| - a space separated list of \emph{negative} and \emph{positive}
+  limits for lossy counting. For each phrase pair length or range of lengths a separate lossy counter
+  can be specified, for example: 1:0.5:1.5 2-3:1.0:2.0 4-7:3.0:5.0
+ \item \verb|--lambda| - the value for lambda parameter, real number from
+  (0.0, 1.0) interval. Default value is 0.5.
+\end{itemize}
+
+Options related to phrase pairs scoring:
+\begin{itemize}
+ \item \verb|--phrase-table-file| - path to phrase table file.
+  The inverse file has $.inv$ extension attached to its name automatically.
+ \item \verb|--dir-lex-table| - path to direct lexical table.
+  If given, direct lexical score $lex(e|f)$ will be included in phrase table.
+  May be passed also as 4-th positional parameter.
+ \item \verb|--inv-lex-table| - path to inverse lexical table.  
+  If given, inverse lexical score $lex(f|e)$ will be included in phrase table.
+  May be passed also as 5-th positional parameter.
+ \item \verb|--OnlyDirect| - print only direct scores $p(e|f)$ and $lex(e|f)$
+ \item \verb|--NoLex| - do not include lexical scores.
+  It is sufficient to omit \verb|--direct-lex-table| and \verb|--inverse-lex-table|
+  options to not include lexical scores, but this switch can be used to
+  override their presence.
+ \item \verb|--NoPhraseCount| - do not include phrase counts.  
+ \item \verb|--WordAlignment| - print word alignment.
+ % TODO: Finish.
+\end{itemize}
+
+Options related to both phrase pairs extraction and scoring:
+\begin{itemize}
+ \item \verb|--GZOutput| - gzip the output (automatically
+  adds $.gz$ extension to the filenames provided).
+\end{itemize}
+
+Finally, three program options that provides some information about the program:
+\begin{itemize}
+ \item \verb|--help| - prints the program help.
+ \item \verb|--info| - prints basic information about the program.
+ \item \verb|--version| - prints program version.
+\end{itemize}
+
+\subsection{Missing features}
+
+In the moment eppex cannot extract orientation info data required for reordering models training.
+
+Also some of the recently added features to the core scoring tool are yet missing in \eppex{},
+namely:
