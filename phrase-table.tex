@@ -7,7 +7,7 @@
 \emph{Phrase translation table} in SMT systems captures the mapping
 between phrases in source language and phrases in target language
 along with scores that should reflect the quality of translating a particular
-source languge phrase as a particular target language phrase.
+source language phrase as a particular target language phrase.
 The concept of phrase table is not related to any linguistic notion,
 neither the particular phrase pair nor the scores have to be meaningful
 in terms of syntax or semantics. The current phrase-based systems construct
@@ -21,7 +21,7 @@ The table contains various options of how to translate Czech phrase
 "pes" (dog) into English.
 
 % TODO: Include real phrase table example.
-% TODO: Include a phrase, not a sinle word only.
+% TODO: Include a phrase, not a single word only.
 \begin{table}[h]
 \centering
 \begin{tabular}{ l l l}
@@ -38,7 +38,7 @@ pes & hamster & 0.03 \\
 \caption{\label{phrase-table-example}Phrase translation table extract.}
 \end{table}
 
-We may note that the example phrase table contains some errorneous items,
+We may note that the example phrase table contains some erroneous items,
 as dog is unlikely to become cat just by switching to a different language.
 The fact is that standard methods of phrase table construction may produce such
 unlikely phrase translations, one reason being that their input data usually
@@ -60,7 +60,7 @@ The probabilities $p(s|t)$ and $p(t|s)$ are often referred to as
 
 \section{Phrase table role}
 
-% Describe the loglinear model and how it utilizes the phrase table.
+% Describe the log-linear model and how it utilizes the phrase table.
 
 
 \section{Phrase table creation}
@@ -90,4 +90,4 @@ for creation of ready-to-go translation system from the parallel corpus.
 
 \section{Phrase table compression}
 
-% Introduce recently published CompactPT tool.
+% Introduce phrase table compacting tool by Marcin.
