@@ -1,0 +1,35 @@
+\chapter{Introduction}
+\label{chap:introduction}
+
+\section{Thesis outline}
+
+We start with introduction of the phrase tables concept,
+portray their role in phrase-based SMT systems and describe
+methods of phrase tables construction, filtering and compression that
+are available in Moses. All of this is part of Chapter 2.
+
+In Chapter 3 we introduce the algorithm that is the basis of our implementation
+of on-the-fly filtration and show the properties of the output produced
+by the algorithm that make it particularly applicable in the filtration process.
+
+Chapter 4 is devoted to in-depth description of implementation details of our
+phrase table extraction tool, \emph{epochal extractor} (or shortly \eppex{}).
+Notably, various memory-management optimizations are mentioned.
+Also all the program options are explained with examples of their usage.
+
+To assess \eppex{} usability in real world applications, we carried out a set
+of carefully crafted experiments aiming at comparison of resources usage as well as
+the ultimate translation quality of \eppex{} and some of the methods mentioned
+in Chapter 2.
+Detailed design of experiments is subject of Chapter 5,
+while the results are discussed in Chapter 6.
+
+Chapter 7 is used as a storage for temporary notes, random thoughts and
+useful LaTeX commands. It is going to be removed from final version
+of this work, along with this note, so if you are reading this, you have
+a draft version only or the work never reached its final state.
+
+In last chapter we comment on our results and provide a conclusion of
+what have been done and what can be done in the future work on this topic.
+
+In Appendix A you may find \eppex{} installation instructions.
