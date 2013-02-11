@@ -1,3 +1,93 @@
 \chapter{Phrase translation table}
 \label{chap:phrase-table}
 
+\section{Phrase table concept}
+% What's the phrase table?
+
+\emph{Phrase translation table} in SMT systems captures the mapping
+between phrases in source language and phrases in target language
+along with scores that should reflect the quality of translating a particular
+source languge phrase as a particular target language phrase.
+The concept of phrase table is not related to any linguistic notion,
+neither the particular phrase pair nor the scores have to be meaningful
+in terms of syntax or semantics. The current phrase-based systems construct
+phrase tables using \emph{maximum likelihood} estimates calculated from (almost)
+plain text input data (hence statistical). The utility of translating phrase
+$s$ into phrase $t$ is then represented by maximum likelihood probability of
+the phrase $t$ given the phrase $s$.
+
+An example of a simple phrase table is presented by \Tref{phrase-table-example}.
+The table contains various options of how to translate Czech phrase
+"pes" (dog) into English.
+
+% TODO: Include real phrase table example.
+% TODO: Include a phrase, not a sinle word only.
+\begin{table}[h]
+\centering
+\begin{tabular}{ l l l}
+Czech (s) & English (t) & Probability p(t|s) \\
+\hline
+\hline
+pes & dog & 0.8 \\
+pes & cat & 0.1 \\
+pes & wolf & 0.07 \\
+pes & hamster & 0.03 \\
+\hline
+\hline
+\end{tabular}
+\caption{\label{phrase-table-example}Phrase translation table extract.}
+\end{table}
+
+We may note that the example phrase table contains some errorneous items,
+as dog is unlikely to become cat just by switching to a different language.
+The fact is that standard methods of phrase table construction may produce such
+unlikely phrase translations, one reason being that their input data usually
+contains a lot of noise.
+We will discuss this problem further in following sections.
+
+% TODO: Ctrl+C Ctrl+V form the eppex paper.
+
+Phrase tables in Statistical Machine Translation (SMT) systems generally take
+the form of a list of pairs of phrases $s$ and $t$, $s$ being the phrase from
+the source language and $t$ being the phrase from the target language, along
+with scores that should reflect the goodness of translating $s$ as $t$.
+The standard approach to obtain such scores is to use \emph{maximum likelihood
+probability} of the phrase $t$ given the phrase $s$ and vice versa.
+The probabilities $p(s|t)$ and $p(t|s)$ are often referred to as
+\emph{forward} and \emph{reverse} \emph{translation probabilities}.
+
+% TODO: Process the text above.
+
+\section{Phrase table role}
+
+% Describe the loglinear model and how it utilizes the phrase table.
+
+
+\section{Phrase table creation}
+
+To estimate $p(s|t)$ and $p(t|s)$, frequency counts $C(t,s)$, $C(s)$ and
+$C(t)$ are usually collected from the entire training corpus.
+For substantial coverage of source and target languages, such corpora are
+often very big so all phrase pairs and their counts cannot fit in the
+physical memory of the computer.
+To overcome this limitation, phrase table construction methods often simply
+dump observed phrases to local disk and sort and count them on disk.
+This approach allows to construct phrase tables of size limited only by the
+capacity of the disk.
+The obvious drawback of this solution is that much more time is needed
+to build the table.
+
+
+% What's the state-of-art implementation of phrase table extraction in Moses?
+% Introduce train-model.perl and steps of training pipeline.
+
+Moses comes with a training script that incorporates all the steps required
+for creation of ready-to-go translation system from the parallel corpus.
+
+\section{Phrase table pruning}
+
+% Introduce Johnson's significance filtering.
+
+\section{Phrase table compression}
+
+% Introduce recently published CompactPT tool.
