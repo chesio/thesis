@@ -1,3 +1,78 @@
 \appendix
 \chapter{Installation}
 \label{chap:installation}
+
+% TODO: Pull-in eppex to the upstream Moses repository?
+% \emph{Eppex} is shipped along with the Moses system and can be obtained the
+% same way: by checking out Moses repository at Github.
+
+\section*{Prerequisities}
+
+Only Boost is required to compile and run \eppex{}.
+If you had successfully compiled Moses then you probably already have all you need in place.
+
+Just in case you did not want to install Boost as a whole, but only the necessary
+parts of it, you will need to get two libraries (build them or install
+them via your packaging system): \emph{Program Options} and \emph{IOStreams}.
+\Eppex{} also requires working include path access to following
+header-only libraries: \emph{Iterator}, \emph{Pool} and \emph{Tokenizer}.
+
+Besides that you will probably like to employ the power of hash tables
+that comes with the recent version of C++ standard\footurl{http://en.cppreference.com/w/cpp/container/unordered_set}.
+Most of decent C++ compilers will have this feature available.
+
+\section*{Download}
+
+\emph{Eppex} is hosted on Github\footurl{http://www.github.com} in
+a fork\footurl{https://github.com/chesio/mosesdecoder}
+of core Moses repository\footurl{https://github.com/moses-smt/mosesdecoder}.
+If you have your own local clone of Moses repo then all you need is to add
+the fork as a new remote, fetch from it and checkout the remote branch
+\texttt{eppex} into some new local branch.
+\begin{verbatim}
+ cd <your-mosesdecoder-dir>
+ git remote add eppex https://github.com/chesio/mosesdecoder.git
+ git fetch eppex
+ git checkout -b eppex eppex:eppex
+\end{verbatim}
+
+Important note: \eppex{} branch is based on \emph{RELEASE-1.0},
+not the current master. Should you like to use \eppex{} with the most
+recent Moses code, you may try merging branch \texttt{master} into \texttt{eppex}:
+\begin{verbatim}
+ git merge master
+\end{verbatim}
+
+Be warned that you may encounter some merge conflicts in \emph{train-model.perl}
+as this script gets frequently updated.
+In such case feel free to contact the maintainer of \eppex{},
+he will be happy to help you.
+
+\section*{Installation}
+
+\Eppex{} related files may be found in \texttt{contrib/eppex} directory of \eppex{} fork
+and for the time being it has to be compiled separately from the Moses
+build.\footnote{For the build instructions on Moses consult the file \texttt{BUILD-INSTRUCTIONS.txt}.}
+Once compiled you will find \eppex{} binary (or symbolic link to it) in the
+\texttt{contrib/eppex} directory. You are free to move it to whatever location
+suits your working environment, just do not forget to pass the full path
+to \emph{train-model.perl} script invocation.
+
+\subsection*{Installation using Boost.Build}
+
+This approach is recommended since \emph{Boost.Build}\footurl{http://www.boost.org/boost-build2/doc/html/index.html}
+is required by Moses install process as well.
+If you would like to compile \eppex{} with hash tables implementation just pass \texttt{--with-hashtables} flag
+to \emph{bjam} command:
+\begin{verbatim}
+  cd contrib/eppex
+  bjam [--with-hashtables]
+\end{verbatim}
+
+\subsection*{Installation using make}
+The \texttt{contrib/eppex} directory also contains a Makefile that may be used to compile
+\emph{eppex} and should work on most Linux systems that have gcc compiler installed:
+\begin{verbatim}
+  cd contrib/eppex
+  make all
+\end{verbatim}
