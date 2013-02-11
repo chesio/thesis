@@ -1,3 +1,47 @@
 \chapter{Lossy Counting algorithm}
 \label{chap:lossy-counting}
 
+The Lossy Counting (LC) algorithm \citep{manku:lossycounting} is a \emph{deterministic algorithm}
+that computes approximate frequency counts over virtually infinite stream of input items.
+Although the counts are approximate, the error is guaranteed not to exceed a user-specified parameter.
+
+Specifically, Lossy Counting algorithm expects to be given two parameters:
+\emph{support} $s \in (0,1)$ and \emph{error} $\epsilon \in (0,1)$, such that $\epsilon \ll s$.
+At any point of time (after being fed with $N$ items from the stream) the algorithm can be
+asked to output the list of items with their approximate frequencies that satisfy the following guarantees:
+\begin{itemize}
+ \item All items whose true frequency exceeds $sN$ are output (\emph{no false negatives}).
+ \item No item whose true frequency is less than $(s - \epsilon)N$ is output (\emph{few false positives}).
+ \item Estimated frequencies are less than the true frequencies by at most $\epsilon N$.
+ \item The space used by the algorithm is $O(\frac{1}{\epsilon}~log \epsilon N)$.
+\end{itemize}
+
+% TODO: Ctrl+C Ctrl+V form the eppex paper.
+
+Conceptually, the Lossy Counting algorithm divides the incoming stream of items
+into epochs of fixed size $w = \lceil \frac{1}{\epsilon} \rceil$
+(thus the name \emph{epochal extraction}).
+In order to deliver the frequency estimates, the algorithm maintains a data structure $D$
+consisting of triples ($e$, $f$, $\Delta$), where $e$ is an element from the
+stream, $f$ is its estimated frequency and $\Delta$ is the maximum possible
+error in $f$. When a new item $e$ arrives, a lookup for $e$ in $D$ is
+performed. If $e$ is already present, its frequency $f$ is incremented by one.
+Otherwise a new triple ($e$, 1, $T-1$) is added to $D$, where $T$ denotes the
+ID of current epoch (with IDs starting from 1).
+
+At the end of each epoch (determined by $N \equiv 0~mod~w$), the algorithm
+prunes off all items whose maximum true frequency is small. Formally, at the end
+of the epoch $T$, all triples satisfying the condition $f + \Delta \leqslant T$ are
+removed from $D$. When all elements in the stream have been processed, the
+algorithm returns all triples ($e$, $f$, $\Delta$) where $f \geq
+(s-\epsilon)N$.
+
+The idea behind the algorithm is that frequent elements show up more than once
+within each epoch so their frequencies are increased enough to survive the
+filtering.
+
+\section{...}
+
+The positive side effect of  for the phrase table extraction task is
+obvious: low frequent items will be discarded, while frequent ones will be kept, all this
+leading to more compact, but quality phrase table.
