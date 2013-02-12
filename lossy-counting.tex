@@ -16,7 +16,7 @@ asked to output the list of items with their approximate frequencies that satisf
  \item The space used by the algorithm is $O(\frac{1}{\epsilon}~log \epsilon N)$.
 \end{itemize}
 
-% TODO: Ctrl+C Ctrl+V form the eppex paper.
+% TODO: Ctrl+C Ctrl+V from the eppex paper.
 
 Conceptually, the Lossy Counting algorithm divides the incoming stream of items
 into epochs of fixed size $w = \lceil \frac{1}{\epsilon} \rceil$
@@ -39,9 +39,3 @@ algorithm returns all triples ($e$, $f$, $\Delta$) where $f \geq
 The idea behind the algorithm is that frequent elements show up more than once
 within each epoch so their frequencies are increased enough to survive the
 filtering.
-
-\section{...}
-
-The positive side effect of  for the phrase table extraction task is
-obvious: low frequent items will be discarded, while frequent ones will be kept, all this
-leading to more compact, but quality phrase table.
