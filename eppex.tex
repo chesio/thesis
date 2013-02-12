@@ -1,3 +1,13 @@
+% In this chapter:
+% - introduction of eppex
+% -- design goals
+% -- distinction from legacy phrase-extract tools
+% - implementation details
+% -- Murmur hash, boost pools, std c++11 hash tables, indexed storages, gzipped I/O
+% - usage
+% -- counting, extracting and scoring mode
+% -- missing features
+
 \chapter{Eppex}
 \label{chap:eppex}
 
@@ -5,22 +15,26 @@
 approximate frequency counts of extracted phrase pairs via Lossy Counting algorithm
 (thus the name \eppex{}, an acronym for \emph{epochal phrase pairs extraction}).
 It is designed to be an alternative to standard phrase extraction and scoring tools,
-replacing most of the functionality of steps 5 and 6 of \emph{train-model.perl} script.
-\Eppex{} input and output interface is fully compatible with those of the replaced tools.
+implementing most of the functionality of steps 5 and 6 of \emph{train-model.perl} script.
+\Eppex{} input and output interface is fully compatible with those of the replaced tools
+and \eppex{} in fact is intended to be invoked from within the training script
+by passing specific parameters to \emph{train-model.perl}.
 
-During \eppex{} runtime only physical memory is utilized, so in general it
-does its job considerably faster than default phrase extraction and scoring components.
-On the other hand much more of physical memory is needed on processing machine.
-Benchmarked time/memory trade-offs are further examined in \Cref{chap:results}.
+\Eppex{} differs from its core counterparts in one important aspect: during its
+runtime only physical memory is utilized, no temporary files are stored on disk
+as with \emph{extract} and \emph{score} tools.
+The goal is to make \eppex{} a faster alternative, aiming at environments with plenty of RAM.
+Benchmarked time/memory trade-offs are fundamental part of this work and
+are thoroughly examined in \Cref{chap:results}.
 
-\Eppex{} memory demands may be limited by setting more restrictive support and error thresholds,
-but aggressive pruning may lead to significant loss of phrase table quality --
-experimentally measured trade-offs are also discussed in \Cref{chap:results}.
+\Eppex{} memory demands may be limited by setting more restrictive support and error thresholds
+for Lossy Counting, but aggressive pruning may lead to significant loss of phrase table quality
+-- experimentally evaluated trade-offs are also discussed in \Cref{chap:results}.
 
 \section{Implementation}
 
-\emph{Eppex} is implemented as command-line program written in C++.
-Similarly to Moses, its primary target platform is Linux system with \emph{gcc} toolset,
+\Eppex{} is implemented as command-line program and it is written in C++.
+Similarly to Moses, its primary target platform is Linux system with \emph{gcc} tool set,
 but its implementation does not employ any platform-dependent functionality,
 so porting should be rather straight-forward.
 For details of how to install \eppex{} please refer to \Aref{chap:installation}.
@@ -35,10 +49,10 @@ you should have no problems installing and running \eppex{}.
 
 \section{Usage}
 
-As mentioned above, \emph{eppex} is a command line tool.
+As mentioned above, \eppex{} is a command line tool.
 
-\Eppex{} requires three input files:
-the target side part of corpus, the source side part of corpus and the alignment information.
+\Eppex{} requires three input files to proceed:
+the target side of corpus, the source side of corpus and the alignment information.
 Depending on your goal, you may use \eppex{} to:
 \begin{itemize}
  \item collect aggregated counts of phrase pairs of same lengths
@@ -46,9 +60,9 @@ Depending on your goal, you may use \eppex{} to:
  \item construct phrase table (as alternative to both \emph{extract} and \emph{score} tools)
 \end{itemize}
 
-Eppex is a drop-in replacement -- it expects to be fed the same input files
-as \emph{extract} component of \emph{phrase-extract} toolset and produces
-the same output file as scoring components.
+Eppex is a drop-in replacement, therefore it must be passed input files
+in the same format as expected by \emph{extract} component and
+the output file it produces conforms to the format of \emph{score} component.
 
 \subsection{Terminology}
 
@@ -134,7 +148,7 @@ Options related to phrase pairs scoring:
   options to not include lexical scores, but this switch can be used to
   override their presence.
  \item \verb|--NoPhraseCount| - do not include phrase counts.  
- \item \verb|--WordAlignment| - print word alignment.
+ \item \verb|--NoWordAlignment| - do not print word alignment.
  % TODO: Finish.
 \end{itemize}
 
@@ -155,5 +169,10 @@ Finally, three program options that provides some information about the program:
 
 In the moment eppex cannot extract orientation info data required for reordering models training.
 
-Also some of the recently added features to the core scoring tool are yet missing in \eppex{},
+Also some of the recently added features to the legacy scoring tool are yet missing in \eppex{},
 namely:
+\begin{itemize}
+  \item smoothing options available in legacy scorer: \verb|--GoodTuring| and \verb|--KneserNey|
+  \item dumping singleton feature available in legacy scorer: \verb|--Singleton|
+  % TODO: And several others - some of them are only viable for hierarchical models.
+\end{itemize}
