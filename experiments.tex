@@ -1,3 +1,47 @@
+% In this chapter:
+% - ...
+
 \chapter{Experiments}
 \label{chap:experiments}
 
+We conducted a series of experimental phrase table extractions with both eppex and
+standard phrase extraction toolkit shipped with Moses.
+All runs were carefully benchmarked -- we gauged CPU time, wall-clock time and
+physical memory usage of all relevant steps.
+We also performed comparison of ultimate translation quality as represented by BLEU score.
+In this chapter we are going to describe the details of our experiments and
+the parameters of various scenarios,
+while the benchmarking results are presented in the chapter that follows.
+
+\section{Baseline}
+
+The training process of Moses takes place in nine steps.\footurl{http://www.statmt.org/moses/?n=FactoredTraining.HomePage}
+These steps cover the whole training pipeline including word alignment, lexical table construction,
+phrase table construction and more. The phrase table construction itself is done in two steps,
+phrase extraction and phrase scoring, which might be even further split into following
+substeps: (1) phrase extraction that produces direct and reverse phrase table halves
+(without scores yet); (2) sorting and (3) scoring of the direct table; (4)
+sorting and (5) scoring of the reverse table; (6) sorting of the scored
+reverse table; (7) consolidation of the scored direct and reverse tables.
+
+% Introduce --parallel and --cores options.
+The training process in Moses can utilize multicore architecture if it is available.
+
+For clarity of results we sticked to recent Moses release 1.0.
+
+\section{Benchmarking}
+% What has been benchmarked:
+% - CPU time, wall clock time, RAM usage
+% - BLEU score
+% How the benchmarking was implemented?
+
+
+\section{Data}
+% Data we used:
+% - CzEng
+% - Giga corpus
+
+We picked up two datasets with significant amount of data: CzEng and Giga corpus.
+
+\section{Environment}
+% Few lines about the OS and HW settings of our machine.
