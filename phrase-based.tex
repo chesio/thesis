@@ -1,7 +1,42 @@
-\chapter{Phrase translation table}
-\label{chap:phrase-table}
+% In this chapter:
+% - introduction of phrase based SMT
+% - description of phrase table
+% - description of phrase table creation in Moses
+% -- with alternatives: memscore
+% - phrase table post filtering
+% -- sigfilter
+% - alternatives to precomputed phrase table
+% -- dynamic suffix arrays
+% - mention phrase table compression tools
 
-\section{Phrase table concept}
+\chapter{Phrase tables in phrase-based Statistical Machine Translation}
+\label{chap:phrase-based}
+
+% Briefly introduce the concept of phrase-based SMT
+% (SMT book, Chapter 5)
+
+Phrase-based models are nowadays considered the most eminent approach in the field of Statistical Machine Translation.
+Their design is very simple, yet powerful enough to compete with linguistically motivated models and
+they conceptually benefit from the increasing amount of training data and computational resources available.
+
+\section{Phrase-based Statistical Machine Translation}
+
+Phrase-based models are conceptually based on idea of straight-forward word-for-word translation,
+but instead of using only single word as translation unit they allow for sequence of words -- a phrase
+-- to be translated at once.
+By using phrases rather than words the model is implicitly able to map non-regular translation patterns
+that are problematic in simple word-for-word translation.
+One example of such pattern is word in source language that translates to multiple words in target language.
+Another example is reordering of translated part when source and
+target language differ in word order semantics
+-- this constitutes a big problem even with phrase-based models,
+but local reordering may be captured more easily within the phrases.
+
+\subsection{Mathematical Definition}
+% TODO.
+
+
+\section{Phrase translation table}
 % What's the phrase table?
 
 \emph{Phrase translation table} in SMT systems captures the mapping
@@ -43,9 +78,9 @@ as dog is unlikely to become cat just by switching to a different language.
 The fact is that standard methods of phrase table construction may produce such
 unlikely phrase translations, one reason being that their input data usually
 contains a lot of noise.
-We will discuss this problem further in following sections.
+We will discuss this problem further in the following sections.
 
-% TODO: Ctrl+C Ctrl+V form the eppex paper.
+% TODO: Ctrl+C Ctrl+V from the eppex paper.
 
 Phrase tables in Statistical Machine Translation (SMT) systems generally take
 the form of a list of pairs of phrases $s$ and $t$, $s$ being the phrase from
@@ -56,14 +91,8 @@ probability} of the phrase $t$ given the phrase $s$ and vice versa.
 The probabilities $p(s|t)$ and $p(t|s)$ are often referred to as
 \emph{forward} and \emph{reverse} \emph{translation probabilities}.
 
-% TODO: Process the text above.
 
-\section{Phrase table role}
-
-% Describe the log-linear model and how it utilizes the phrase table.
-
-
-\section{Phrase table creation}
+\subsection{Phrase table creation}
 
 To estimate $p(s|t)$ and $p(t|s)$, frequency counts $C(t,s)$, $C(s)$ and
 $C(t)$ are usually collected from the entire training corpus.
@@ -77,17 +106,16 @@ capacity of the disk.
 The obvious drawback of this solution is that much more time is needed
 to build the table.
 
-
 % What's the state-of-art implementation of phrase table extraction in Moses?
 % Introduce train-model.perl and steps of training pipeline.
 
 Moses comes with a training script that incorporates all the steps required
 for creation of ready-to-go translation system from the parallel corpus.
 
-\section{Phrase table pruning}
+\subsection{Phrase table pruning}
 
 % Introduce Johnson's significance filtering.
 
-\section{Phrase table compression}
+\subsection{Phrase table compression}
 
 % Introduce phrase table compacting tool by Marcin.
