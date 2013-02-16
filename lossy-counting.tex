@@ -31,7 +31,7 @@ ID of current epoch (with IDs starting from 1).
 
 At the end of each epoch (determined by $N \equiv 0~mod~w$), the algorithm
 prunes off all items whose maximum true frequency is small. Formally, at the end
-of the epoch $T$, all triples satisfying the condition $f + \Delta \leqslant T$ are
+of the epoch $T$, all triples satisfying the condition $f + \Delta \leq T$ are
 removed from $D$. When all elements in the stream have been processed, the
 algorithm returns all triples ($e$, $f$, $\Delta$) where $f \geq
 (s-\epsilon)N$.
