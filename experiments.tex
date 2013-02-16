@@ -43,5 +43,46 @@ For clarity of results we sticked to recent Moses release 1.0.
 
 We picked up two datasets with significant amount of data: CzEng and Giga corpus.
 
+\subsection{Preprocessing}
+
+Input data preprocessing is essential to almost any natural language processing task
+and model training in SMT is no exception.
+
+We treated our input data with following preprocessing steps:
+\begin{enumerate}
+  \item Cleaning of tokenization format:
+  \begin{itemize}
+    \item spaces at the beginning and end of the lines are removed
+    \item all sequences of white space characters are replaced by a single space only
+    \item all line endings are converted to Unix-style line endings
+  \end{itemize}
+  \item Normalization of punctuation encoding
+  \item Tokenization
+  \item Cleaning of any superfluous white space from tokenization -- ensures that the output contains only spaces and line-feed characters
+  \item Special characters escaping:
+  \begin{itemize}
+    \item pipes ("\textbar") are replaced by "\&pipe;"
+    \item less-than characters ("<") are replaced by "\&lt;"
+    \item greater-than characters (">") are replaced by "\&gt;"
+    \item ampersands ("\&") are replaced by "\&amp;"
+  \end{itemize}
+\end{enumerate}
+
+We used our own tools for cleaning of tokenization format,
+post-tokenization cleaning and escaping of special characters.
+For normalization of punctuation encoding we used script provided by organizers of
+WMT 2011 Translation Task,\footurl{http://www.statmt.org/wmt11/normalize-punctuation.perl}
+while for tokenization we used \emph{tokenizer} shipped with
+Moses.\footnote{Tokenization script may be found in \texttt{scripts/tokenizer/tokenizer.perl}}
+
+The alignment tool, GIZA++, further requires that too long sentences are removed from parallel corpus.
+No hardcoded limit exists, but as a rule of thumb the limit of 80 words is
+recommended.\footnote{The 80 words limit is for example mentioned in "Corpus Preparation" section of Moses tutorial:
+\url{http://www.statmt.org/moses/?n=moses.baseline}}
+During sentence-length filtering both sides of parallel corpus must be processed simultaneously,
+because the overlong sentence must be removed along with its counterpart from the other part of corpus
+to keep the remaining sentences properly aligned.
+Usually during this step one wants to remove also any empty lines as the same principle applies to them.
+
 \section{Environment}
 % Few lines about the OS and HW settings of our machine.
