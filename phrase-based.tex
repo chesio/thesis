@@ -15,22 +15,43 @@
 % Briefly introduce the concept of phrase-based SMT
 % (SMT book, Chapter 5)
 
-Phrase-based models are nowadays considered the most eminent approach in the field of Statistical Machine Translation.
-Their design is very simple, yet powerful enough to compete with linguistically motivated models and
-they conceptually benefit from the increasing amount of training data and computational resources available.
+Phrase-based models are nowadays considered the most eminent approach in
+the field of Statistical Machine Translation and the best performing
+SMT systems are based on phrase-based models \citep{koehn:smt},
+Google Translate\footurl{http://translate.google.com} being a prominent example.
+Their mathematical motivation is very simple, yet it proves to be powerful enough
+to compete with linguistically motivated rule-based models.
+In addition, they conceptually benefit from steadily increasing amount of both
+monolingual and multilingual corpora available as a positive side-effect of rapidly
+growing usage of information technologies in our daily lives.
 
 \section{Phrase-based Statistical Machine Translation}
 
-Phrase-based models are conceptually based on idea of straight-forward word-for-word translation,
-but instead of using only single word as translation unit they allow for sequence of words -- a phrase
--- to be translated at once.
-By using phrases rather than words the model is implicitly able to map non-regular translation patterns
-that are problematic in simple word-for-word translation.
-One example of such pattern is word in source language that translates to multiple words in target language.
-Another example is reordering of translated part when source and
-target language differ in word order semantics
--- this constitutes a big problem even with phrase-based models,
-but local reordering may be captured more easily within the phrases.
+Before phrase-based model were introduced, a yet simpler word-based models were in
+the center of interest of MT researchers. \emph{Word-based models} use a lexicon
+of words with their translations to produce translation of the full text by proceeding
+with one word at a time.
+This simple approach works well, but has obvious drawbacks,
+for example the inability to catch word context.
+Also it does not account for situations, where foreign word has to be translated
+with two or more words or vice versa.
+
+\emph{Phrase-based models} originates from the concept of word-based models,
+but instead of using only single word as translation unit they
+allow for sequence of words -- \emph{a phrase} -- to be translated at once.
+This seemingly trivial extension makes for a non-trivial improvement
+with following imminent benefits:
+\begin{enumerate}
+  \item By using phrases rather than words the model is now implicitly able to deal with
+    \emph{one-word-translates-to-many} situations.
+  \item A phrase-based model is able to handle local reordering of words, which happen
+    often whenever translation is done between languages with different word-order.
+  \item Word context on source side plays now more important role, because it might be kept
+    within the phrase pair and lead to implicit disambiguation during translation.
+  \item With a lot of data and storage space available the model can be trained to cover
+    (and later easily translate) the whole sentences.
+\end{enumerate}
+
 
 \subsection{Mathematical Definition}
 % TODO.
