@@ -19,7 +19,7 @@ Phrase-based models are nowadays considered the most eminent approach in
 the field of Statistical Machine Translation and the best performing
 SMT systems are based on phrase-based models \citep{koehn:smt},
 Google Translate\footurl{http://translate.google.com} being a prominent example.
-Their mathematical motivation is very simple, yet it proves to be powerful enough
+Their mathematical motivation is very simple, yet they prove to be powerful enough
 to compete with linguistically motivated rule-based models.
 In addition, they conceptually benefit from steadily increasing amount of both
 monolingual and multilingual corpora available as a positive side-effect of rapidly
@@ -44,8 +44,8 @@ with following imminent benefits:
 \begin{enumerate}
   \item By using phrases rather than words the model is now implicitly able to deal with
     \emph{one-word-translates-to-many} situations.
-  \item A phrase-based model is able to handle local reordering of words, which happen
-    often whenever translation is done between languages with different word-order.
+  \item A phrase-based model is able to handle local reordering of words for example switching
+    from \emph{noun follows adjective} to \emph{adjective follows noun} order etc.
   \item Word context on source side plays now more important role, because it might be kept
     within the phrase pair and lead to implicit disambiguation during translation.
   \item With a lot of data and storage space available the model can be trained to cover
@@ -115,6 +115,8 @@ The probabilities $p(s|t)$ and $p(t|s)$ are often referred to as
 
 \subsection{Phrase table creation}
 
+% TODO: Ctrl+C Ctrl+V from the eppex paper.
+
 To estimate $p(s|t)$ and $p(t|s)$, frequency counts $C(t,s)$, $C(s)$ and
 $C(t)$ are usually collected from the entire training corpus.
 For substantial coverage of source and target languages, such corpora are
@@ -130,8 +132,32 @@ to build the table.
 % What's the state-of-art implementation of phrase table extraction in Moses?
 % Introduce train-model.perl and steps of training pipeline.
 
-Moses comes with a training script that incorporates all the steps required
-for creation of ready-to-go translation system from the parallel corpus.
+Moses comes with a training script that incorporates all the steps involved in
+creation of ready-to-go translation system from the parallel corpus,
+including phrase table creation.
+In the \emph{train-model.perl} script this whole training process is covered by
+9 subsequent steps\footurl{http://www.statmt.org/moses/?n=FactoredTraining.HomePage},
+including word alignment, lexical table construction, phrase table construction and more.
+
+The modular step-by-step design of the training process makes it very open to
+alternate implementations of particular steps.
+The training script interface explicitly supports use of third party tools by
+allowing only subrange of the nine steps to be executed.
+The only (obvious) requirement is that such tools have to be capable of reading and
+writing data in format that is compatible with the preceding and subsequent steps
+of the pipeline.
+
+In this work we are exclusively concerned with the fifth and sixth step of
+the training pipeline: the phrase pairs extraction and phrase pairs scoring.
+Conceptually, these two steps can be regarded as a single step only, as their ultimate
+goal is to construct phrase table given parallel corpus and word alignment.
+The reason why the phrase table construction is split in these two steps is that
+for large input data the table simply does not fit into computer memory.
+To overcome this limitation, the core implementation uses disk space as temporary storage
+for extracted phrases and keeps only the minimum required data in random access memory.
+In the remaining part of this section we describe this implementation in more detail.
+
+...
 
 \subsection{Phrase table pruning}
 
