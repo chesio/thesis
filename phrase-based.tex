@@ -113,7 +113,7 @@ The probabilities $p(s|t)$ and $p(t|s)$ are often referred to as
 \emph{forward} and \emph{reverse} \emph{translation probabilities}.
 
 
-\subsection{Phrase table creation}
+\subsection{Phrase table creation in Moses}
 
 % TODO: Ctrl+C Ctrl+V from the eppex paper.
 
@@ -132,8 +132,8 @@ to build the table.
 % What's the state-of-art implementation of phrase table extraction in Moses?
 % Introduce train-model.perl and steps of training pipeline.
 
-Moses comes with a training script that incorporates all the steps involved in
-creation of ready-to-go translation system from the parallel corpus,
+Moses release 1.0 comes with a training script that incorporates all the steps
+involved in creation of ready-to-go translation system from the parallel corpus,
 including phrase table creation.
 In the \emph{train-model.perl} script this whole training process is covered by
 9 subsequent steps\footurl{http://www.statmt.org/moses/?n=FactoredTraining.HomePage},
@@ -148,16 +148,75 @@ writing data in format that is compatible with the preceding and subsequent step
 of the pipeline.
 
 In this work we are exclusively concerned with the fifth and sixth step of
-the training pipeline: the phrase pairs extraction and phrase pairs scoring.
-Conceptually, these two steps can be regarded as a single step only, as their ultimate
+the training pipeline:
+the phrase pairs extraction\footurl{http://www.statmt.org/moses/?n=FactoredTraining.ExtractPhrases}
+and phrase pairs scoring\footurl{http://www.statmt.org/moses/?n=FactoredTraining.ScorePhrases}.
+Conceptually, these two steps can be considered a single step only, as their ultimate
 goal is to construct phrase table given parallel corpus and word alignment.
 The reason why the phrase table construction is split in these two steps is that
 for large input data the table simply does not fit into computer memory.
-To overcome this limitation, the core implementation uses disk space as temporary storage
-for extracted phrases and keeps only the minimum required data in random access memory.
-In the remaining part of this section we describe this implementation in more detail.
+To overcome this limitation the core implementation uses disk space as a temporary storage
+for extracted phrases and one of the effects of such design is the separation of
+phrase extraction and phrase scoring phases into individual steps.
+Another reason for this break-up is the extraction of reordering information
+of individual phrase pairs -- this information is later used in step 7 in creation
+of lexicalized reordering model.
 
-...
+Let us now describe the phrase extraction and phrase scoring steps in greater detail.
+
+The whole training pipeline aims to utilize multi-core processors architecture that
+prevails in nowadays computers as much as possible. To turn on parallel processing,
+two parameters exists and they both apply also to the steps of our interest:
+\begin{itemize}
+  \item \verb|--parallel|: A boolean switch that enables concurrent run of such parts of
+  pipeline that performs the same task twice: once for source and once for target language.
+  With this switch on, both parts are processed in parallel.
+  \item \verb|--cores N|: An unsigned integer that simply sets the number of CPU threads
+  that may be utilized during training. In Moses 1.0 only phrase extraction and phrase
+  scoring steps make use of this setting.
+\end{itemize}
+Despite they do very similar job, both options apply to different parts
+of implementation, so they can be combined.
+However, even if none of these options is specified, some parts of pipeline
+are still implicitly parallelized.
+
+The \emph{phrase extraction phase} starts with optional split of all input files
+(alignment information, both parts of corpus and optional weights file) into $N$
+parts, where $N$ is the number of threads set by \verb|--cores|.
+Then, the actual extraction of phrases is done by running $N$ extractors in parallel,
+each processing its own split.
+Each extractor produces following set of files: direct phrase pairs table, inverse
+phrase pairs table and (optional) reordering information table.
+In the final stage, all output files of the same type from all $N$ extractors are
+merged together, sorted and dumped into one direct and one inverse phrase tables
+and one reordering information table.
+
+In \emph{phrase scoring phase} first both direct and inverse phrase tables are
+populated with scores and then both are consolidated into the final phrase table.
+The scoring for both parts can be processed in parallel if the \verb|--parallel|
+switch is specified.
+Further parallelization is done within the scoring process itself.
+First, similarly as with extraction, the input is split into $N$ chunks.
+However, this time it is important that all phrase pairs with the same source
+phrase are kept together in the same chunk (and vice versa for target phrases
+in case of inverse phrase table).\footnote{N.B., this is the reason behind the sorting done in the final stage of phrase extraction.}
+Then, $N$ scorers are run in parallel: each of them is provided with its set
+of chunks to process.
+For each chunk the scorer outputs the phrase pairs populated either with direct
+or inverse scores.
+After all scorers finish their job, all chunks are merged together.
+The inverse phrase table is sorted once more, but this time differently:
+now the phrase pairs order has to match the direct phrase table.
+This make the consolidation of both halves simple; they are just merged
+in a linear fashion to produce the final \emph{phrase translation table}.
+
+Before we finish this section, it is important to mention that all
+the temporary data stored to disk during processing is compressed
+(and then uncompressed when read later on).
+This helps to lessen the total disk usage and also reduces disk I/O in cost of
+more CPU time, which in typical case is a worthy deal as parallel reads/writes
+to disk tends to slow down the overall process much more than additional
+CPU processing required to perform compression and decompression.
 
 \subsection{Phrase table pruning}
 
