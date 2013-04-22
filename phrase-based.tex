@@ -15,108 +15,206 @@
 % Briefly introduce the concept of phrase-based SMT
 % (SMT book, Chapter 5)
 
-Phrase-based models are nowadays considered the most eminent approach in
-the field of Statistical Machine Translation and the best performing
-SMT systems are based on phrase-based models \citep{koehn:smt},
-Google Translate\footurl{http://translate.google.com} being a prominent example.
-Their mathematical motivation is very simple, yet they prove to be powerful enough
-to compete with linguistically motivated rule-based models.
-In addition, they conceptually benefit from steadily increasing amount of both
-monolingual and multilingual corpora available as a positive side-effect of rapidly
-growing usage of information technologies in our daily lives.
+\setlength{\epigraphwidth}{1.0\textwidth}
+\epigraph{The currently best performing statistical machine translation systems are based on
+phrase-based models: models that translate small word sequences at a time.}{--- Philipp Koehn, Statistical Machine Translation}
+
+Phrase-based models are nowadays considered the most eminent approach
+in the field of Statistical Machine Translation.
+In this chapter we are going to describe their concept with a particular stress
+on description of phrase translation tables and methods of their construction.
+Our introduction will be, inevitably, very condensed.
+For a more detailed insight into phrase-based models and statistical machine
+translation in general, we gently point our reader to \citet{koehn:smt}.
 
 \section{Phrase-based Statistical Machine Translation}
 
-Before phrase-based model were introduced, a yet simpler word-based models were in
-the center of interest of MT researchers. \emph{Word-based models} use a lexicon
-of words with their translations to produce translation of the full text by proceeding
-with one word at a time.
-This simple approach works well, but has obvious drawbacks,
-for example the inability to catch word context.
-Also it does not account for situations, where foreign word has to be translated
-with two or more words or vice versa.
-
-\emph{Phrase-based models} originates from the concept of word-based models,
-but instead of using only single word as translation unit they
-allow for sequence of words -- \emph{a phrase} -- to be translated at once.
-This seemingly trivial extension makes for a non-trivial improvement
-with following imminent benefits:
+Before phrase-based models were introduced, a yet simpler word-based models were in
+the center of interest of MT researchers.
+\emph{Word-based models} use a lexicon of words with their translations to produce
+translation of the full text by proceeding with one word at a time.
+\emph{Phrase-based models} originates from this concept, but instead of using only
+single word as translation unit they allow for sequence of words -- \emph{a phrase}
+-- to be translated at once.
+This seemingly trivial extension makes for a non-trivial improvement with some
+imminent benefits:
 \begin{enumerate}
-  \item By using phrases rather than words the model is now implicitly able to deal with
-    \emph{one-word-translates-to-many} situations.
-  \item A phrase-based model is able to handle local reordering of words for example switching
-    from \emph{noun follows adjective} to \emph{adjective follows noun} order etc.
+  \item By using phrases rather than words this model is now implicitly able to deal
+    with non-compositional phrases
+  \item A phrase-based model is able to handle local reordering of words, for example:
+    switching from \emph{noun follows adjective} to \emph{adjective follows noun} order.
   \item Word context on source side plays now more important role, because it might be kept
     within the phrase pair and lead to implicit disambiguation during translation.
-  \item With a lot of data and storage space available the model can be trained to cover
-    (and later easily translate) the whole sentences.
+  \item With a lot of data the model can be trained to cover long phrases or even
+    whole sentences.
 \end{enumerate}
 
+\subsection{Mathematical background}
 
-\subsection{Mathematical Definition}
-% TODO.
+The phrase translation model is based on noisy channel model \citep{koehn:spbt}.
+By using Bayes rule, the translation probability for translating foreign sentence $f$
+into English as $e_{best}$ can be reformulated as:
+\begin{equation}
+  e_{best} = argmax_{e}~p(e|f) =  argmax_{e}~p(f|e)p(e)
+\end{equation}
 
+This allows for a separate translation model $p(f|e)$ and language model $p(e)$.
+The translation model is further decomposed into:
+\begin{equation} \label{eq:tm}
+  p(\bar{e}_1^I|\bar{f}_1^I) = \prod_{i=1}^I \phi(\bar{f}_i|\bar{e}_i) d(start_i - end_{i-1} - 1)
+\end{equation}
+
+The foreign sentence $f$ is broken up into $I$ phrases $\bar{f}_i$, each of them
+being translated into an English phrase $\bar{e}_i$. Since by the use of noisy channel
+model we inverted the translation direction, the phrase translation probability
+$\phi(\bar{f}_i|\bar{e}_i)$ is modeled as a translation from English to foreign language.
+
+The reordering of English phrases is handled by \emph{reordering model}, in \Eref{eq:tm}
+denoted by $d(start_i - end_{i-1} - 1)$.
+The most used reordering model is \emph{distance-based} and assigns reordering cost based
+on distance of the position of the first word of foreign input phrase that translates to
+the $i$-th English phrase (noted as $start_i$) and the position of the last word of foreign
+phrase that translates to preceding English phrase (noted as $end_{i-1}$).
+In case of two phrases translated in sequence, $start_i = end_{i-1} +1$, and the
+reordering model assigns cost of $d(0)$.
+The probability distribution of $d$ can be either computed from data or set by applying
+exponentially decaying cost function $d(x) = \alpha^{|x|}$ with a proper value of $\alpha$
+\citep{koehn:smt}.
+
+By putting together decomposed translation model and language model (we assume standard $n$-gram
+language model here), we get the mathematical definition of
+\emph{phrase-based statistical machine translation model}:
+\begin{equation} \label{eq:pbsmt}
+  e_{best} = argmax_e \prod_{i=1}^I \phi(\bar{f}_i|\bar{e}_i) d(start_i - end_{i-1} - 1) \prod_{i=1}^{|e|} p_{LM}(e_i|e_{i-n+1}...e_{i-1})
+\end{equation}
+
+Putting mathematical definitions aside, the role of all three components in search of
+the best translation can be explained in more intuitive way:
+\begin{itemize}
+  \item The phrase translation model ensures that best translation for each phrase is selected.
+  \item The reordering model ensures the phrases are reordered appropriately.
+  \item The language model ensures the output is fluent English.
+\end{itemize}
+
+\subsection{Log-linear model}
+
+So far we have introduced three components of SMT system -- phrase translation model,
+reordering model and language model -- and described them in terms of probability
+distributions that determine them.
+Then, we laid out the definition of phrase-based model as multiplication of all
+three distributions.
+Despite the elegance of such definition, it has its drawbacks and current SMT
+systems tend to use a more flexible framework to combine all the various
+components that is well-known especially in machine learning community:
+a \emph{log-linear model}.
+It has general form:
+\begin{equation}
+  exp \Big( \sum_i^n \lambda_i h_i(x_i) \Big)
+\end{equation}
+
+The $h_i(x)$ are quantities that are functions of variables $x_i$,
+while $\lambda_i$ stand for the model parameters.
+
+The original definition of phrase-based SMT model (\Eref{eq:pbsmt}) can be reformulated to
+fit log-linear model by defining $h_1 = log(\phi)$, $h_2 = log(d)$ and $h_3 = log(p_{LM})$
+and introducing corresponding model parameters $\lambda_{\phi}$, $\lambda_{d}$ and $\lambda_{LM}$:
+\begin{equation}
+  \begin{aligned}
+  p(e|f) = exp \Bigg[ &\lambda_{\phi} \sum_{i=1}^I log \, \phi(\bar{f}_i|\bar{e}_i) \\
+       &+ \lambda_{d} \sum_{i=1}^{I} log \, d(start_i - end_{i-1} - 1) \\
+       &+ \lambda_{LM} \sum_{i=1}^{|e|} log \, p_{LM}(e_i|e_{i-n+1}...e_{i-1}) \Bigg] \\
+  \end{aligned}
+\end{equation}
+
+The log-linear model has some advantages over the probabilistic formulation.
+First, as it is not build upon probabilistic reasoning, it does not require its
+components to be based on valid probability distributions.
+This way new features can be easily incorporated into the model, for example the direct
+phrase translation probability $\phi(e|f)$\footnote{Recall, that the phrase translation
+probability model $\phi(f|e)$ is inverted due to the use of noisy channel model.}.
+Second, the $\lambda_i$ parameters can be used to put more weight to some of the components,
+for example accenting the language model more if the translation is good, but the output
+lacks fluency etc.
 
 \section{Phrase translation table}
 % What's the phrase table?
 
-\emph{Phrase translation table} in SMT systems captures the mapping
-between phrases in source language and phrases in target language
-along with scores that should reflect the quality of translating a particular
-source language phrase as a particular target language phrase.
-The concept of phrase table is not related to any linguistic notion,
-neither the particular phrase pair nor the scores have to be meaningful
-in terms of syntax or semantics. The current phrase-based systems construct
-phrase tables using \emph{maximum likelihood} estimates calculated from (almost)
-plain text input data (hence statistical). The utility of translating phrase
-$s$ into phrase $t$ is then represented by maximum likelihood probability of
-the phrase $t$ given the phrase $s$.
+% It is hard to find better words to introduce section on phrase translation tables
+% than \citet[p.130]{koehn:smt} did:
+% \begin{quote}
+%  Clearly, the power of phrase-based translation rests on a good phrase
+%  translation table.
+% \end{quote}
 
-An example of a simple phrase table is presented by \Tref{phrase-table-example}.
-The table contains various options of how to translate Czech phrase
-"pes" (dog) into English.
+In \Cref{chap:introduction} we already came with a brief definition of phrase
+translation table. Let us repeat it here using more formal notion that adheres
+to the notation introduced earlier in this chapter.
 
-% TODO: Include real phrase table example.
-% TODO: Include a phrase, not a single word only.
+\emph{Phrase translation tables} in SMT systems generally take the form of a list of
+pairs of phrases $\bar{f}$ and $\bar{e}$, $\bar{f}$ being the phrase from the source
+language and $\bar{e}$ being the phrase from the target language, along with scores
+that should reflect the goodness of translating $\bar{f}$ as $\bar{e}$.
+The standard approach to obtain such scores is to use \emph{maximum likelihood
+probability} of the phrase $\bar{e}$ given the phrase $\bar{f}$ and vice versa.
+The probabilities $\phi(\bar{e}|\bar{f})$ and $\phi(\bar{f}|\bar{e})$ are often
+referred to as \emph{direct} and \emph{inverse} \emph{phrase translation probabilities}.
+
+It should be obvious from the definition that the concept of phrase tables is not tied
+to any linguistic notion and neither the phrase pairs nor the scores have to be meaningful
+in terms of syntax or semantics.
+
+\Tref{phrase-table-europarl} presents an extract from the actual phrase table
+(with only the direct phrase translation probabilities).
+The full table has been constructed from Europarl v6 Czech-English
+corpus\footurl{http://www.statmt.org/europarl/archives.html}.
+
+% TODO: Continue & finish.
+
+% An example of actual phrase table.
 \begin{table}[h]
 \centering
-\begin{tabular}{ l l l}
-Czech (s) & English (t) & Probability p(t|s) \\
+\begin{tabular}{ l l l l}
+No. & English ($f$) & Czech ($e$) & $\phi(e|f)$ \\
 \hline
 \hline
-pes & dog & 0.8 \\
-pes & cat & 0.1 \\
-pes & wolf & 0.07 \\
-pes & hamster & 0.03 \\
+1. & europe & evropě & 0.325794 \\
+2. & europe & evropa & 0.244393 \\
+3. & europe & evropu & 0.121596 \\
+4. & europe & evropy & 0.114969 \\
+5. & europe & evropou & 0.0204101 \\
+6. & europe & evropě , & 0.0174326 \\
+7. & europe & evropské & 0.0144552 \\
+8. & europe & evropských & 0.0139269 \\
+9. & europe & evropu , & 0.012054 \\
+10. & europe & evropy , & 0.00840417 \\
+... & ... & ... & ... \\
+52. & europe & na evropu & 0.000288143 \\
+53. & europe & ) evropa & 0.000240119 \\
+... & ... & ... & ... \\
+56. & europe & evropě v & 0.000240119 \\
+57. & europe & , evropu & 0.000192095 \\
+... & ... & ... & ... \\
+75. & europe & unie & 0.000192095 \\
+76. & europe & , která evropa & 0.000144071 \\
+... & ... & ... & ... \\
+94. & europe & v evropě , & 0.000144071 \\
+95. & europe & " evropa & 9.60476e-05 \\
+... & ... & ... & ... \\
+160. & europe & že by evropa & 9.60476e-05 \\
+161. & europe & " evropa ( & 4.80238e-05 \\
+... & ... & ... & ... \\
+1010. & europe & životě v evropě & 4.80238e-05 \\
 \hline
 \hline
 \end{tabular}
-\caption{\label{phrase-table-example}Phrase translation table extract.}
+\caption{\label{phrase-table-europarl}An extract from phrase table
+listing some of the possible translations of English word "Europe"
+into Czech sorted by their maximum likelihood probability.
+The full table contained more than 26 millions of phrase pairs
+and has been extracted from Europarl v6 Czech-English corpus.}
 \end{table}
 
-We may note that the example phrase table contains some erroneous items,
-as dog is unlikely to become cat just by switching to a different language.
-The fact is that standard methods of phrase table construction may produce such
-unlikely phrase translations, one reason being that their input data usually
-contains a lot of noise.
-We will discuss this problem further in the following sections.
-
 % TODO: Ctrl+C Ctrl+V from the eppex paper.
-
-Phrase tables in Statistical Machine Translation (SMT) systems generally take
-the form of a list of pairs of phrases $s$ and $t$, $s$ being the phrase from
-the source language and $t$ being the phrase from the target language, along
-with scores that should reflect the goodness of translating $s$ as $t$.
-The standard approach to obtain such scores is to use \emph{maximum likelihood
-probability} of the phrase $t$ given the phrase $s$ and vice versa.
-The probabilities $p(s|t)$ and $p(t|s)$ are often referred to as
-\emph{forward} and \emph{reverse} \emph{translation probabilities}.
-
-
-\subsection{Phrase table creation in Moses}
-
-% TODO: Ctrl+C Ctrl+V from the eppex paper.
-
 To estimate $p(s|t)$ and $p(t|s)$, frequency counts $C(t,s)$, $C(s)$ and
 $C(t)$ are usually collected from the entire training corpus.
 For substantial coverage of source and target languages, such corpora are
@@ -129,12 +227,14 @@ capacity of the disk.
 The obvious drawback of this solution is that much more time is needed
 to build the table.
 
+\subsection{Phrase table creation in Moses}
 % What's the state-of-art implementation of phrase table extraction in Moses?
 % Introduce train-model.perl and steps of training pipeline.
 
-Moses release 1.0 comes with a training script that incorporates all the steps
-involved in creation of ready-to-go translation system from the parallel corpus,
-including phrase table creation.
+% TODO: Moses release 1.0
+Moses release 1.0\footurl{http://...} comes with a training script that incorporates
+all the steps involved in creation of ready-to-go translation system from
+the parallel corpus, including phrase table creation.
 In the \emph{train-model.perl} script this whole training process is covered by
 9 subsequent steps\footurl{http://www.statmt.org/moses/?n=FactoredTraining.HomePage},
 including word alignment, lexical table construction, phrase table construction and more.
@@ -162,8 +262,6 @@ Another reason for this break-up is the extraction of reordering information
 of individual phrase pairs -- this information is later used in step 7 in creation
 of lexicalized reordering model.
 
-Let us now describe the phrase extraction and phrase scoring steps in greater detail.
-
 The whole training pipeline aims to utilize multi-core processors architecture that
 prevails in nowadays computers as much as possible. To turn on parallel processing,
 two parameters exists and they both apply also to the steps of our interest:
@@ -179,6 +277,8 @@ Despite they do very similar job, both options apply to different parts
 of implementation, so they can be combined.
 However, even if none of these options is specified, some parts of pipeline
 are still implicitly parallelized.
+
+Let us now describe the phrase extraction and phrase scoring steps in greater detail.
 
 The \emph{phrase extraction phase} starts with optional split of all input files
 (alignment information, both parts of corpus and optional weights file) into $N$

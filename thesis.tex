@@ -12,8 +12,8 @@
 % \openright zařídí, aby následující text začínal na pravé straně knihy
 \let\openright=\clearpage
 
-% http://en.wikibooks.org/wiki/LaTeX/Paragraph_Formatting
 % Use additional margin space instead of indented first line to mark new paragraph.
+% http://en.wikibooks.org/wiki/LaTeX/Paragraph_Formatting
 \usepackage{parskip}
 
 %% Pokud tiskneme oboustranně:
@@ -27,7 +27,8 @@
 % \setlength\headheight{0mm}
 % \let\openright=\cleardoublepage
 
-% Why use T1 for fontenc package: http://tex.stackexchange.com/questions/664/why-should-i-use-usepackaget1fontenc
+% Why use T1 for fontenc package:
+% http://tex.stackexchange.com/questions/664/
 \usepackage[T1]{fontenc}
 % Nice intro to LaTeX fonts: http://www-h.eng.cam.ac.uk/help/tpl/textprocessing/fonts.html
 % Better list of font families: http://www.macfreek.nl/memory/Fonts_in_LaTeX#Specifying_Fonts_to_Use
@@ -38,13 +39,24 @@
 \usepackage[utf8]{inputenc}
 
 %% Balíčky doporučené skrz http://repo.or.cz/w/csplainnat.git
-\usepackage{natbib}             % sazba pouzite literatury
+\usepackage[round]{natbib}      % sazba pouzite literatury
 \usepackage{url}                % sazba URL
 
 %% Ostatní balíčky
 \usepackage{graphicx}
+\usepackage{amsmath}
 \usepackage{amsthm}
 \usepackage{amssymb}
+
+% Allows for nice typesetting of quotes at the beginning of chapters
+% (not sure, if this is allowed in master thesis, but what the hell):
+% http://tex.stackexchange.com/questions/53377/
+\usepackage{epigraph}
+
+% Allows for continuous footnotes numbering:
+% http://tex.stackexchange.com/questions/10448/
+\usepackage{chngcntr}
+\counterwithout{footnote}{chapter}
 
 % Redefines the underscore symbol so that you don't have to escape it in text mode:
 % http://stackoverflow.com/a/1346534
@@ -90,6 +102,7 @@
 \def\url#1{{\tt{}#1}}
 \def\footurl#1{{\footnote{\tt{}#1}}}
 \def\Cref#1{Chapter~\ref{#1}}
+\def\Eref#1{Equation~\ref{#1}}
 \def\Fref#1{Figure~\ref{#1}}
 \def\Sref#1{Section~\ref{#1}}
 \def\Tref#1{Table~\ref{#1}}
@@ -292,14 +305,11 @@ Keywords:
 % Experiments
 \include{results}
 
-% TEMPORARY: what didn't make it into any other chapter
-\include{other}
-
 % Conclusions
 \include{conclusions}
 
 %%% Seznam použité literatury
-\bibliographystyle{csplainnat}
+\bibliographystyle{plainnat}
 \bibliography{biblio}
 \addcontentsline{toc}{chapter}{Bibliography}
 

@@ -1,12 +1,137 @@
 \chapter{Introduction}
 \label{chap:introduction}
 
+\setlength{\epigraphwidth}{1.0\textwidth}
+\epigraph{This page is in Czech. Would you like to translate it?}{--- Google}
+
+% A catchy intro: too informal for thesis?
+It would make for a nice brain-teasing question, of which job interviewers
+at Google are famous\footnote{For the actual tricky questions and puzzles
+asked by Google interviewers I recommend reading the book "Are You Smart
+Enough to Work at Google?" by William Poundstone.}, to ask:
+"How many bilingual elves would Google had to employ in order to translate
+all the words, sentences and web pages that are send to Google Translate
+service each day?"\footurl{http://translate.google.com}
+Obviously, it would be a hypothetical one. No bilingual elves are involved
+in translation of the bunch of texts sent to Google Translate each day.
+And no human translators either: Google Translate is fully implemented using
+computer software only.
+
+% What is MT?
+The approach Google Translate uses to deliver translations is described as
+\emph{machine translation} (MT) and more formally can be defined as a design
+or development of computer software capable of fully automated translation
+of text or speech from one natural language to another.
+The words "fully automated" are important here as machine translation should
+not be confused with approaches that only aims to design computer programs
+helping human translators to work more efficiently: these are typically
+referred to as computer-aided translation (CAT) systems.
+
+% A brief look into history.
+The first attempts to use computers for human language translation date
+back to the early ages of computing. \citet{weaver:memorandum} in his famous
+memorandum suggested:
+\begin{quote}
+(...) the possibility of contributing at least
+something to the solution of the world-wide translation problem through the use
+of electronic computers of great capacity, flexibility, and speed.
+\end{quote}
+The outset of the MT field has been marked with immense optimism, leading
+to prognosis that machine translation would be a solved problem within
+a decade. % TODO: Cite?
+This quickly proved to be unrealistic assumption and even nowadays
+there is still no system that provides the holy grail of MT:
+\emph{fully automatic high quality translation of unrestricted text}.
+
+% Introduce SMT. TODO: Slightly inspired by Preface of Koehn's book.
+However, the last 25 years have been very prolific for the field.
+A new paradigm arose, not only in MT but in natural language processing
+field in general, that employs automatic discovery of principles that
+rules human languages (and translation between them) by collecting
+statistics over the data rather than explicit definition of such rules
+by human experts.
+In \emph{statistical machine translation} (SMT) these statistics are
+collected by pairing the input and output side of the translation process.
+Co-occurrences of \emph{atomic units of translation} are used to
+evaluate properties of statistical model that is afterwards used to
+search for the most probable translation given the input text.
+The atomic units of translation are typically words or phrases and
+the respective systems are referred to as \emph{word-based} or
+\emph{phrase-based}.\footnote{In SMT context the term phrase is almost
+exclusively used to refer to any short sequence of words and wears no
+implicit linguistic notion.}
+
+% Introduce phrase table.
+Phrase-based systems internally utilize a table consisting of pairs of
+phrases, one being the phrase from the source language and the other
+being the phrase from the target language, and various scores assigned to
+these pairs by the statistical model.
+This table acts as a dictionary, listing all possible translations of phrases
+in one language into phrases in another language along with indication of
+quality of such translation expressed by the scores, and is usually referred
+to as \emph{phrase translation table} or just \emph{phrase table}.
+Any reasonable metric can be used as a phrase table score, but a de facto
+standard is to use \emph{maximum likelihood probability} of the target language
+phrase given the source language phrase and vice versa.
+
+% Sketch the problem (partially copy-pasted from eppex paper).
+To estimate maximum likelihood probabilities, frequency counts of source
+phrases, target phrases and all their co-occurrences must be collected from
+the entire parallel corpus.
+For substantial coverage of source and target languages, such corpus is often
+very big and in consequence all phrase pairs and their counts cannot fit in
+the physical memory of the computer.
+To overcome this limitation, phrase table construction methods often simply
+dump observed phrases to local disk and sort and count them on disk.
+This approach allows to construct phrase tables of size limited only by
+the capacity of the disk, with an obvious drawback that much more time is
+needed to build the table.
+
+% Introduce existing tools for phrase table filtration.
+In recent years it has been demonstrated that the load of phrase pairs can
+be much reduced without loss of translation quality:
+\citet{johnson:sigfilter} demonstrated filtering method based on significance
+testing of phrase pair cooccurrences in the parallel corpus that allowed for
+substantial savings (up to 90\%) and caused no reduction in BLEU score
+\citep{papineni:bleu}.
+However, the phrase table construction time is unaffected by this method,
+as it requires frequency counts of phrases and phrase pairs and therefore acts
+as a post-filter applied to already built phrase table.
+
+% TODO: Mention phrase table compacting?
+
+\section{Aim of this work}
+
+% Introduce our solution.
+In this work, we examine capability of an algorithm that delivers approximate
+frequency counts over stream of input items \citep{manku:lossycounting} to
+work as on-the-fly filter applied to the phrase pairs extraction,
+essentially speeding up the whole process and eliminating the need for
+any post-filtering of created phrase table.
+This approach has already been demonstrated as applicable by \citet{przywara:eppex}
+and this thesis is a direct follow-up of that effort.
+
+% What's our goal that should be confronted against in conclusions?
+The ultimate goal of this work is to implement a software tool that performs
+the filtrated phrase table construction using aforementioned algorithm.
+A successful implementation should allow to process parallel corpora of
+significant sizes (tens of millions of sentences) with memory demands manageable
+by physical memories available on present computation servers (tens of GBs).
+Beside the implementation and its detailed description, the crucial part of
+this work also consists of a careful examination of the impact that various
+settings of the algorithm imply on memory vs. time and translation quality
+trade-offs when compared to current state-of-art methods of phrase table
+creation and filtration.
+
+As a state-of-art SMT system to set our baseline, we decided to choose
+\emph{Moses}\footurl{http://www.statmt.org/moses/}, an open-source toolkit
+with rich documentation and active community of researchers and developers.
+
 \section{Thesis outline}
 
-We start with introduction of the phrase tables concept,
-portray their role in phrase-based SMT systems and describe
-methods of phrase tables construction, filtering and compression that
-are available in Moses. All of this is part of Chapter 2.
+We start with more detailed introduction to the phrase-based SMT,
+carefully describe the process of phrase translation table construction
+and mention some of the existing filtration tools.
 
 In Chapter 3 we introduce the algorithm that is the basis of our implementation
 of on-the-fly filtration and show the properties of the output produced
@@ -15,7 +140,6 @@ by the algorithm that make it particularly applicable in the filtration process.
 Chapter 4 is devoted to in-depth description of implementation details of our
 phrase table extraction tool, \emph{epochal extractor} (or shortly \eppex{}).
 Notably, various memory-management optimizations are mentioned.
-Also all the program options are explained with examples of their usage.
 
 To assess \eppex{} usability in real world applications, we carried out a set
 of carefully crafted experiments aiming at comparison of resources usage as well as
@@ -24,12 +148,9 @@ in Chapter 2.
 Detailed design of experiments is subject of Chapter 5,
 while the results are discussed in Chapter 6.
 
-Chapter 7 is used as a storage for temporary notes, random thoughts and
-useful LaTeX commands. It is going to be removed from final version
-of this work, along with this note, so if you are reading this, you have
-a draft version only or the work never reached its final state.
-
 In last chapter we comment on our results and provide a conclusion of
 what have been done and what can be done in the future work on this topic.
 
 In Appendix A you may find \eppex{} installation instructions.
+
+In Appendix B all the program options are explained with examples of their usage.
