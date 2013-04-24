@@ -1,41 +1,76 @@
 \chapter{Lossy Counting algorithm}
 \label{chap:lossy-counting}
 
-The Lossy Counting (LC) algorithm \citep{manku:lossycounting} is a \emph{deterministic algorithm}
-that computes approximate frequency counts over virtually infinite stream of input items.
-Although the counts are approximate, the error is guaranteed not to exceed a user-specified parameter.
+The \emph{Lossy Counting (LC) algorithm} \citep{manku:lossycounting} is
+a deterministic algorithm that computes approximate frequency counts
+over virtually infinite stream of input items.
+Although the counts are approximate, the error is guaranteed not to exceed
+a user-specified parameter.
 
-Specifically, Lossy Counting algorithm expects to be given two parameters:
-\emph{support} $s \in (0,1)$ and \emph{error} $\epsilon \in (0,1)$, such that $\epsilon \ll s$.
-At any point of time (after being fed with $N$ items from the stream) the algorithm can be
-asked to output the list of items with their approximate frequencies that satisfy the following guarantees:
+The algorithm has been initially developed to help with identification of
+large network flows that is essential to network monitoring, but poses a big
+computational problem due to the variability of monitored packets and limited
+memory of network hardware.
+The approximation of frequency counts results in low frequent items to be pruned
+off regularly from the frequency counts list and thus allows to keep this list
+small-sized, but ensures the high frequent items to be retained (and identified).
+This approach has been, subsequently, tested in other areas, including natural
+language processing: \citet{goyal:streaminglm} used approximate n-gram frequency
+counts to build language models, which they then applied successfully in SMT
+system achieving no significant loss in BLEU score.
+
+\section{Definition}
+
+At its initialization, Lossy Counting algorithm expects to be given two parameters:
+\emph{support} $s \in (0,1)$ and \emph{error} $\epsilon \in (0,1)$, such
+that $\epsilon \ll s$.
+At any point of time, after being fed with $N$ items from the stream,
+the algorithm can be asked to output the list of items with their approximate
+frequencies.
+The output satisfies the following guarantees:
 \begin{itemize}
- \item All items whose true frequency exceeds $sN$ are output (\emph{no false negatives}).
- \item No item whose true frequency is less than $(s - \epsilon)N$ is output (\emph{few false positives}).
- \item Estimated frequencies are less than the true frequencies by at most $\epsilon N$.
+ \item All items whose true frequency exceeds $sN$ are output
+  (\emph{no false negatives}).
+ \item No item whose true frequency is less than $(s - \epsilon)N$ is output
+  (\emph{few false positives}).
+ \item Estimated frequencies are less than the true frequencies by at most
+  $\epsilon N$.
  \item The space used by the algorithm is $O(\frac{1}{\epsilon}~log \epsilon N)$.
 \end{itemize}
 
-% TODO: Ctrl+C Ctrl+V from the eppex paper.
-
-Conceptually, the Lossy Counting algorithm divides the incoming stream of items
-into epochs of fixed size $w = \lceil \frac{1}{\epsilon} \rceil$
+Conceptually, Lossy Counting algorithm divides the incoming stream of items
+into epochs\footnote{In the original paper the term "buckets" is used.}
+of fixed size $w = \lceil \frac{1}{\epsilon} \rceil$
 (thus the name \emph{epochal extraction}).
-In order to deliver the frequency estimates, the algorithm maintains a data structure $D$
-consisting of triples ($e$, $f$, $\Delta$), where $e$ is an element from the
-stream, $f$ is its estimated frequency and $\Delta$ is the maximum possible
-error in $f$. When a new item $e$ arrives, a lookup for $e$ in $D$ is
-performed. If $e$ is already present, its frequency $f$ is incremented by one.
-Otherwise a new triple ($e$, 1, $T-1$) is added to $D$, where $T$ denotes the
-ID of current epoch (with IDs starting from 1).
+Epochs are numbered with \emph{IDs}, starting from 1.
+Given the number of currently processed items, $N > 0$, we may denote
+\emph{current epoch ID} as $I = \lceil \frac{N}{w} \rceil$.
+
+Internally, the algorithm maintains a data structure $D$ consisting of triples
+$(e, f, \Delta)$, where $e$ is an element from the stream, $f$ is its estimated
+frequency and $\Delta$ is the maximum possible error in $f$.
+Initially, $D$ is empty.
+When a new item $e$ arrives, a lookup for $e$ in $D$ is performed.
+If $e$ is already present, its frequency $f$ is incremented by one.
+Otherwise a new triple ($e$, 1, $I-1$) is added to $D$,
+where $I$ denotes the ID of current epoch as defined above.
 
 At the end of each epoch (determined by $N \equiv 0~mod~w$), the algorithm
-prunes off all items whose maximum true frequency is small. Formally, at the end
-of the epoch $T$, all triples satisfying the condition $f + \Delta \leq T$ are
-removed from $D$. When all elements in the stream have been processed, the
-algorithm returns all triples ($e$, $f$, $\Delta$) where $f \geq
-(s-\epsilon)N$.
+prunes off all items whose maximum true frequency is small.
+Formally, at the end of the epoch $I$, all triples satisfying the condition
+$f + \Delta \leq I$ are removed from $D$.
+When all elements in the stream have been processed, the algorithm returns all
+triples ($e$, $f$, $\Delta$) where $f \geq (s-\epsilon)N$.
 
-The idea behind the algorithm is that frequent elements show up more than once
-within each epoch so their frequencies are increased enough to survive the
-filtering.
+For an entry $(e, f, \Delta)$, the value of $f$ represents the exact frequency
+since this entry was inserted into $D$.
+The value of $\Delta$ assigned to a new entry is the maximum number of times
+$e$ could have occurred in the first $I-1$ buckets. This is exactly $I-1$.
+This value remains unchanged as long as the entry remains in $D$.
+
+The intuitive idea behind the Lossy Counting algorithm is that frequent elements
+show up more than once within each epoch so their frequencies are increased enough
+to survive the filtering.
+
+\section{Applicability for phrase table construction}
+% TODO: Introduce the idea of using LC to approximate frequency counts of phrase pairs.
