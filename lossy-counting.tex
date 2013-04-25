@@ -10,14 +10,21 @@ a user-specified parameter.
 The algorithm has been initially developed to help with identification of
 large network flows that is essential to network monitoring, but poses a big
 computational problem due to the variability of monitored packets and limited
-memory of network hardware.
-The approximation of frequency counts results in low frequent items to be pruned
-off regularly from the frequency counts list and thus allows to keep this list
-small-sized, but ensures the high frequent items to be retained (and identified).
-This approach has been, subsequently, tested in other areas, including natural
-language processing: \citet{goyal:streaminglm} used approximate n-gram frequency
-counts to build language models, which they then applied successfully in SMT
-system achieving no significant loss in BLEU score.
+memory of networking hardware.
+The specific design of the algorithm results in regular pruning of low frequent
+items from the frequency counts list, as the algorithm runs, and thus maintains
+this list small-sized, but in the same time ensures that high frequent items are
+retained (and identified).
+
+Many statistically-driven methods of natural language processing internally
+employ the same kind of process: they gather frequency counts over a set of highly
+variable items in order to estimate the properties of statistical model they are
+based on.
+Thus, the idea to use Lossy Counting algorithm in the field of NLP is not new:
+\citet{goyal:streaminglm} used approximate n-gram frequency counts to build language
+models from billion-word monolingual corpora using a conventional desktop machine and
+applied these models successfully in SMT system achieving no significant loss in BLEU
+score. We shall note that their work particularly inspired this thesis.
 
 \section{Definition}
 
@@ -26,15 +33,14 @@ At its initialization, Lossy Counting algorithm expects to be given two paramete
 that $\epsilon \ll s$.
 At any point of time, after being fed with $N$ items from the stream,
 the algorithm can be asked to output the list of items with their approximate
-frequencies.
-The output satisfies the following guarantees:
+frequencies that satisfies the following guarantees:
 \begin{itemize}
  \item All items whose true frequency exceeds $sN$ are output
   (\emph{no false negatives}).
  \item No item whose true frequency is less than $(s - \epsilon)N$ is output
   (\emph{few false positives}).
  \item Estimated frequencies are less than the true frequencies by at most
-  $\epsilon N$.
+  $\epsilon N$ (\emph{close-to-exact frequencies}).
  \item The space used by the algorithm is $O(\frac{1}{\epsilon}~log \epsilon N)$.
 \end{itemize}
 
@@ -71,6 +77,3 @@ This value remains unchanged as long as the entry remains in $D$.
 The intuitive idea behind the Lossy Counting algorithm is that frequent elements
 show up more than once within each epoch so their frequencies are increased enough
 to survive the filtering.
-
-\section{Applicability for phrase table construction}
-% TODO: Introduce the idea of using LC to approximate frequency counts of phrase pairs.
