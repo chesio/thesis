@@ -4,45 +4,68 @@
 % -- distinction from legacy phrase-extract tools
 % - implementation details
 % -- Murmur hash, boost pools, std c++11 hash tables, indexed storages, gzipped I/O
-% - usage
-% -- counting, extracting and scoring mode
-% -- missing features
 
 \chapter{Eppex}
 \label{chap:eppex}
 
-\Eppex{} is phrase pairs extraction and scoring tool capable of obtaining
-approximate frequency counts of extracted phrase pairs via Lossy Counting algorithm
+\Eppex{} is phrase pairs extraction and scoring tool capable of obtaining approximate
+frequency counts of extracted phrase pairs by using Lossy Counting algorithm
 (thus the name \eppex{}, an acronym for \emph{epochal phrase pairs extraction}).
-It is designed to be an alternative to standard phrase extraction and scoring tools,
-implementing most of the functionality of steps 5 and 6 of \emph{train-model.perl} script.
+It is designed to be an alternative to standard phrase extraction and scoring tools that
+are shipped with Moses, implementing most of the functionality of steps 5 and 6 of
+\emph{train-model.perl} script.
 \Eppex{} input and output interface is fully compatible with those of the replaced tools
-and \eppex{} in fact is intended to be invoked from within the training script
-by passing specific parameters to \emph{train-model.perl}.
+and \eppex{} in fact is intended to be invoked from within the training script itself
+by passing specific parameters.\footnote{For more information on how to invoke eppex consult
+\Aref{chap:usage}.}
 
-\Eppex{} differs from its core counterparts in one important aspect: during its
-runtime only physical memory is utilized, no temporary files are stored on disk
-as with \emph{extract} and \emph{score} tools.
+\Eppex{} differs from its core counterparts in one important aspect: during its runtime
+only physical memory is utilized, no temporary files are stored on disk as with \emph{extract}
+and \emph{score} tools.
 The goal is to make \eppex{} a faster alternative, aiming at environments with plenty of RAM.
-Benchmarked time/memory trade-offs are fundamental part of this work and
-are thoroughly examined in \Cref{chap:results}.
+Benchmarking of time/memory trade-offs was fundamental part of this work and the results are
+thoroughly examined in \Cref{chap:results}.
 
 \Eppex{} memory demands may be limited by setting more restrictive support and error thresholds
-for Lossy Counting, but aggressive pruning may lead to significant loss of phrase table quality
--- experimentally evaluated trade-offs are also discussed in \Cref{chap:results}.
+for Lossy Counting, but aggressive pruning may lead to loss of phrase table quality --
+experimentally evaluated trade-offs are also discussed in \Cref{chap:results}.
 
-\section{Implementation}
+This chapter is fully devoted to technical aspects of implementation and it expects the reader
+to be familiar with the basics of programming and the C++ programming language, including
+a basic knowledge of Standard Template Library (STL).
 
-\Eppex{} is implemented as command-line program and it is written in C++.
-Similarly to Moses, its primary target platform is Linux system with \emph{gcc} tool set,
-but its implementation does not employ any platform-dependent functionality,
-so porting should be rather straight-forward.
-For details of how to install \eppex{} please refer to \Aref{chap:installation}.
-In short: if your system have Boost library set up and a recent version of C++ compiler
--- one with STL implementation of hash tables introduced with \emph{C++11} standard --
-you should have no problems installing and running \eppex{}.
+\section{Design goals}
 
 % TODO: Info on GCC versions with std::unordered_ implementation.
 
 % TODO: Mention implementation tricks and tweaks:
 % Murmur hash, boost pools, std c++11 hash tables, indexed storages, gzipped I/O
+
+\Eppex{} is implemented as a command-line program and, as indicated above, it is written in C++.
+As the primary development platform for Moses is Linux\footurl{http://www.statmt.org/moses/?n=Development.GetStarted},
+\eppex{} adheres to the same philosophy and is developed and tested on Linux with \emph{GNU gcc}
+toolset\footurl{http://gcc.gnu.org/}.
+Nevertheless, \eppex{} implementation does not employ any platform-dependent functionality,
+so porting to other platforms should be a rather straight-forward task.
+In \Aref{chap:installation} instructions on how to install \eppex{} on Linux are given.
+
+\Eppex{} is intended to be run on 64-bit machines, but this is rather a matter of fact than
+a requirement: to process a parallel corpus of reasonable size, \eppex{} will in typical
+setting require much more memory than the maximum 4~GB that are available in 32-bit environments.
+Therefore, although not tested, \eppex{} should run as smoothly on 32-bit machine as it runs
+on 64-bit, but the amount of input data that it will manage to process will have to be decent
+or aggressive pruning will have to be done.
+
+\section{Strings storage}
+
+\section{Unordered sets}
+
+The recent C++ standard\footnote{ISO/IEC 14882:2011}, informally marked as C++11, standardizes
+a new type of containers, that were in fact already part of almost every implementation of STL,
+but the lack of standard definition resulted in slight differences across various implementations.
+The \emph{unordered_set} and \emph{unordered_map} containers are well known to almost every
+programmer, although usually they are referred to under a different name, as \emph{hash tables}.
+
+\subsection{Murmur hash}
+
+\section{Compressed I/O}
