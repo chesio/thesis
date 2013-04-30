@@ -73,3 +73,14 @@ programmer, although usually they are referred to under a different name, as \em
 \subsection{Murmur hash}
 
 \section{Compressed I/O}
+% TODO: Is it worth mentioning? Maybe move to Usage part?
+
+\Eppex{} can read/write directly from/to gzipped files, the same way legacy \emph{phrase-extract}
+tools does.
+This option allows to save a significant amount of disk space, as a typical phrase table will be
+3-4 times smaller when gzipped. % TODO: Proof-check the guess.
+Moreover, in environments when disks are under heavy load (shared computation servers are often
+the case), it may even speed up the whole I/O process.
+
+Our implementation simply reuses the respective library shipped with Moses source code,
+as it is cleanly designed and easy to include.
