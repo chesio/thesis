@@ -51,7 +51,11 @@ In \Aref{chap:installation} instructions on how to install \eppex{} on Linux are
 
 \Eppex{} is intended to be run on 64-bit machines, but this is rather a matter of fact than
 a requirement: to process a parallel corpus of reasonable size, \eppex{} will in typical
-setting require much more memory than the maximum 4~GB that are available in 32-bit environments.
+setting require much more memory than 32-bit environments can provide\footnote{In 32-bit
+environment the virtual address space holds no more than $2^{32}$ addresses, so at maximum
+4,294,967,296 bytes (4~GB) of memory are utilizable. Workarounds exist, but they might be
+considered unfeasible nowadays, as 64-bit architecture is well established.} (see \Cref{chap:results}
+for exact numbers).
 Therefore, although not tested, \eppex{} should run as smoothly on 32-bit machine as it runs
 on 64-bit, but the amount of input data that it will manage to process will have to be decent
 or aggressive pruning will have to be done.
