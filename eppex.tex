@@ -70,12 +70,40 @@ Both aspects are important to us, but memory usage optimization is our primary c
 since the execution speed, when compared to legacy tools, is implicitly boosted by the algorithm
 we employ and the fact that we keep all temporary data in the computer memory instead of disk.
 
-\section{Effective C++}
+\section{Implementation analysis and description}
 
 Effective program design consist of two main parts that are strictly related:
 a good analysis of the problem along with the choice of the platform and programming language
 should be followed by a fitting implementation that properly uses all the programming techniques
 and methods available in the selected language.
+
+During the program runtime the input data are processed in order to establish frequency counts
+necessary to compute the phrase pair scores and print the complete phrase translation table.
+This requires the phrase pairs to be extracted and kept in the memory along with the frequency
+and maximum error for lossy counting -- essentially, a set of triples $(e, f, \Delta)$ is
+to be maintained.\footnote{Recall the data structure $D$ introduced in \Cref{chap:lossy-counting}.}
+This data account for most of the memory required during the runtime, therefore their effective
+representation is mission-critical.
+
+\subsection{sizeof(integer)}
+
+Both frequency count and maximum error are plain unsigned integers, so at first it might seem
+there is nothing that can be possibly done about their optimization.
+However, it will be unwise to just declare them both as \verb|size_t| or \verb|unsigned int|.
+First, these datatypes can have different sizes on different platforms (typically, \verb|size_t| is
+4 bytes long on 32-bit, but 8 bytes long on 64-bit).
+Second, it is important to realize that by processing real life data we may never need as much
+space as some integer types provide and saving even few bytes per item can lead to gigabytes saved
+in total.
+
+To solve both issues, we base the definitions of crucial datatypes on definitions of cross-platform
+fixed-size integer types from Boost stdint library: 4 bytes allow to store unsigned values up to
+$2^{32} \approx 4.3 \times 10^9$ and this is definitely enough to store our frequencies\footnote{There
+is no parallel corpus yet with billions of parallel sentences, therefore it is safe to expect no phrase
+pair will occur billion times.}; 1 byte allow to store values up to 255 and this is enough to store
+the maximum error values -- they are always less than the number of epochs in a single run and in our
+settings having more than just a few epochs led to pruning that already hurt too much.
+% TODO: Check library name and URL.
 
 % Object members data alignment issues
 
