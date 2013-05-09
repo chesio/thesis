@@ -15,9 +15,8 @@ It is designed to be an alternative to standard phrase extraction and scoring to
 are shipped with Moses, implementing most of the functionality of steps 5 and 6 of
 \emph{train-model.perl} script.
 \Eppex{} input and output interface is fully compatible with those of the replaced tools
-and \eppex{} in fact is intended to be invoked from within the training script itself
-by passing specific parameters.\footnote{For more information on how to invoke eppex consult
-\Aref{chap:usage}.}
+and \eppex{} in fact is intended to be invoked from within the Moses training script itself
+by passing specific parameters.
 
 \Eppex{} differs from its core counterparts in one important aspect: during its runtime
 only physical memory is utilized, no temporary files are stored on disk as with \emph{extract}
@@ -33,6 +32,8 @@ experimentally evaluated trade-offs are also discussed in \Cref{chap:results}.
 This chapter is fully devoted to technical aspects of implementation and it expects the reader
 to be familiar with the basics of programming and the C++ programming language, including
 a basic knowledge of Standard Template Library (STL).
+Instructions on how to install \eppex{} on Linux-based operating system are given in
+\Aref{chap:installation}, usage instructions are given in \Aref{chap:usage}.
 
 \section{Design goals}
 
@@ -41,14 +42,16 @@ a basic knowledge of Standard Template Library (STL).
 % TODO: Mention implementation tricks and tweaks:
 % Murmur hash, boost pools, std c++11 hash tables, indexed storages, gzipped I/O
 
+% What and why is a target platform?
 \Eppex{} is implemented as a command-line program and, as indicated above, it is written in C++.
 As the primary development platform for Moses is Linux\footurl{http://www.statmt.org/moses/?n=Development.GetStarted},
-\eppex{} adheres to the same philosophy and is developed and tested on Linux with \emph{GNU gcc}
-toolset\footurl{http://gcc.gnu.org/}.
-Nevertheless, \eppex{} implementation does not employ any platform-dependent functionality,
-so porting to other platforms should be a rather straight-forward task.
-In \Aref{chap:installation} instructions on how to install \eppex{} on Linux are given.
+\eppex{} adheres to the same philosophy.
+It has been developed and tested on desktop version of Ubuntu 12.04 LTS with GCC 4.6.3
+and server version of Ubuntu 10.04 LTS with GCC 4.4.3 installed. % TODO: Check server version.
+Nevertheless, considerable effort has been taken to make the implementation as cross-platform
+compatible as possible.
 
+% 64-bit or 32-bit?
 \Eppex{} is intended to be run on 64-bit machines, but this is rather a matter of fact than
 a requirement: to process a parallel corpus of reasonable size, \eppex{} will in typical
 setting require much more memory than 32-bit environments can provide\footnote{In 32-bit
@@ -58,9 +61,73 @@ considered unfeasible nowadays, as 64-bit architecture is well established.} (se
 for exact numbers).
 Therefore, although not tested, \eppex{} should run as smoothly on 32-bit machine as it runs
 on 64-bit, but the amount of input data that it will manage to process will have to be decent
-or aggressive pruning will have to be done.
+or aggressive pruning will have to be undertaken.
 
-\section{Strings storage}
+% Why C++?
+C++ is a programming language that offers a wide range of optimization techniques to
+tune up both the execution speed and memory requirements of a program.
+Both aspects are important to us, but memory usage optimization is our primary concern,
+since the execution speed, when compared to legacy tools, is implicitly boosted by the algorithm
+we employ and the fact that we keep all temporary data in the computer memory instead of disk.
+
+\section{Effective C++}
+
+Effective program design consist of two main parts that are strictly related:
+a good analysis of the problem along with the choice of the platform and programming language
+should be followed by a fitting implementation that properly uses all the programming techniques
+and methods available in the selected language.
+
+% Object members data alignment issues
+
+% Indexed strings storage
+
+% "Copying" phrases between extraction and scoring
+
+\section{Words, phrases, alignments}
+
+% Types of objects stored:
+% - words, phrases, alignments
+
+During the program runtime, a multitude of objects of following three types has to be
+kept in memory:
+\begin{itemize}
+  \item word -- a sequence of characters (bytes)
+  \item phrase -- a sequence of words
+  \item alignment -- a sequence of pairs of indexes
+\end{itemize}
+
+The word is just a string.
+
+\subsection{C-string vs. std::string}
+% Why had we used C-string instead of std::string.
+
+Unlike Java, C and C++ have no fundamental data type for strings, instead they have to be
+stored as an array of \verb|chars|.
+Such string handling is obviously too low-level for most modern applications,
+which are mainly about string processing, so STL creators came to help and designed several
+\emph{string} classes that mimic behavior of ordinary data types \citep[Chapter 11]{josuttis:stl}:
+STL strings may be copied, assigned and compared like any other fundamental type,
+without the programmer being worried about the internal memory allocations and deallocations.
+Because both approaches are very often used side by side, there exists usual terminology to
+distinguish between them:
+the arrays of characters are called \emph{C-like-strings} (or shortly \emph{C-strings}) and
+STL string classes are just \emph{strings} (sometimes labeled \emph{std::string} after the
+most commonly used class).
+
+From the memory management standpoint, it turns out, that any \emph{std::string} implementation
+has bigger memory demands than old plain C-string.
+This is expectable: the string class has to provide more flexible interface and does all
+the internal memory management by itself. Depending on particular implementation, it might
+store the size of the string, store the capacity of allocated memory, do the reference counting
+and more \citep[Item 15]{meyers:effectivestl}.
+This is why we backed off to use C-strings to store string data in \eppex{}.
+The reference counting feature seems to be useful for our phrase-counting problem,
+but not every STL implementation has it.
+In addition, we designed a string referencing solution more tailored to our needs.
+
+\subsection{Persistence and memory pooling}
+
+% Indexed strings storage (and memory pools)
 
 \section{Unordered sets}
 
