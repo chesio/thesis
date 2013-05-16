@@ -35,20 +35,23 @@ a basic knowledge of Standard Template Library (STL).
 Instructions on how to install \eppex{} on Linux-based operating system are given in
 \Aref{chap:installation}, usage instructions are given in \Aref{chap:usage}.
 
-\section{Design goals}
+\section{Design goals and philosophy}
 
 % TODO: Info on GCC versions with std::unordered_ implementation.
 
-% TODO: Mention implementation tricks and tweaks:
-% Murmur hash, boost pools, std c++11 hash tables, indexed storages, gzipped I/O
-
 % What and why is a target platform?
 \Eppex{} is implemented as a command-line program and, as indicated above, it is written in C++.
-As the primary development platform for Moses is Linux\footurl{http://www.statmt.org/moses/?n=Development.GetStarted},
-\eppex{} adheres to the same philosophy.
-It has been developed and tested on desktop version of Ubuntu 12.04 LTS with GCC 4.6.3
-and server version of Ubuntu 10.04 LTS with GCC 4.4.3 installed. % TODO: Check server version.
-Nevertheless, considerable effort has been taken to make the implementation as cross-platform
+From the development perspective, \eppex{} adheres to the philosophy of Moses, what is mainly
+reflected by the selection of development platform and third party libraries:
+\begin{enumerate}
+  \item The primary development platform is Linux --
+  \eppex{} has been developed and tested on desktop version of Ubuntu 12.04 LTS with GCC 4.6.3 and
+  server version of Ubuntu 10.04 LTS with GCC 4.4.3 installed. % TODO: Check server version.
+  \item \Eppex{} relies on Boost C++ library\footurl{http://www.boost.org/} -- it is used to provide
+  some essential functionality, so \eppex{} cannot be compiled without access to some of Boost
+  headers and packages.\footnote{See \Aref{chap:installation} for details.}
+\end{enumerate}
+Nevertheless, a considerable effort has been taken to make the implementation as cross-platform
 compatible as possible.
 
 % 64-bit or 32-bit?
@@ -63,77 +66,64 @@ Therefore, although not tested, \eppex{} should run as smoothly on 32-bit machin
 on 64-bit, but the amount of input data that it will manage to process will have to be decent
 or aggressive pruning will have to be undertaken.
 
+\section{Effective C++}
+
 % Why C++?
 C++ is a programming language that offers a wide range of optimization techniques to
 tune up both the execution speed and memory requirements of a program.
 Both aspects are important to us, but memory usage optimization is our primary concern,
-since the execution speed, when compared to legacy tools, is implicitly boosted by the algorithm
-we employ and the fact that we keep all temporary data in the computer memory instead of disk.
+since the execution speed, when compared to legacy tools, is implicitly boosted by
+the Lossy Counting algorithm and the fact that we keep all temporary data in the computer
+memory instead of disk.
+In this section we present several universal rules and techniques for effective C++
+programming that we followed and applied during implementation of \emph{eppex}.
 
-\section{Implementation analysis and description}
+\subsection{Data alignment and structure packing}
 
-Effective program design consist of two main parts that are strictly related:
-a good analysis of the problem along with the choice of the platform and programming language
-should be followed by a fitting implementation that properly uses all the programming techniques
-and methods available in the selected language.
+The issue behind \emph{data alignment} is best explained using example
+-- let us define a dummy structure \verb|LossyCounterItem|:
 
-During the program runtime the input data are processed in order to establish frequency counts
-necessary to compute the phrase pair scores and print the complete phrase translation table.
-This requires the phrase pairs to be extracted and kept in the memory along with the frequency
-and maximum error for lossy counting -- essentially, a set of triples $(e, f, \Delta)$ is
-to be maintained.\footnote{Recall the data structure $D$ introduced in \Cref{chap:lossy-counting}.}
-This data account for most of the memory required during the runtime, therefore their effective
-representation is mission-critical.
+\begin{verbatim}
+struct LossyCounterItem {
+  unsigned char maximum_error; // sizeof(unsigned char) == 1
+  unsigned int frequency; // sizeof(unsigned int) == 4
+  unsigned short item_id; // sizeof(unsigned short) == 2
+};
+\end{verbatim}
 
-\subsection{sizeof(integer)}
+Given the definition above and with respect to the byte sizes of individual members,
+one would expect that \verb|sizeof(LossyCountItem)| equals to 7, but this guess
+will be wrong in most of the cases as the most likely result is 12.
 
-Both frequency count and maximum error are plain unsigned integers, so at first it might seem
-there is nothing that can be possibly done about their optimization.
-However, it will be unwise to just declare them both as \verb|size_t| or \verb|unsigned int|.
-First, these datatypes can have different sizes on different platforms (typically, \verb|size_t| is
-4 bytes long on 32-bit, but 8 bytes long on 64-bit).
-Second, it is important to realize that by processing real life data we may never need as much
-space as some integer types provide and saving even few bytes per item can lead to gigabytes saved
-in total.
+This unexpected behavior stems from the fact that many machines require that
+objects of certain type are aligned on architecture-dependent boundaries,
+for example integers are often allocated on word\footnote{Word in computer
+architecture terminology denotes a fixed-sized group of bits that are handled
+as a unit by the instruction  set and/or hardware of the processor.} boundaries
+\citep[Chapter 5]{stroustrup:cplusplus}.
 
-To solve both issues, we base the definitions of crucial datatypes on definitions of cross-platform
-fixed-size integer types from Boost stdint library: 4 bytes allow to store unsigned values up to
-$2^{32} \approx 4.3 \times 10^9$ and this is definitely enough to store our frequencies\footnote{There
-is no parallel corpus yet with billions of parallel sentences, therefore it is safe to expect no phrase
-pair will occur billion times.}; 1 byte allow to store values up to 255 and this is enough to store
-the maximum error values -- they are always less than the number of epochs in a single run and in our
-settings having more than just a few epochs led to pruning that already hurt too much.
-% TODO: Check library name and URL.
+The easiest way how to minimize effects of data alignment is to order members
+by their size with the largest members first.
+This way our \verb|LossyCounterItem| structure can be shrunk to 8 bytes,
+but still there will be one byte of blank padding at the end of the structure.
+With some compilers this padding can be trimmed by setting on \emph{structure packing}
+using \verb|#pragma| preprocessor directive, but doing this will slow data access
+on most processors that read memory by words, because objects in misaligned structures
+will span multiple words and in consequence require more reads.
 
-% Object members data alignment issues
-
-% Indexed strings storage
-
-% "Copying" phrases between extraction and scoring
-
-\section{Words, phrases, alignments}
-
-% Types of objects stored:
-% - words, phrases, alignments
-
-During the program runtime, a multitude of objects of following three types has to be
-kept in memory:
-\begin{itemize}
-  \item word -- a sequence of characters (bytes)
-  \item phrase -- a sequence of words
-  \item alignment -- a sequence of pairs of indexes
-\end{itemize}
-
-The word is just a string.
+This being said, the best solution in terms of code portability and effectiveness
+is to design data structures in such a way that all their members properly align:
+this ensures their effective handling by processing unit without spurious memory padding.
 
 \subsection{C-string vs. std::string}
 % Why had we used C-string instead of std::string.
 
-Unlike Java, C and C++ have no fundamental data type for strings, instead they have to be
-stored as an array of \verb|chars|.
+Unlike Java, C and C++ have no fundamental data type for strings, instead they have
+to be stored as an array of \verb|chars|.
 Such string handling is obviously too low-level for most modern applications,
-which are mainly about string processing, so STL creators came to help and designed several
-\emph{string} classes that mimic behavior of ordinary data types \citep[Chapter 11]{josuttis:stl}:
+which are mainly about string processing, so STL creators came to help and designed
+several \emph{string} classes that mimic behavior of ordinary data types
+\citep[Chapter 11]{josuttis:stl}:
 STL strings may be copied, assigned and compared like any other fundamental type,
 without the programmer being worried about the internal memory allocations and deallocations.
 Because both approaches are very often used side by side, there exists usual terminology to
@@ -142,30 +132,174 @@ the arrays of characters are called \emph{C-like-strings} (or shortly \emph{C-st
 STL string classes are just \emph{strings} (sometimes labeled \emph{std::string} after the
 most commonly used class).
 
-From the memory management standpoint, it turns out, that any \emph{std::string} implementation
-has bigger memory demands than old plain C-string.
-This is expectable: the string class has to provide more flexible interface and does all
-the internal memory management by itself. Depending on particular implementation, it might
-store the size of the string, store the capacity of allocated memory, do the reference counting
-and more \citep[Item 15]{meyers:effectivestl}.
-This is why we backed off to use C-strings to store string data in \eppex{}.
+From the memory management standpoint it turns out, that any std::string
+implementation will be more memory demanding than plain C-string.
+This is expectable: the STL string class has to provide more flexible interface
+and does all the internal memory management by itself.
+Depending on particular implementation, it might store the size of the string,
+store the capacity of allocated memory, do the reference counting and more
+\citep[Item 15]{meyers:effectivestl}.
 The reference counting feature seems to be useful for our phrase-counting problem,
-but not every STL implementation has it.
-In addition, we designed a string referencing solution more tailored to our needs.
+but it would imply to rely on proprietary implementation that is not enforced by
+standard, which is a bad design choice for any open-source software.
 
-\subsection{Persistence and memory pooling}
+To sum up: when memory footprint of strings storage is more important than
+the convenience and flexibility of their handling, C-string is a better option
+than any STL string implementation.
 
-% Indexed strings storage (and memory pools)
+\subsection{Objects unification}
 
-\section{Unordered sets}
+When processing large stream of items that might be compared to each other
+and decided to be either different or equal, it is often useful to keep only
+a single representation of each \emph{unique} item in computer memory and use
+some type of reference to this representation in all the program parts that
+has to access it instead of a full copy of item data.
+Obviously, this technique is not applicable universally, because reference
+handling as such incurs some additional memory overhead.
+In general, the efficiency of \emph{objects unification} depends on following
+factors:
+\begin{enumerate}
+  \item The input redundancy of objects -- the greater the redundancy, the greater
+  the memory savings.
+  \item The processing redundancy of objects -- the more the objects have to be
+  referenced within the program, the greater the memory savings.
+  \item The ratio between average size of object and size of reference to it
+  -- the greater the ratio, the more memory is saved by each reference.
+  Clearly, this ratio has to be greater than one.
+\end{enumerate}
 
-The recent C++ standard\footnote{ISO/IEC 14882:2011}, informally marked as C++11, standardizes
-a new type of containers, that were in fact already part of almost every implementation of STL,
-but the lack of standard definition resulted in slight differences across various implementations.
-The \emph{unordered_set} and \emph{unordered_map} containers are well known to almost every
-programmer, although usually they are referred to under a different name, as \emph{hash tables}.
+Typically, a programmer cannot affect the first factor, but should carefully consider it.
+For example, Zipf's law \citep[Chapter 1]{manning:stat-nlp} suggests that using
+unification for words pulled from natural language corpus can be viable.
+% A half of Brown corpus can be represented with only 135 vocabulary items.
 
-\subsection{Murmur hash}
+The second factor might be tricky to consider in programs with non-linear work flow,
+for example when the amount of items within program scope depends on some external
+factor (time of day etc.), but in case of streamline input processing this value is
+most often approximated well by some constant.
+
+As for the third factor, with C++ we have two options, how to reference an object:
+\begin{enumerate}
+  \item by using object's address within memory
+  \item by using a numeric index that uniquely identifies an object within a large storage
+  (either a random access container or array).
+\end{enumerate}
+
+We may note that both options are fundamentally the same:
+the pointer is basically a numeric index into the container of maximum size (entire memory)
+and the numeric index is just a pointer into restrained part of memory (container).
+The pointer is easier to dereference, but comes in single size only -- the size of
+\emph{processor unit word}, which on 64-bit architecture is 8 bytes long.
+On the other hand, to dereference numeric index always a corresponding container must be
+accessed to provide reference starting point, but numeric index data type can be adjusted to
+the size of domain of unified items, if it is known or can be assessed by some upper bound.
+Being able to reference 4 billions of unique objects is enough in many situations and
+thus 4 bytes long integer type will suffice.
+
+Finally, we shall point out that when unifying objects we save memory in favor
+of processing time: especially insertion of new object is more time-consuming,
+as every new object have to be first checked for an existing copy.
+
+\subsection{Simple segregated storage}
+
+Almost every non-trivial computer program uses dynamic memory allocation.
+C++ provides two interfaces to ask for a new memory during program runtime:
+one can either use legacy C API function \emph{malloc} or pure C++ API operator \emph{new}.
+Both APIs has to provide means to satisfy any type of memory request -- and for any size.
+Hence, usually the size of allocated memory block (and any other bookkeeping information) is
+kept in memory chunk right before the block itself \citep[Chapter 10]{meyers:effective-cpp}.
+This way, for deallocation either via \emph{free} function or operator \emph{delete}
+memory allocator only needs the pointer to memory block that should be deallocated and
+can easy determine, how much memory should be actually freed.
+
+The obvious overhead in memory consumption incurred by this approach is usually negligible,
+but may become significant in situations, when a load of small-sized memory blocks is allocated.
+To avoid the overhead in such situations, a frequently used approach is to allocate big pool of
+fixed-size memory blocks once a time and serve these blocks sequentially as new memory requests
+come in, allocating a new pool whenever all memory blocks in existing pools are exhausted.
+This technique is generally called \emph{memory pooling}, but when details of
+memory pool allocation and deallocation matters, usually more specific names are used to
+distinguish between various implementations --  a \emph{simple segregated storage} is an example
+of one specific
+implementation.\footurl{http://www.boost.org/doc/libs/1_53_0/libs/pool/doc/html/boost_pool/pool/pooling.html}
+
+% Unions - in current version of Eppex they don't play significant role.
+
+\subsection{Unordered sets}
+
+The recent C++ standard\footnote{ISO/IEC 14882:2011}, marked as C++11, standardizes
+a new type of containers, that were already part of almost every implementation of STL,
+but due non-existing standardization they differ slightly in their interfaces across
+various implementations.
+The \emph{unordered associative containers} are well known to almost every programmer,
+although usually they are referred to under a different name: \emph{hash tables}.
+
+The C++11 standard defines four types of hash table containers that correspond to existing
+binary-search-tree-based containers (with an \emph{unordered_} prefix):
+\emph{unordered_set}, \emph{unordered_multiset}, \emph{unordered_map} and \emph{unordered_multimap}.
+The key differences between hash tables and binary-search trees are:
+\begin{itemize}
+  \item Binary-search trees require less-than comparison operator to be defined for stored items,
+  whereas hash tables require equal-to comparison operator and also a hash function to be
+  defined for them.
+  \item When iterating over binary-search tree the items are returned in order provided by
+  less-than comparison operator, whereas iteration over hash table returns items in arbitrary
+  order.
+  \item Lookup, insertion and deletion operations with hash tables have amortized (constant)
+  average cost per operation (one call to hash function plus one or more equality comparisons),
+  whereas with binary-search tree these operations have cost dependent on the number of items
+  in the tree ($N$): each operation requires $log_2(N)$ comparisons.
+\end{itemize}
+
+In the real life applications hash tables often perform much better than binary-search
+trees, although their worst case complexity is linear with respect to number of items
+(standard requires that hash tables are implemented using
+\emph{closed addressing}\footurl{http://en.wikipedia.org/wiki/Hash_tables\#Separate_chaining}).
+% TODO: Cite wikipedia or find a "better" source?
+The effectiveness of hash tables stands and falls with a hash function:
+a good hash function has to be fast to compute and display the quality of distributing
+the data as evenly as possible over its output range.
+
+\section{Implementation analysis and description}
+
+During the program runtime the input data are processed in order to establish frequency counts
+necessary to compute the phrase pair scores and print the complete phrase translation table.
+This requires the phrase pairs to be extracted and kept in the memory along with the frequency
+and maximum error for lossy counting -- essentially, a set of triples $(e, f, \Delta)$ is
+to be maintained.\footnote{I.e. the data structure $D$ described in \Cref{chap:lossy-counting}.}
+These data account for most of the memory required during the runtime, therefore their effective
+representation in memory is mission-critical.
+
+\subsection{Size of integer types}
+
+Both frequency count and maximum error are plain unsigned integers, so at first it might seem
+there is nothing that can be possibly done about their optimization.
+However, it will be unwise to just declare them both as \verb|unsigned int|.
+First, the size of integer data types is implementation dependent.
+Despite that \verb|int| is typically 4 bytes long, this is not guaranteed \citep[Chapter 4.6]{stroustrup:cplusplus}.
+Second, it is important to realize that by processing real life data we may never need as much
+space as some integer types provide and saving even few bytes per item can lead to gigabytes
+saved in total.
+
+To ensure cross-platform compatibility, we base the definitions of frequency count and maximum
+error (and other crucial numeric types) on definitions of fixed-size integer types from Boost.Integer
+library:\footurl{http://www.boost.org/doc/libs/1_53_0/libs/integer/doc/html/index.html}
+4~bytes allow to store unsigned values up to $2^{32} \approx 4.3 \times 10^9$ and this is definitely
+enough to store frequency counts in our task;\footnote{There is no parallel corpus yet with billions
+of parallel sentences, therefore it is safe to expect no phrase pair will occur billion times.}
+1~byte allow to store values up to 255 and this is enough to store the maximum error values
+-- they are always less than the number of epochs and in our experiments we observed that having
+more than just a few epochs led to pruning that already hurt too much.
+
+\subsection{Words, phrases, alignments}
+
+% Types of objects stored:
+% - words, phrases, alignments
+
+In contrast to counters, a phrase pair is quite a complex structure: it consist of source phrase,
+target phrase and also the information about alignment between particular words of both phrases.
+Both source and target phrases can be further decomposed into sequence of words, while alignment
+information can be further decomposed into sequence of alignment points (arranged in pairs).
 
 \section{Compressed I/O}
 % TODO: Is it worth mentioning? Maybe move to Usage part?
@@ -179,3 +313,5 @@ the case), it may even speed up the whole I/O process.
 
 Our implementation simply reuses the respective library shipped with Moses source code,
 as it is cleanly designed and easy to include.
+
+% "Copying" phrases between extraction and scoring
