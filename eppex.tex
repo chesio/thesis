@@ -302,6 +302,55 @@ target phrase and also the information about alignment between particular words 
 Both source and target phrases can be further decomposed into sequence of words, while alignment
 information can be further decomposed into sequence of alignment points (arranged in pairs).
 
+Let us try to sketch a possible implementation of phrase pair structure.
+Given the description above and being familiar with the containers from standard
+template library, we might come up with something like this:
+\begin{verbatim}
+struct PhrasePair {
+  std::vector<std::string> source; // Sequence of source words.
+  std::vector<std::string> target; // Sequence of target words.
+  std::vector<size_t> alignment; // Sequence of alignment points.
+};
+\end{verbatim}
+
+If we were to check the size of this structure, we would get astonishing value of 72
+bytes!\footnote{With GCC on 64-bit machine, on 32-bit machine this value will be usually
+half as big.}
+It might seem not so horrible at first, but we have to realize that this value accounts only
+for meta information required by STL \verb|vector| container and the actual data will consume
+additional memory, dynamically acquired from heap.
+Assuming a parallel corpus with hundred of millions of phrase pairs, only to store the meta
+information several gigabytes of memory will be necessary.
+
+Obviously, we have to design our structure for phrase pair more carefully and
+the main point of the hypothetical example above was just to set a kind of baseline that will help us
+stress the difference between a straight-forward implementation and the implementation based on sound
+analysis of the problem and proper usage of optimization options that come with C++ language.
+
+% This is why we sacrificed convenience of use of \emph{std::string} and backed off to C-strings
+% to store string data in \eppex{}.
+
+
+% Properties of phrase pair alignment.
+Each word can be either aligned with one counterpart word or can have so called \emph{NULL-alignment}.
+A phrase can be treated as a coherent unit, but it is useful to break phrase into words.
+
+% TODO: Alignment length.
+
+During the program runtime, a multitude of objects of following three types has to be
+kept in memory:
+\begin{itemize}
+  \item word -- a sequence of characters (bytes)
+  \item phrase -- a sequence of words
+  \item alignment -- a sequence of pairs of indexes
+\end{itemize}
+
+The word is just a string.
+
+\subsection{Persistence and memory pooling}
+
+% Indexed strings storage (and memory pools)
+
 \section{Compressed I/O}
 
 \Eppex{} can read/write directly from/to gzipped files, the same way legacy \emph{phrase-extract}
