@@ -1,40 +1,98 @@
-% In this chapter:
-% - ...
-
 \chapter{Experiments}
 \label{chap:experiments}
 
-We conducted a series of experimental phrase table extractions with both eppex and
-standard phrase extraction toolkit shipped with Moses.
-All runs were carefully benchmarked -- we gauged CPU time, wall-clock time and
-physical memory usage of all relevant steps.
-We also performed comparison of ultimate translation quality as represented by BLEU score.
-In this chapter we are going to describe the details of our experiments and
-the parameters of various scenarios,
-while the benchmarking results are presented in the chapter that follows.
+We conducted a series of experimental phrase table extractions in order to
+assess \eppex{} memory demands, determine the ratio of speed up of the whole
+process and evaluate the impact of filtering on the ultimate quality of phrase
+tables.
+In this chapter we are going to describe the parameters of our experiments,
+while the results of runtime and quality benchmarking are presented in
+\Cref{chap:results}.
 
-\section{Baseline}
+\section{Baseline setup}
 
-The training process of Moses takes place in nine steps.\footurl{http://www.statmt.org/moses/?n=FactoredTraining.HomePage}
-These steps cover the whole training pipeline including word alignment, lexical table construction,
-phrase table construction and more. The phrase table construction itself is done in two steps,
-phrase extraction and phrase scoring, which might be even further split into following
-sub-steps: (1) phrase extraction that produces direct and reverse phrase table halves
-(without scores yet); (2) sorting and (3) scoring of the direct table; (4)
-sorting and (5) scoring of the reverse table; (6) sorting of the scored
-reverse table; (7) consolidation of the scored direct and reverse tables.
+Our baseline is naturally determined by the \emph{phrase-extract} suite that
+is core part of Moses toolkit.
+In \Cref{chap:phrase-based} we explained that the phrase table creation process
+is implemented in two steps: phrase pairs extraction and phrase pairs scoring.
+% The first of these steps is implemented within \emph{extract} program, the second
+% is implemented within \emph{score} and \emph{consolidate} programs.
+Both steps can be partially run in parallel and therefore we decided to run
+experiments with two types of baseline: non-parallel and parallel.
 
-% Introduce --parallel and --cores options.
-The training process in Moses can utilize multi-core architecture if it is available.
+% TODO: Pick only single parallel setup.
+In parallel setup we run phrase table extraction by \emph{train-model.perl}
+either with \verb|--parallel| option or with \verb|--cores| set to $N-1$,
+where $N$ is number of cores of our machine.
 
-For clarity of results we sticked to recent Moses release 1.0.
+% Post-filtering baseline.
+Post-filtering the phrase table with significance filter can be considered as
+yet another baseline, mainly useful for quality benchmarking, because
+phrase table extraction with post-filtering is by design more time-consuming
+than just sole phrase table extraction.
+
+% Moses 1.0 only
+For clarity of results in all our experiments we sticked to Moses release 1.0.
+
+\section{Eppex setup}
+
+The runtime performance of \eppex{} and the degree of pruning is determined
+by the parameters of Lossy Counting.
+For each phrase pair length a separate Lossy Counter instance can be set.
+
+% all-in setup
+The simplest case is to use no pruning at all. All phrase pairs will be
+output and the phrase table will be equal to the one created by baseline
+extraction.\footnote{Equal does not necessarily mean identical: some minor
+differences in scores with floating point values might occur due to rounding
+errors.}
+
+% sigfilter-like setups
+Another setup interesting to consider is the approximation of significance
+filtering with $\alpha \pm \epsilon$ thresholds.
+By setting \emph{support} $s$ to value such that $sN < 1$, all of the 1-1-1
+phrases will be preserved (like in $\alpha - \epsilon$), while setting
+\emph{support} $s$ and \emph{error} $\epsilon$ to satisfy $(s - \epsilon)N > 1$
+will result in their complete removal (like in $\alpha + \epsilon$).
+
+% frequency limits setup
+To set \emph{support} and \emph{error} parameters properly, the value of $N$,
+that is the number of all extracted phrase pairs, have to be known in advance.
+% TODO: Finish.
 
 \section{Data}
-% Data we used:
-% - CzEng
-% - Giga corpus
+% Data we used in experiments.
 
-We picked up two datasets with significant amount of data: CzEng and Giga corpus.
+% Czech-English
+We used CzEng 1.0 parallel corpus \citep{czeng10:lrec2012} to train Czech-English
+translation model.
+% TODO: Update with more precise info when Obo reply.
+
+% French-English
+To confront \eppex{} with even more challenging input data (in terms of size),
+we also prepared French-English translation model using data available for
+Shared Machine Translation Task for 2013 Workshop on Statistical Machine
+Translation (WMT~13 in short).\footurl{http://www.statmt.org/wmt13/translation-task.html}
+These data consist of following parallel corpora:
+\begin{itemize}
+  \item Europarl v7 (Fr-En data)\footurl{http://www.statmt.org/europarl/}
+  \item Common Crawl corpus
+  \item United Nations corpus\footurl{http://www.euromatrixplus.net/multi-un/}
+  \item News Commentary corpus
+  \item $10^9$ French-English corpus
+\end{itemize}
+The size of our joint French-English training data is (after preprocessing described
+below) XX sentences with YY French and ZZ English tokens. % TODO: Add information about size.
+% TODO: Add information about monolingual data used.
+
+% Czech-English (cu-bojar)
+Finally, we were curious to get some insight in the rate of performance improvement
+of both \eppex{} and \emph{phrase-extract} tools since their older versions that have
+been evaluated in a similar manner by \citet{przywara:eppex}.
+Therefore, as a third dataset we picked up the same data that have been used in their
+work -- see \citet{marecek:twostep} for the exact setup of the system \emph{cu-bojar}.
+This parallel corpus is the smallest from our three configurations: it contains
+8.4~M sentence pairs with 93.2~M Czech and 107.2~M English tokens.
 
 \subsection{Preprocessing}
 
@@ -77,18 +135,63 @@ because the overlong sentence must be removed along with its counterpart from th
 to keep the remaining sentences properly aligned.
 Usually during this step one wants to remove also any empty lines as the same principle applies to them.
 
-\section{Benchmarking}
-% What has been benchmarked:
-% - CPU time, wall clock time, RAM usage
-% - BLEU score
-% How the benchmarking was implemented?
-% Few lines about the OS and HW settings of our machine.
+\section{Runtime benchmarking}
 
-% tauri* configuration
-We benchmarked \emph{cu-bojar} configuration using set of 10 servers that are part of Sun Grid Engine cluster.
-Using multiple machines allowed us to speed up experiment process by running jobs with different setup at once.
-Although these machines were standard nodes in a cluster, we kept jobs of other users away by ordering SGE
-to reserve all memory of the machine for our job only.
-The picked servers all had identical hardware configuration: they were running 64-bit version of
-Ubuntu 10.04 server edition on 2 Core4 Intel Xeon 3 GHz processors (4 cores in total) with 32 GB of RAM.
-All the input and output files were read and written to a locally mounted hard disk.
+% What has been benchmarked?
+We benchmarked phrase table construction by measuring CPU time, wall clock time
+and maximum virtual memory requirements of \eppex{} and \emph{phrase-extract} tools.
+
+% Environment.
+For all experiments we used servers that are part of Sun Grid Engine cluster.
+Although these machines were standard nodes in a cluster, we kept jobs of other
+users away by ordering SGE to reserve all memory of the machine for our job only.
+All the input and output files of benchmarked processes were read from and written
+to a locally mounted hard disk, therefore network load had minimal impact on
+benchmarking results.
+
+% Software and hardware configuration.
+All the servers had identical software configuration:
+they were running 64-bit version of Ubuntu 10.04 server edition.
+All experiments with a particular dataset were run on a random machine from
+set of servers with identical hardware configuration:
+\begin{itemize}
+  \item "cu-bojar" configuration was run on machines with two Core4 Intel Xeon 3~GHz
+  processors (4~cores in total) with 32~GB of RAM and approximately 429~GB of
+  hard disk space. % tauri
+  \item "cs-en" configuration was run on machines with two Core4 Intel Xeon 2.4~GHz
+  processors (4~cores in total) with 48~GB of RAM and approximately 447~GB of
+  hard disk space. % twister
+  \item "fr-en" configuration was run on a single machine with four Core2 Intel Xeon
+  2.93~GHz processors (8~cores in total) with 256~GB of RAM and approximately
+  558~GB of hard disk space. % cosmos
+\end{itemize}
+
+% How the benchmarking was implemented?
+% TODO: Make script available online.
+
+% TODO: More info on complexity of training script (a lot of subprocesses).
+
+The baseline phrase table creation managed by the training script involves
+running multitude of working subprocesses to perform various intermediate
+tasks like phrase pairs extraction, phrase pairs scoring, phrase table
+consolidation, gzipping, wrapping the parallel execution etc.
+As there is no single process to benchmark, we crafted a special Python
+script to measure the runtime demands of this whole subtree of processes.
+The script periodically gathers list of all subprocesses of observed process
+(that is the main training script), captures the values of their CPU time
+used so far and currently occupied virtual memory and updates the total CPU
+time counter and virtual memory peak.
+To retrieve a list of child processes a call to Unix \verb|ps| utility is
+performed, CPU time and virtual memory usage of each process are read from
+\verb|stat| and \verb|status| files from the respective \verb|/proc/[pid]/|
+directory.
+A period of one second gives a reasonable precision of benchmark, while
+not impacting the performance of running processes.
+The script provides a full log with benchmarking information of all detected
+subprocesses, but we are mainly interested in the final summary that presents
+the total wall clock time, aggregated CPU time consumed by all subprocesses
+and their joint virtual memory peak.
+
+\section{Phrase table quality benchmarking}
+
+% BLEU score
