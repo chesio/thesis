@@ -1,2 +1,69 @@
 \chapter{Results}
 \label{chap:results}
+
+\section{Comparison to 2011 version}
+% Comparison of current eppex and phrase-extract performance vs. mid-2011 state
+
+The early version of \eppex{} was able to only extract phrases and therefore
+perform a faster phrase table creation than the legacy \emph{phrase-extract}
+only in settings where lossy counting resulted in significant filtration of
+extracted phrase pairs, so the consequent sub-steps (sorting, scoring and
+consolidation of both phrase table halves) had to process reduced amount of
+data and thus the whole process finished faster.
+\citet{przywara:eppex} presented an evaluation of that early version of
+\eppex{} (we will refer to it as "2011 experiments" in further text).
+
+As we had all the parallel data used in 2011 experiments available and
+we perform our runtime benchmarking in almost identical manner,
+we decided to perform comparison between early and current version of both
+\eppex{} as well as \emph{phrase-extract} toolkit.
+
+\subsection{Implementation differences}
+
+The current version of \eppex{} differs from the early version mainly in the
+capability of performing not only phrase pairs extraction, but a complete
+phrase table construction (that is including phrase pairs scoring).
+The early version, however, could be used to extract orientation info
+the same way \emph{extract} can, while this functionality has been dropped
+from the current version as not related to the core task of phrase table creation.
+Internally, there have been a multitude of performance tweaks,
+as performance optimization is the most important aim in \eppex{} development,
+but a full listing of implementation changes would be purposeless here.
+
+On the contrary, \emph{phrase-extract} suite has been updated mainly in order to
+provide a richer functionality, but three changes since the mid-2011 version
+had sound impact on its runtime performance: the optimization of target phrases
+scanning in \emph{scorer} implementation,\footnote{Commit 677378774aca30c8f0d4ca57267f7ac5ef7d7cb6.}
+adding an option to gzip the output directly within the main three binaries
+(\emph{extract}, \emph{scorer} and \emph{consolidate})
+and parallelization of both phrase extraction and phrase scoring
+steps.\footnote{See \texttt{extract-parallel.perl} and \texttt{score-parallel.perl}
+in \texttt{<moses>/scripts/generic/}.}
+
+\subsection{Benchmarking results}
+
+% Detailed info on configuration
+\begin{table}[h]
+\centering
+\begin{tabular}{ r p{10cm} }
+Name & Description and parameters to \verb|train-model.perl| \\
+\hline
+\hline
+baseline & Standard Moses pipeline with no special parameters \\
+opt-baseline & Standard Moses pipeline with an optimized setup:
+\verb|--sort-compress gzip|, \verb|--sort-buffer 12G| and \verb|--cores 3| \\
+eppex-zero & \eppex{} set to no pruning and \verb|--GZOutput| option \\
+eppex-1-in & \eppex{} with pruning thresholds set to keep in
+all phrase pairs of length 1--3 and prune longer phrase pairs
+with max. positive threshold of 8 and \verb|--GZOutput| option \\
+eppex-1-out & \eppex{} with pruning thresholds set to remove
+all single-occurring phrase pairs and prune the rest with
+max. positive threshold of 8 and \verb|--GZOutput| option \\
+\hline
+\hline
+\end{tabular}
+\caption{\label{cu-bojar-scenarios}List of various experiments and their
+settings for "cu-bojar" setup. The parameters of "baseline", "eppex-1-in"
+and "eppex-1-out" are set in such a way that they conform to the
+corresponding 2011 experiments.}
+\end{table}
