@@ -154,18 +154,21 @@ benchmarking results.
 % Software and hardware configuration.
 All the servers had identical software configuration:
 they were running 64-bit version of Ubuntu 10.04 server edition.
-All experiments with a particular dataset were run on a random machine from
-set of servers with identical hardware configuration:
+Servers with different hardware configuration has been used for experiments with
+each dataset to account for different memory demands incurred by their sizes:
 \begin{itemize}
-  \item "cu-bojar" configuration was run on machines with two Core4 Intel Xeon 3~GHz
-  processors (4~cores in total) with 32~GB of RAM and approximately 429~GB of
-  hard disk space. % tauri
-  \item "cs-en" configuration was run on machines with two Core4 Intel Xeon 2.4~GHz
-  processors (4~cores in total) with 48~GB of RAM and approximately 447~GB of
-  hard disk space. % twister
-  \item "fr-en" configuration was run on a single machine with four Core2 Intel Xeon
-  2.93~GHz processors (8~cores in total) with 256~GB of RAM and approximately
-  558~GB of hard disk space. % cosmos
+  \item "cu-bojar" configuration was run on a machine with two Quad-Core
+  AMD Opteron\texttrademark{} 2387 processors (each with 4~cores with clock speed
+  of 2.8~GHz; 8~threads in total),
+  32~GB of RAM and approximately 429~GB of hard disk space. % andromeda7
+  \item "cs-en" configuration was run on a machine with two Intel\textregistered{}
+  Xeon\textregistered{} E5620 processors (each with 4~hyper-threaded cores with
+  clock speed of 2.4~GHz; 16 threads in total),
+  48~GB of RAM and approximately 447~GB of hard disk space. % twister2
+  \item "fr-en" configuration was run on several machines with identical hardware
+  configuration: two Intel\textregistered{} Xeon\textregistered{} E5620 processors
+  (each with 4 hyper-threaded cores with clock speed of 2.4~GHz; 16 threads in total),
+  128~GB of RAM and approximately 558~GB of hard disk space. % lucifer[6-10]
 \end{itemize}
 
 % How the benchmarking was implemented?
