@@ -6,10 +6,10 @@
 
 The early version of \eppex{} was able to only extract phrases and therefore
 perform a faster phrase table creation than the legacy \emph{phrase-extract}
-only in settings where lossy counting resulted in significant filtration of
+only in situations, where lossy counting resulted in significant filtration of
 extracted phrase pairs, so the consequent sub-steps (sorting, scoring and
 consolidation of both phrase table halves) had to process reduced amount of
-data and thus the whole process finished faster.
+data and the whole process eventually finished faster.
 \citet{przywara:eppex} presented an evaluation of that early version of
 \eppex{} (we will refer to it as "2011 experiments" in further text).
 
@@ -43,15 +43,16 @@ in \texttt{<moses>/scripts/generic/}.}
 \subsection{Benchmarking results}
 
 % Detailed info on configuration
-\begin{table}[h]
+\begin{table}[ht]
 \centering
 \begin{tabular}{ r p{10cm} }
 Name & Description and parameters to \verb|train-model.perl| \\
 \hline
 \hline
 baseline & Standard Moses pipeline with no special parameters \\
-opt-baseline & Standard Moses pipeline with an optimized setup:
-\verb|--sort-compress gzip|, \verb|--sort-buffer 12G| and \verb|--cores 3| \\
+opt-baseline & Standard Moses pipeline with an optimized setup that is
+available in Moses 1.0:
+\verb|--sort-compress gzip|, \verb|--sort-buffer 12G| and \verb|--cores 7| \\
 eppex-zero & \eppex{} set to no pruning and \verb|--GZOutput| option \\
 eppex-1-in & \eppex{} with pruning thresholds set to keep in
 all phrase pairs of length 1--3 and prune longer phrase pairs
@@ -66,4 +67,66 @@ max. positive threshold of 8 and \verb|--GZOutput| option \\
 settings for "cu-bojar" setup. The parameters of "baseline", "eppex-1-in"
 and "eppex-1-out" are set in such a way that they conform to the
 corresponding 2011 experiments.}
+\end{table}
+
+% NOTE:
+% Steps and substeps of phrase table construction via train-model.perl back in 2011:
+% (1) Phrase extraction
+%  a) extract
+%  b) gzip f2e
+%  c) gzip e2f
+% (2) Phrase scoring
+%  d) sort f2e (now done in (1) and so reported as part of phrase extraction in table below)
+%  e) score e2f
+%  f) sort e2f (now done in (1) and so reported as part of phrase extraction in table below)
+%  g) score e2f
+%  h) sort inv
+%  i) cons
+%  j) gzip pt
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{ | c | c c | c c | c c | }
+\hline
+name & \multicolumn{2}{|c|}{total} & \multicolumn{2}{|c|}{phrase extraction} & \multicolumn{2}{|c|}{phrase scoring} \\
+ & wall & CPU & wall & CPU & wall & CPU \\
+\hline
+\hline
+baseline*    & 08:49:44 & 07:03:48 & 02:05:56 & 01:00:09 & 06:43:48 & 06:03:39 \\
+baseline     & 05:41:19 & 04:48:27 & 02:31:53 & 01:33:39 & 03:09:25 & 03:14:48 \\
+opt-baseline & 03:26:04 & 06:03:30 & 01:08:36 & 01:38:55 & 02:17:27 & 04:24:35 \\
+eppex-zero   & 01:23:45 & 01:23:37 & -- & -- & -- & -- \\
+\hline
+eppex-1-in*  & 04:03:04 & 03:42:29 & 01:48:14 & 01:28:53 & 02:14:50 & 02:13:36 \\
+eppex-1-in   & 00:45:27 & 00:45:24 & -- & -- & -- & -- \\
+\hline
+eppex-1-out* & 01:50:03 & 01:36:19 & 01:35:38 & 01:21:57 & 00:14:25 & 00:14:22 \\
+eppex-1-out  & 00:30:24 & 00:30:21 & -- & -- & -- & -- \\
+\hline
+\end{tabular}
+\caption{\label{cu-bojar-time-benchmarks}Wall clock and CPU time values (in hh:mm:ss format)
+of the phrase table construction for various settings of "cu-bojar" setup.}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{ | c | c | }
+\hline
+name & VM peak \\
+\hline
+\hline
+baseline*    & 1.1~GB \\
+baseline     & 2.4~GB \\ % TODO: forked train-model.perl takes up more then 1GB...
+opt-baseline & 24.1~GB \\
+eppex-zero   & 16.8~GB \\
+\hline
+eppex-1-in*  & 19.2~GB \\
+eppex-1-in   & 13.4~GB \\
+\hline
+eppex-1-out* & 16.7~GB \\
+eppex-1-out  & 11.2~GB \\
+\hline
+\end{tabular}
+\caption{\label{cu-bojar-vm-peak-benchmarks}Virtual memory peak values
+of the phrase table construction for various settings of "cu-bojar" setup.}
 \end{table}
