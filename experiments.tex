@@ -154,8 +154,8 @@ benchmarking results.
 % Software and hardware configuration.
 All the servers had identical software configuration:
 they were running 64-bit version of Ubuntu 10.04 server edition.
-Servers with different hardware configuration has been used for experiments with
-each dataset to account for different memory demands incurred by their sizes:
+For each dataset we use a server or set of servers with hardware configuration
+that satisfies memory and disk demands incurred by the size of particular dataset:
 \begin{itemize}
   \item "cu-bojar" configuration was run on a machine with two Quad-Core
   AMD Opteron\texttrademark{} 2387 processors (each with 4~cores with clock speed
@@ -180,18 +180,18 @@ The baseline phrase table creation managed by the training script involves
 running multitude of working subprocesses to perform various intermediate
 tasks like phrase pairs extraction, phrase pairs scoring, phrase table
 consolidation, gzipping, wrapping the parallel execution etc.
-As there is no single process to benchmark, we crafted a special Python
-script to measure the runtime demands of this whole subtree of processes.
-The script periodically gathers list of all subprocesses of observed process
-(that is the main training script), captures the values of their CPU time
-used so far and currently occupied virtual memory and updates the total CPU
-time counter and virtual memory peak.
+To measure the overall runtime demands of this dynamically changing tree
+of processes, we crafted a special Python script:
+it periodically gathers list consisting of the main observed process\footnote{The main training script \texttt{train-model.perl} in our case.}
+and all its subprocesses, captures the values of their CPU time used so far
+and currently occupied virtual memory and updates the total CPU time counter
+and virtual memory peak.
 To retrieve a list of child processes a call to Unix \verb|ps| utility is
 performed, CPU time and virtual memory usage of each process are read from
 \verb|stat| and \verb|status| files from the respective \verb|/proc/[pid]/|
 directory.
 A period of one second gives a reasonable precision of benchmark, while
-not impacting the performance of running processes.
+not damaging the performance of running processes.
 The script provides a full log with benchmarking information of all detected
 subprocesses, but we are mainly interested in the final summary that presents
 the total wall clock time, aggregated CPU time consumed by all subprocesses
