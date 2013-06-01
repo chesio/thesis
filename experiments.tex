@@ -20,10 +20,11 @@ is implemented in two steps: phrase pairs extraction and phrase pairs scoring.
 Both steps can be partially run in parallel and therefore we decided to run
 experiments with two types of baseline: non-parallel and parallel.
 
-% TODO: Pick only single parallel setup.
+% Parallel setup.
 In parallel setup we run phrase table extraction by \emph{train-model.perl}
-either with \verb|--parallel| option or with \verb|--cores| set to $N-1$,
-where $N$ is number of cores of our machine.
+with \verb|--cores| set to $N-1$, where $N$ is number of CPU threads of the machine.
+We leave one thread idle to make sure our benchmarking script will not interfere
+with benchmarked processes.
 
 % Post-filtering baseline.
 Post-filtering the phrase table with significance filter can be considered as

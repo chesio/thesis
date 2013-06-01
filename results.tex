@@ -6,7 +6,7 @@
 
 \citet{przywara:eppex} presented an evaluation of an early version of \eppex{}
 that was able to only extract phrases. It performed a faster phrase
-table creation than the legacy \emph{phrase-extract} only in situations,
+table creation than the legacy \emph{phrase-extract} in such situations,
 where lossy counting resulted in significant filtration of extracted phrase
 pairs and consequent sub-steps (sorting, scoring and consolidation of both
 phrase table halves) had to process reduced amount of data;
@@ -25,6 +25,8 @@ phrase table construction (that is including phrase pairs scoring).
 The early version, however, could be used to extract orientation info
 the same way \emph{extract} can, while this functionality has been dropped
 from the current version as not related to the core task of phrase table creation.
+Following the upgrade of \emph{phrase-extract} suite, an option to read from
+gzipped input files and dump gzipped output files has been added to \eppex{}.
 Internally, there have been a multitude of performance tweaks,
 as performance optimization is the most important aim in \eppex{} development,
 but a full listing of implementation changes would be purposeless here.
@@ -39,7 +41,21 @@ and parallelization of both phrase extraction and phrase scoring
 steps.\footnote{See \texttt{extract-parallel.perl} and \texttt{score-parallel.perl}
 in \texttt{<moses>/scripts/generic/}.}
 
-\subsection{Benchmarking results}
+\subsection{Parameters of experiments}
+
+\Tref{cu-bojar-scenarios} presents all the experiments and their settings.
+The \emph{baseline} experiment has no special parameters set for phrase table
+construction except for \verb|--GZOutput| -- an option that turns on output
+gzipping that is now implicitly set on from within the training script.
+Because of this, we also set this option on for \eppex{} runs.
+We experimented with different pruning parameters: \emph{eppex-1-in} (milder
+pruning) and \emph{eppex-1-out} (harsher pruning) are using the same pruning
+parameters as 2011 experiments and we also perform \emph{eppex-zero} experiment
+(an \eppex{} run with no pruning).
+Finally, the \emph{opt-baseline} experiment is an attempt to establish more
+challenging baseline with respect to the computation resources of our machine:
+multiple CPU threads are used for training and a massive amount of memory is
+dedicated to the sorting processes.
 
 % Detailed info on configuration
 \begin{table}[ht]
@@ -68,6 +84,8 @@ and "eppex-1-out" are set in such a way that they conform to the
 corresponding 2011 experiments.}
 \end{table}
 
+\subsection{Memory and time requirements}
+
 % NOTE:
 % Steps and substeps of phrase table construction via train-model.perl back in 2011:
 % (1) Phrase extraction
@@ -83,6 +101,26 @@ corresponding 2011 experiments.}
 %  i) cons
 %  j) gzip pt
 
+\Tref{cu-bojar-time-benchmarks} compares wallclock times and CPU usage of all the
+experiments and in case of baseline and 2011 experiments also separately for phrase
+extraction and phrase scoring steps.
+
+The comparison between old and current baseline reveals that the optimization of
+\emph{scorer} mentioned above resulted in a speed up by more than a factor of two.
+On the other hand the non-optimized phrase extraction became slightly more time demanding,
+but this may be explained by the fact that parallelization incurred some overhead
+that does not pay back when running only with a single core, but significantly cuts
+down the running time when using multiple cores: in our setup using 7~cores (along with
+more memory for sorting) lowered time of phrase extraction to 40\% and of phrase scoring
+to almost 50\%.
+
+The comparison between 2011 and current version of \eppex{} also display a significant
+speed up: with harsh pruning the phrase table construction is done in 30~minutes (took
+almost two hours in 2011) and without any pruning the full phrase table was built in
+less than 90~minutes, thus \eppex{} proves to be a viable alternative to
+\emph{phrase-extract} also in situations, when pruning is not an option (being twice as
+fast than our optimized baseline).
+
 \begin{table}[ht]
 \centering
 \begin{tabular}{ | c | c c | c c | c c | }
@@ -93,7 +131,7 @@ name & \multicolumn{2}{|c|}{total} & \multicolumn{2}{|c|}{phrase extraction} & \
 \hline
 baseline*    & 08:49:44 & 07:03:48 & 02:05:56 & 01:00:09 & 06:43:48 & 06:03:39 \\
 baseline     & 05:44:12 & 04:47:41 & 02:36:00 & 01:33:40 & 03:08:12 & 03:14:00 \\
-opt-baseline & 02:43:59 & 05:59:20 & 01:00:41 & 01:39:36 & 01:43:17 & 04:19:43 \\ % TODO: Update.
+opt-baseline & 02:42:15 & 05:57:45 & 01:00:03 & 01:39:16 & 01:42:12 & 04:18:29 \\
 eppex-zero   & 01:22:53 & 01:22:49 & -- & -- & -- & -- \\
 \hline
 eppex-1-in*  & 04:03:04 & 03:42:29 & 01:48:14 & 01:28:53 & 02:14:50 & 02:13:36 \\
@@ -103,11 +141,24 @@ eppex-1-out* & 01:50:03 & 01:36:19 & 01:35:38 & 01:21:57 & 00:14:25 & 00:14:22 \
 eppex-1-out  & 00:30:23 & 00:30:21 & -- & -- & -- & -- \\
 \hline
 \end{tabular}
-\caption{\label{cu-bojar-time-benchmarks}Wall clock and CPU time values
-(in hh:mm:ss format) of the phrase table construction for various settings
+\caption{\label{cu-bojar-time-benchmarks}Wallclock times and CPU usage values
+(in hh:mm:ss format) of the phrase table construction for various experiments
 of "cu-bojar" setup. Asterisk denotes the particular measures from 2011
 experiments.}
 \end{table}
+
+\Tref{cu-bojar-vm-peak-benchmarks} presents memory peaks of all the
+experiments.
+Memory demands of the baseline keeps to be low, the 0.1~GB difference between 2011
+and now stems from the fact that our benchmarking script includes the main process
+into the set of measured processes.
+An optimized baseline is the most memory demanding, but this is only because we
+assigned 12~GB of RAM to the sorting processes and both phrase table halves are sorted
+simultaneously after phrase extraction.
+
+Memory demands of current version of \eppex{} are significantly lower than of the 2011
+version: in 2011, the harsh pruning setup required as much memory as the current version
+run without any pruning at all.
 
 \begin{table}[ht]
 \centering
@@ -118,7 +169,7 @@ name & VM peak \\
 \hline
 baseline*    & 1.1~GB \\
 baseline     & 1.2~GB \\
-opt-baseline & 24.1~GB \\ % TODO: Update.
+opt-baseline & 24.1~GB \\
 eppex-zero   & 16.8~GB \\
 \hline
 eppex-1-in*  & 19.2~GB \\
@@ -128,7 +179,7 @@ eppex-1-out* & 16.7~GB \\
 eppex-1-out  & 11.3~GB \\
 \hline
 \end{tabular}
-\caption{\label{cu-bojar-vm-peak-benchmarks}Virtual memory peak values
-of the phrase table construction for various settings of "cu-bojar" setup.
+\caption{\label{cu-bojar-vm-peak-benchmarks}Virtual memory peaks of
+the phrase table construction for various experiments of "cu-bojar" setup.
 Asterisk denotes the particular measures from 2011 experiments.}
 \end{table}
