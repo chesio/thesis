@@ -14,15 +14,19 @@ Just in case you did not want to install Boost as a whole, but only the necessar
 parts of it, you will need to get two libraries (build them or install
 them via your packaging system): \emph{Program Options} and \emph{IOStreams}.
 \Eppex{} also requires working include path access to following
-header-only libraries: \emph{Iterator}, \emph{Pool} and \emph{Tokenizer}.
+header-only libraries: \emph{Integer}, \emph{Iterator}, \emph{Pool} and \emph{Tokenizer}.
 
 Besides that you will probably like to employ the power of hash tables
 that comes with the recent version of C++ standard.\footurl{http://en.cppreference.com/w/cpp/container/unordered_set}
-Most of decent C++ compilers will have this feature available.
+Most of decent C++ compilers will have this feature available,
+although some may require to explicitly request compilation with C++11
+features.\footnote{For example GCC requires the command-line parameter
+\texttt{-std=c++0x} to be passed when compiling (or \texttt{-std=c++11}
+with GCC 4.7 and later).}
 
 \section*{Download}
 
-\emph{Eppex} is hosted on Github\footurl{http://www.github.com} in
+\emph{Eppex} is hosted on Github\footurl{https://www.github.com} in
 a fork\footurl{https://github.com/chesio/mosesdecoder}
 of core Moses repository\footurl{https://github.com/moses-smt/mosesdecoder}.
 If you have your own local clone of Moses repo then all you need is to add
@@ -44,34 +48,51 @@ recent Moses code, you may try merging branch \texttt{master} into \texttt{eppex
 
 Be warned that you may encounter some merge conflicts in \emph{train-model.perl}
 as this script gets frequently updated.
-In such case feel free to contact the maintainer of \eppex{},
+In such a case feel free to contact the author of \eppex{},
 he will be happy to help you.
 
 \section*{Installation}
 
 \Eppex{} related files may be found in \texttt{contrib/eppex} directory of \eppex{} fork
-and for the time being it has to be compiled separately from the Moses
+and for the time being the executable has to be compiled separately from the Moses
 build.\footnote{For the build instructions on Moses consult the file \texttt{BUILD-INSTRUCTIONS.txt}.}
-Once compiled you will find \eppex{} binary (or symbolic link to it) in the
-\texttt{contrib/eppex} directory. You are free to move it to whatever location
-suits your working environment, just do not forget to pass the full path
-to \emph{train-model.perl} script invocation.
+Some implementation features and functionality of \eppex{} is determined during compile-time
+and you are encouraged to alter the defaults to suit your needs and your compiler capabilities.
+The specific way of how to alter them depends on selected compilation method (\emph{Boost.Build} or
+\emph{make} -- see below), the default behavior when no changes are made is following:
+\begin{itemize}
+  \item \eppex{} uses \verb|std::map| and \verb|std::set| as associative containers
+  \item \eppex{} allows to extract phrase pairs of maximum length limit up to 8
+\end{itemize}
+
+Once compiled you will find \eppex{} binary in the \texttt{contrib/eppex} directory.
+You are free to move it to whatever location suits your working environment,
+just do not forget to pass the full path to \emph{train-model.perl} invocation.
 
 \subsection*{Installation using Boost.Build}
 
 This approach is recommended since \emph{Boost.Build}\footurl{http://www.boost.org/boost-build2/doc/html/index.html}
-is required by Moses install process as well.
-If you would like to compile \eppex{} with hash tables implementation just pass \texttt{--with-hashtables} flag
-to \emph{bjam} command:
+is required by Moses install process as well and if you do not have a working
+\emph{Boost.Build} setup on your machine, you may try to use the one shipped with Moses:
+just run \emph{bjam} shell script from Moses root instead of the system \emph{bjam}.\footnote{Note
+that the first invocation will attempt to compile the actual \emph{bjam} executable from sources.}
+
+If you would like to compile \eppex{} with faster (unordered) associative containers
+just pass \texttt{--with-hashtables} flag to \emph{bjam} command.
+The limit for maximum phrase length can be risen to 128 by adding
+\texttt{--allow-long-phrases}.
 \begin{verbatim}
   cd contrib/eppex
-  bjam [--with-hashtables]
+  bjam [--with-hashtables] [--allow-long-phrases]
+  # or using Moses bjam: ../../bjam <options>
 \end{verbatim}
 
 \subsection*{Installation using make}
 The \texttt{contrib/eppex} directory also contains a Makefile that may be used to compile
-\emph{eppex} and should work on most Linux systems that have gcc compiler installed:
+\eppex{} and should work on most Linux systems that have GCC compiler installed.
+The faster associative containers and higher maximum phrase length limit can be activated
+via environment variables:
 \begin{verbatim}
   cd contrib/eppex
-  make all
+  [USE_HASHTABLES=1] [ALLOW_LONG_PHRASES=1] make all
 \end{verbatim}
