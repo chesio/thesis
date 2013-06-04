@@ -6,52 +6,74 @@
 \chapter{Usage}
 \label{chap:usage}
 
-As mentioned above, \eppex{} is a command line tool.
-
-\Eppex{} requires three input files to proceed:
-the target side of corpus, the source side of corpus and the alignment information.
 Depending on your goal, you may use \eppex{} to:
 \begin{itemize}
  \item collect aggregated counts of phrase pairs of same lengths
- \item generate direct and inverse extract files (as alternative to \emph{extract} tool)
- \item construct phrase table (as alternative to both \emph{extract} and \emph{score} tools)
+ \item generate direct and inverse extract files -- act as alternative to \emph{extract} tool
+ \item construct phrase table -- act as alternative to both \emph{extract} and \emph{score} tools
 \end{itemize}
 
-Eppex is a drop-in replacement, therefore it must be passed input files
-in the same format as expected by \emph{extract} component and
-the output file it produces conforms to the format of \emph{score} component.
+For any of the three options above, \eppex{} requires three input files to proceed:
+the target side of corpus, the source side of corpus and the alignment information.
+Moreover, if lexical scores are to be included in the phrase translation table,
+both direct and inverse lexical translation tables have to be passed.
 
-\section{Terminology}
+Eppex is a drop-in replacement, therefore it expects all input files to have the same
+format as expected by \emph{extract} component and produces output files in the same
+format as \emph{extract} and \emph{score} components.
 
-% Introduce the definitions of:
-% - phrase pair length
-% - positive and negative lossy counting limits
-% - lambda parameter
+\section{Lossy Counting parametrization}
 
-A phrase pair length is defined as the length of its longest compound.
+For each phrase pair length (or their inclusive interval) a separate Lossy Counter
+instance can be created that does its "lossy counting" separately from other instances
+and is fed only with phrase pairs of length following into the assigned interval.
+This allows to apply different limits (or thresholds) to phrase pairs of different length.
+As quality benchmarking results presented in \Cref{chap:results} suggest, it is viable
+to prune short phrase pairs with milder threshold (or no threshold at all) and use harsher
+thresholds only for longer phrase pairs.
+
+A \emph{phrase pair length} is defined as the length of its longest compound:
+thus, a phrase pair $(e,f)$ with $e$ being "\emph{europe}" and $f$ being
+"\emph{životě v evropě}" have the length of three.
+This definition is motivated by the application of maximum phrase length limit
+in core \emph{extract} tool: any phrase pair having either compound of length
+exceeding the limit is not extracted (ie. the phrase length maximum is decisive).
+
+\Eppex{} provide two ways how to set \emph{support} and \emph{error} parameters
+for Lossy Counting instances:
+\begin{enumerate}
+  \item You may specify the \emph{support} and \emph{error thresholds} directly, but doing so
+    requires a good awareness of the amount of phrase pairs that is going to be fed into all
+    instances of Lossy Counting algorithm, otherwise you can prune too much or do not prune at all.
+  \item You may set the negative and positive limits that will directly relate to \emph{true}
+    frequency counts of the phrase pairs extracted from your data. The \emph{negative limit}
+    $n$ is such a value that no item with true frequency equal or less than $n$ will be output.
+    The \emph{positive limit} $p$ is such a value that all items with true frequency equal
+    or greater than $p$ will be output. Obviously, this forces $n < p$ (the only exception
+    is the possibility to set $n = p = 0$).
+\end{enumerate}
+
+Within a single run of \eppex{} only one approach can be used.
+The latter (limit-based) is much more convenient, thus recommended.
+The only related draw-back is the necessity of reading the input files twice.
+An additional loop over input files is done to grasp the counts of items
+that will be fed to each Lossy Counter instance in order to calculate
+the proper values of their \emph{support} and \emph{error} parameters,
+so the properties of output will match the specified limits.
+However, this counting loop runs very fast and, as a matter of fact, all the \eppex{}
+experiments reported in this work have been run in such a way and all runtime
+benchmarking statistics account for runs with this additional input processing loop.
 
 \section{Command line options}
 
-It can be used to produce the following output:
-\begin{itemize}
- \item \emph{counts file} - file with frequency counts for each phrase pair
-  length up to given limit (set via \verb|--max-phrase-len| option)
- \item \emph{extract files} - direct and inverse extract files. These files are the
-  same as the output files produced in step 5 of \emph{train-model.perl} pipeline,
-  except that the frequency count of each phrase pairs is not determined by
-  the number of times it occurs in the files but for space efficiency it is
-  dumped as an additional, 4-th field of each phrase pair record (this format
-  is properly recognized by \emph{phrase-extract/scorer}).
- \item \emph{phrase table file} - the ultimate phrase table.
-\end{itemize}
-
+As already mentioned several times, \eppex{} is a command line tool.
 The command line syntax for \emph{eppex} is following:
 
 \begin{verbatim}
   ./eppex tgt src align [dir-lex-table [inv-lex-table]] <options>
 \end{verbatim}
 
-The positional arguments are:
+The 5 positional arguments are:
 \begin{itemize}
  \item \verb|tgt| - path to target language corpus (required).
   May be also provided via \verb|--tgt| option.
@@ -60,60 +82,77 @@ The positional arguments are:
  \item \verb|align| - path to alignments file (required).
   May be also provided via \verb|--align| option.
  \item \verb|dir-lex-table| - path to direct lexical table (optional).
-  May be also provided via \verb|--dir-lex-table| option. 
+  May be also provided via \verb|--direct-lex-table| option. 
  \item \verb|inv-lex-table| - path to inverse lexical table (optional).
-  May be also provided via \verb|--inv-lex-table| option. 
+  May be also provided via \verb|--inverse-lex-table| option. 
 \end{itemize}
 
 Options related to phrase pairs counting:
 \begin{itemize}
- \item \verb|--counts-file| - path to file with phrase pairs counts.
+ \item \verb|--counts-file <string>| - path to file with phrase pairs counts.
+  Turns on counting mode, if \verb|--reuse-counts| is not specified.
  \item \verb|--reuse-counts| - use counts from the provided file instead
-  of counting anew (skips counting mode).
- \item \verb|--max-phrase-len| - maximum length of extracted phrases.
+  of counting anew (turns off counting mode).
+ \item \verb|--max-phrase-len <num>| - maximum length of extracted phrases.
+  Default value is 7. If one or more phrase length values or intervals
+  are set via \verb|--limits| or \verb|--thresholds|, the maximum phrase
+  length is set accordingly.
 \end{itemize}
 
 Options related to phrase pairs extraction:
 \begin{itemize}
- \item \verb|--extract-file| - path to file for extracted phrase pairs.
-  The inverse file has $.inv$ extension attached to its name automatically.
- \item \verb|--thresholds| - a space separated list of \emph{error} and \emph{support}
-  thresholds for lossy counting. For each phrase pair length or range of lengths a separate lossy counter
-  can be specified, for example: 1:0.5:1.5 2-3:1.0:2.0 4-7:3.0:5.0
- \item \verb|--limits| - a space separated list of \emph{negative} and \emph{positive}
-  limits for lossy counting. For each phrase pair length or range of lengths a separate lossy counter
-  can be specified, for example: 1:0.5:1.5 2-3:1.0:2.0 4-7:3.0:5.0
- \item \verb|--lambda| - the value for lambda parameter, real number from
-  (0.0, 1.0) interval. Default value is 0.5.
+ \item \verb|--extract-file <string>| - path to file for extracted phrase pairs.
+  The inverse file has \texttt{.inv} extension attached to its name automatically.
+  Turns on extraction mode.
+ \item \verb|--thresholds <string>| - a comma separated list of \emph{error} and \emph{support}
+  thresholds for Lossy Counting. For each phrase pair length or range of lengths
+  a separate lossy counter can be specified, see examples below.
+ \item \verb|--limits <string>| - a comma separated list of \emph{negative} and \emph{positive}
+  limits for Lossy Counting. For each phrase pair length or range of lengths
+  a separate lossy counter can be specified, see examples below
+ \item \verb|--lambda <float>| - a value for parameter $\lambda \in (0.0, 1.0)$
+  used in evaluation of the \emph{error} threshold $\epsilon$ from
+  the positive limit $p$ and the negative limit $n$ as $\epsilon = (p - n - \lambda) / N$.
+  Default value for $\lambda$ is 0.5.
+ \item \verb|--no-final-pruning| - do not prune items with $f < (s - \epsilon)N$
+  at the end of input processing, dump out all items remaining in storage.
 \end{itemize}
 
 Options related to phrase pairs scoring:
 \begin{itemize}
- \item \verb|--phrase-table-file| - path to phrase table file.
-  The inverse file has $.inv$ extension attached to its name automatically.
- \item \verb|--dir-lex-table| - path to direct lexical table.
+ \item \verb|--phrase-table-file <string>| - path to phrase table file.
+  Turns on scoring mode.
+ \item \verb|--direct-lex-table <string>| - path to direct lexical table.
   If given, direct lexical score $lex(e|f)$ will be included in phrase table.
   May be passed also as 4-th positional parameter.
- \item \verb|--inv-lex-table| - path to inverse lexical table.  
+ \item \verb|--inverse-lex-table <string>| - path to inverse lexical table.
   If given, inverse lexical score $lex(f|e)$ will be included in phrase table.
   May be passed also as 5-th positional parameter.
  \item \verb|--OnlyDirect| - print only direct scores $p(e|f)$ and $lex(e|f)$
  \item \verb|--NoLex| - do not include lexical scores.
-  It is sufficient to omit \verb|--direct-lex-table| and \verb|--inverse-lex-table|
-  options to not include lexical scores, but this switch can be used to
-  override their presence.
+  It is sufficient to omit specification of lexical table files to not
+  include lexical scores, but this switch can be used to override their presence.
  \item \verb|--NoPhraseCount| - do not include phrase counts.  
  \item \verb|--NoWordAlignment| - do not print word alignment.
- % TODO: Finish.
+ \item \verb|--GoodTuring| - adjust phrase translation probabilities with
+  Good-Turing discounting
+ \item \verb|--KneserNey| - adjust phrase translation probabilities with
+  Kneser-Ney discounting
+ \item \verb|--LogProb| - print logarithm of probabilities
+ \item \verb|--NegLogProb| - print negative logarithm of probabilities
 \end{itemize}
 
 Options related to both phrase pairs extraction and scoring:
 \begin{itemize}
  \item \verb|--GZOutput| - gzip the output (automatically
-  adds $.gz$ extension to the filenames provided).
+  adds \texttt{.gz} extension to the filenames provided).
 \end{itemize}
 
-Finally, three program options that provides some information about the program:
+It is important to mention that at least one of the options providing an output
+file has to be set (\verb|--counts-file|, \verb|--extract-file| or \verb|--phrase-table-file|),
+otherwise \eppex{} will be unable to decide on how to proceed.
+
+Finally, three program options exist that provides some information about the program:
 \begin{itemize}
  \item \verb|--help| - prints the program help.
  \item \verb|--info| - prints basic information about the program.
@@ -122,12 +161,57 @@ Finally, three program options that provides some information about the program:
 
 \section{Missing features}
 
-In the moment eppex cannot extract orientation info data required for reordering models training.
+In the moment eppex cannot extract orientation info data required for training
+of reordering models.
 
-Also some of the recently added features to the legacy scoring tool are yet missing in \eppex{},
-namely:
+Also some of the features of the core \emph{phrase-extract} suite from Moses
+release 1.0 are yet missing in \eppex{}, namely:
 \begin{itemize}
-  \item smoothing options available in legacy scorer: \verb|--GoodTuring| and \verb|--KneserNey|
-  \item dumping singleton feature available in legacy scorer: \verb|--Singleton|
-  % TODO: And several others - some of them are only viable for hierarchical models.
+  \item inclusion of sentence ID in extract files: see \verb|--IncludeSentenceId|
+    option of \emph{extract} tool
+  \item adding sentence weights to extracted phrases: see \verb|--InstanceWeights|
+    option of \emph{extract} tool
+  \item dumping singleton feature: see \verb|--Singleton| option of \emph{scorer} tool
+  \item adding penalty to unaligned (function) words: see \verb|--UnalignedPenalty|
+    and \verb|--UnalignedFunctionWordPenalty| options of \emph{scorer} tool
 \end{itemize}
+
+\section{Examples}
+
+Let us finish this chapter with some examples that demonstrate some typical
+patterns of \eppex{} usage. Because input files specification is always required,
+we will only mark it by \verb|<input>| in command line snippets below.
+
+Grab counts of phrase pairs of lengths up to 8 that will be extracted from
+corpus and store it in file \texttt{counts.txt}:
+\begin{verbatim}
+  eppex <input> --max-phrase-len 8 --counts-file counts.txt
+\end{verbatim}
+
+Construct phrase table reusing the counts from file \texttt{counts.txt} and using
+two Lossy Counting instances: one to keep all phrase pairs with length from
+1 to 3 and another to remove all phrase pairs with length from 4 to 6 with true
+frequency equal to 1 and keep all with true frequency at least 3. Despite the
+\texttt{counts.txt} file contains counts for phrase pairs lengths up to 8,
+the specification of \verb|--limits| determines that phrase table will contain
+only phrase pairs of length up to 6:
+\begin{verbatim}
+  eppex <input> --counts-file counts.txt --reuse-counts \\
+    --limits 1-3:0:1,4-6:1:3 --phrase-table-file phrase-table
+\end{verbatim}
+
+Construct phrase table with phrase pairs pruned according to the following rule:
+for each phrase pair length $L$ only phrase pairs with true frequency at least
+$L$ will be retained, the rest might or might not be pruned depending on the
+distribution of their occurrences in parallel corpus:
+\begin{verbatim}
+  eppex <input> --phrase-table-file phrase-table \\
+    --limits 1:0:1,2:0:2,3:0:3,4:0:4,5:0:5,6:0:6,7:0:7
+\end{verbatim}
+
+Construct complete phrase table not removing a single phrase pair.
+The phrase table will be stored gzipped in file \texttt{phrase-table.gz}
+and will contain phrase pairs of length up to (default maximum) 7.
+\begin{verbatim}
+  eppex <input> --phrase-table-file phrase-table --GZOutput
+\end{verbatim}
