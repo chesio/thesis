@@ -1,6 +1,100 @@
 \chapter{Results}
 \label{chap:results}
 
+\section{Cs-En dataset}
+
+% Detailed info of cs-en-wmt13 experiments
+\begin{table}[ht]
+\centering
+\begin{tabular}{ r p{10cm} }
+Name & Description and parameters to \verb|train-model.perl| \\
+\hline
+\hline
+baseline & Standard Moses pipeline with no special parameters \\
+opt-baseline & Standard Moses pipeline with an optimized setup that is
+available in Moses 1.0:
+\verb|--sort-compress gzip|, \verb|--sort-buffer 20G| and \verb|--cores 15| \\
+eppex-zero & \eppex{} set to no pruning and \verb|--GZOutput| option \\
+eppex-zero-n & \eppex{} with \verb|--limits| set to \verb|1:0:1,2:0:2,...,7:0:7|
+and \verb|--GZOutput| option \\
+\hline
+\hline
+\end{tabular}
+\caption{\label{cs-en-wmt13-scenarios}List of various experiments and their
+settings for "Cs-En" setup.}
+\end{table}
+
+\subsection{Memory and time requirements}
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{ | c | c c | c c | c c | }
+\hline
+name & \multicolumn{2}{|c|}{total} & \multicolumn{2}{|c|}{phrase extraction} & \multicolumn{2}{|c|}{phrase scoring} \\
+ & wall & CPU & wall & CPU & wall & CPU \\
+\hline
+\hline
+baseline     & 16:53:15 & 15:26:13 & 07:10:46 & 05:36:04 & 09:42:29 & 09:50:09 \\
+opt-baseline & ??:??:?? & ??:??:?? & ??:??:?? & ??:??:?? & ??:??:?? & ??:??:?? \\ % TODO!
+eppex-zero   & ??:??:?? & ??:??:?? & -- & -- & -- & -- \\ % TODO!
+\hline
+eppex-zero-n & 01:33:50 & 01:33:44 & -- & -- & -- & -- \\
+\hline
+\end{tabular}
+\caption{\label{cs-en-wmt13-time-benchmarks}Wallclock times and CPU usage values
+(in hh:mm:ss format) of the phrase table construction for various experiments
+of "Cs-En" setup.}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{ | c | c | }
+\hline
+name & VM peak \\
+\hline
+\hline
+baseline      & 2.1~GB \\
+opt-baseline  & ?.?~GB \\ % TODO.
+eppex-zero    & ?.?~GB \\ % TODO.
+\hline
+eppex-zero-n  & 10.5~GB \\
+\hline
+\end{tabular}
+\caption{\label{cs-en-wmt13-vm-peak-benchmarks}Virtual memory peaks of
+the phrase table construction for various experiments of "Cs-En" setup.}
+\end{table}
+
+\subsection{Eppex memory usage}
+
+% TODO: Attach a graph displaying the rate of growth of memory usage with 1M steps
+
+
+\section{The big Fr-En dataset}
+
+% Detailed info of fr-en-80 experiments
+\begin{table}[ht]
+\centering
+\begin{tabular}{ r p{10cm} }
+Name & Description and parameters to \verb|train-model.perl| \\
+\hline
+\hline
+baseline & Standard Moses pipeline with no special parameters \\
+opt-baseline & Standard Moses pipeline with an optimized setup that is
+available in Moses 1.0:
+\verb|--sort-compress gzip|, \verb|--sort-buffer 20G| and \verb|--cores 15| \\
+eppex-zero       & \eppex{} set to no pruning and \verb|--GZOutput| option \\
+eppex-zero-n     & \eppex{} with \verb|--limits| set to \verb|1:0:1,2:0:2,...,7:0:7|
+and \verb|--GZOutput| option \\
+eppex-defensive  & \eppex{} with \verb|--limits| set to ... % TODO.
+and \verb|--GZOutput| option \\
+\hline
+\hline
+\end{tabular}
+\caption{\label{fr-en-80-scenarios}List of various experiments and their
+settings for "Fr-En" setup.}
+\end{table}
+
+
 \section{Comparison to 2011 version}
 % Comparison of current eppex and phrase-extract performance vs. mid-2011 state
 
@@ -57,7 +151,7 @@ challenging baseline with respect to the computation resources of our machine:
 multiple CPU threads are used for training and a massive amount of memory is
 dedicated to the sorting processes.
 
-% Detailed info on configuration
+% Detailed info of cu-bojar experiments
 \begin{table}[ht]
 \centering
 \begin{tabular}{ r p{10cm} }
