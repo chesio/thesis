@@ -7,21 +7,48 @@
 \begin{table}[ht]
 \centering
 \begin{tabular}{ r p{10cm} }
-Name & Description and parameters to \verb|train-model.perl| \\
+name & description and parameters \\
 \hline
 \hline
-baseline & Standard Moses pipeline with no special parameters \\
-opt-baseline & Standard Moses pipeline with an optimized setup that is
+baseline        & Standard Moses pipeline with no special parameters \\
+opt. baseline   & Standard Moses pipeline with an optimized setup that is
 available in Moses 1.0:
-\verb|--sort-compress gzip|, \verb|--sort-buffer 20G| and \verb|--cores 15| \\
-eppex-zero & \eppex{} set to no pruning and \verb|--GZOutput| option \\
-eppex-zero-n & \eppex{} with \verb|--limits| set to \verb|1:0:1,2:0:2,...,7:0:7|
-and \verb|--GZOutput| option \\
+\verb|--sort-compress gzip|, \verb|--sort-buffer 18G| and \verb|--cores 7| \\
+eppex zero      & \eppex{} set to no pruning and \verb|--GZOutput| option \\
+eppex def.      & \eppex{} with \verb|--limits| set to \verb|1-3:0:1,4-5:1:4,6-7:4:8| and \verb|--GZOutput| option \\
+eppex zero-n    & \eppex{} with \verb|--limits| set to \verb|1:0:1,2:0:2,...,7:0:7| and \verb|--GZOutput| option \\
+eppex 1:n+1     & \eppex{} with \verb|--limits| set to \verb|1:1:2,2:1:3,...,7:1:8| and \verb|--GZOutput| option \\
+sigfilter a-e   & baseline followed by significance filtering with pruning threshold $\alpha - \epsilon$ \\
+sigfilter a+e   & baseline followed by significance filtering with pruning threshold $\alpha + \epsilon$ \\
+sigfilter 30    & baseline followed by significance filtering with cutoff threshold of 30 \\
 \hline
 \hline
 \end{tabular}
 \caption{\label{cs-en-wmt13-scenarios}List of various experiments and their
 settings for "Cs-En" setup.}
+\end{table}
+
+\subsection{Translation phrase table size and quality}
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{ | c | c c | c | }
+\hline
+ & \multicolumn{2}{|c|}{final phrase table size} & \\
+experiment & phrase pairs & .gz file size & BLEU score \\
+\hline
+\hline
+baseline        & 336.0~M & 8.8~GB & ??.?? \\ % TODO.
+eppex def.      & 109.8~M & 2.7~GB & 0.2598 [0.2531, 0.2664] \\
+eppex zero-n    &  86.2~M & 2.3~GB & 0.2586 [0.2527, 0.2649] \\
+eppex 1:n+1     &  25.7~M & 0.7~GB & 0.2537 [0.2477, 0.2603] \\
+sigfilter a-e   &   ?.?~M & ?.?~GB & ??.?? \\ % TODO.
+sigfilter a+e   &   ?.?~M & ?.?~GB & ??.?? \\ % TODO.
+sigfilter 30    &   ?.?~M & ?.?~GB & ??.?? \\ % TODO.
+\hline
+\end{tabular}
+\caption{\label{cs-en-wmt13-pt-size-and-bleu}Phrase table sizes and BLEU scores
+for various experiments of "Cs-En" setup.}
 \end{table}
 
 \subsection{Memory and time requirements}
@@ -30,15 +57,17 @@ settings for "Cs-En" setup.}
 \centering
 \begin{tabular}{ | c | c c | c c | c c | }
 \hline
-name & \multicolumn{2}{|c|}{total} & \multicolumn{2}{|c|}{phrase extraction} & \multicolumn{2}{|c|}{phrase scoring} \\
+experiment & \multicolumn{2}{|c|}{total} & \multicolumn{2}{|c|}{phrase extraction} & \multicolumn{2}{|c|}{phrase scoring} \\
  & wall & CPU & wall & CPU & wall & CPU \\
 \hline
 \hline
-baseline     & 16:53:15 & 15:26:13 & 07:10:46 & 05:36:04 & 09:42:29 & 09:50:09 \\
-opt-baseline & ??:??:?? & ??:??:?? & ??:??:?? & ??:??:?? & ??:??:?? & ??:??:?? \\ % TODO!
-eppex-zero   & ??:??:?? & ??:??:?? & -- & -- & -- & -- \\ % TODO!
+baseline      & 15:41:50 & 15:27:26 & 07:09:00 & 06:23:35 & 08:32:49 & 09:03:50 \\
+opt. baseline & 07:28:19 & 20:34:18 & 02:24:53 & 07:07:51 & 05:03:26 & 13:26:27 \\
+eppex zero    & 03:00:49 & 03:00:26 & -- & -- & -- & -- \\
 \hline
-eppex-zero-n & 01:33:50 & 01:33:44 & -- & -- & -- & -- \\
+eppex def.    & 01:40:38 & 01:40:02 & -- & -- & -- & -- \\
+eppex zero-n  & 01:32:49 & 01:32:36 & -- & -- & -- & -- \\
+eppex 1:n+1   & 01:09:06 & 03:00:26 & -- & -- & -- & -- \\
 \hline
 \end{tabular}
 \caption{\label{cs-en-wmt13-time-benchmarks}Wallclock times and CPU usage values
@@ -46,28 +75,73 @@ eppex-zero-n & 01:33:50 & 01:33:44 & -- & -- & -- & -- \\
 of "Cs-En" setup.}
 \end{table}
 
+
 \begin{table}[ht]
 \centering
-\begin{tabular}{ | c | c | }
+\begin{tabular}{ | c | c c | c c | c c | }
 \hline
-name & VM peak \\
+experiment & \multicolumn{2}{|c|}{filtering} & \multicolumn{2}{|c|}{+ baseline} & \multicolumn{2}{|c|}{+ opt. baseline} \\
+ & wall & CPU & wall & CPU & wall & CPU \\
 \hline
 \hline
-baseline      & 2.1~GB \\
-opt-baseline  & ?.?~GB \\ % TODO.
-eppex-zero    & ?.?~GB \\ % TODO.
+sigfilter a-e & ??:??:?? & ??:??:?? & ??:??:?? & ??:??:?? & ??:??:?? & ??:??:?? \\
+sigfilter a+e & ??:??:?? & ??:??:?? & ??:??:?? & ??:??:?? & ??:??:?? & ??:??:?? \\
+sigfilter 30  & ??:??:?? & ??:??:?? & ??:??:?? & ??:??:?? & ??:??:?? & ??:??:?? \\
 \hline
-eppex-zero-n  & 10.5~GB \\
+\end{tabular}
+\caption{\label{cs-en-wmt13-sigfilter-time-benchmarks}Wallclock times and CPU usage values
+(in hh:mm:ss format) of significance filtering for various settings of \emph{sigfilter}
+in "Cs-En" setup. Two additional columns indicate total time required to create the final
+phrase table with baseline (2nd column) or optimized baseline (3rd column) configuration.}
+\end{table}
+
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{ | c | c c c | }
+\hline
+experiment & \multicolumn{3}{|c|}{VM peak} \\
+ & total & phrase extraction & phrase scoring \\
+\hline
+\hline
+baseline       &  2.1~GB &  0.2~GB &  2.1~GB \\
+opt. baseline  & 36.2~GB & 36.2~GB & 18.1~GB \\
+eppex zero     & 36.8~GB &      -- &      -- \\
+\hline
+eppex def.     & 18.1~GB &      -- &      -- \\
+eppex zero-n   & 10.5~GB &      -- &      -- \\
+eppex 1:n+1    &  9.6~GB &      -- &      -- \\
 \hline
 \end{tabular}
 \caption{\label{cs-en-wmt13-vm-peak-benchmarks}Virtual memory peaks of
 the phrase table construction for various experiments of "Cs-En" setup.}
 \end{table}
 
-\subsection{Eppex memory usage}
+\begin{table}[ht]
+\centering
+\begin{tabular}{ | c | c | c | c | }
+\hline
+experiment & filtering & + baseline & + opt. baseline \\
+\hline
+\hline
+sigfilter a-e & ?.?~GB & ?.?~GB & ?.?~GB \\
+sigfilter a+e & ?.?~GB & ?.?~GB & ?.?~GB \\
+sigfilter 30  & ?.?~GB & ?.?~GB & ?.?~GB \\
+\hline
+\end{tabular}
+\caption{\label{cs-en-wmt13-sigfilter-vm-peak-benchmarks}Virtual memory peaks
+of significance filtering for various settings of \emph{sigfilter} in "Cs-En" setup.
+Two additional columns indicate overall VM peak including phrase table extraction
+with baseline (2nd column) or optimized baseline (3rd column) configuration.}
+\end{table}
+
+\subsection{Eppex and memory usage}
 
 % TODO: Attach a graph displaying the rate of growth of memory usage with 1M steps
 
+We performed an additional series of experimental phrase table extractions
+to get an insight on how the memory usage of \eppex{} relates to the amount of
+phrase pairs extracted from the parallel corpus.
 
 \section{The big Fr-En dataset}
 
@@ -75,18 +149,15 @@ the phrase table construction for various experiments of "Cs-En" setup.}
 \begin{table}[ht]
 \centering
 \begin{tabular}{ r p{10cm} }
-Name & Description and parameters to \verb|train-model.perl| \\
+name & description and parameters \\
 \hline
 \hline
-baseline & Standard Moses pipeline with no special parameters \\
-opt-baseline & Standard Moses pipeline with an optimized setup that is
-available in Moses 1.0:
+baseline      & Standard Moses pipeline with no special parameters \\
+opt. baseline & Standard Moses pipeline with an optimized setup that is available in Moses 1.0:
 \verb|--sort-compress gzip|, \verb|--sort-buffer 20G| and \verb|--cores 15| \\
-eppex-zero       & \eppex{} set to no pruning and \verb|--GZOutput| option \\
-eppex-zero-n     & \eppex{} with \verb|--limits| set to \verb|1:0:1,2:0:2,...,7:0:7|
-and \verb|--GZOutput| option \\
-eppex-defensive  & \eppex{} with \verb|--limits| set to ... % TODO.
-and \verb|--GZOutput| option \\
+eppex zero    & \eppex{} set to no pruning and \verb|--GZOutput| option \\
+eppex zero-n  & \eppex{} with \verb|--limits| set to \verb|1:0:1,2:0:2,...,7:0:7| and \verb|--GZOutput| option \\
+eppex def.    & \eppex{} with \verb|--limits| set to \verb|1-3:0:1,4-5:1:4,6-7:4:8| and \verb|--GZOutput| option \\
 \hline
 \hline
 \end{tabular}
@@ -155,26 +226,26 @@ dedicated to the sorting processes.
 \begin{table}[ht]
 \centering
 \begin{tabular}{ r p{10cm} }
-Name & Description and parameters to \verb|train-model.perl| \\
+name & description and parameters \\
 \hline
 \hline
-baseline & Standard Moses pipeline with no special parameters \\
-opt-baseline & Standard Moses pipeline with an optimized setup that is
+baseline        & Standard Moses pipeline with no special parameters \\
+opt. baseline   & Standard Moses pipeline with an optimized setup that is
 available in Moses 1.0:
 \verb|--sort-compress gzip|, \verb|--sort-buffer 12G| and \verb|--cores 7| \\
-eppex-zero & \eppex{} set to no pruning and \verb|--GZOutput| option \\
-eppex-1-in & \eppex{} with pruning thresholds set to keep in
+eppex zero      & \eppex{} set to no pruning and \verb|--GZOutput| option \\
+eppex 1-in      & \eppex{} with pruning thresholds set to keep in
 all phrase pairs of length 1--3 and prune longer phrase pairs
 with max. positive threshold of 8 and \verb|--GZOutput| option \\
-eppex-1-out & \eppex{} with pruning thresholds set to remove
+eppex 1-out     & \eppex{} with pruning thresholds set to remove
 all single-occurring phrase pairs and prune the rest with
 max. positive threshold of 8 and \verb|--GZOutput| option \\
 \hline
 \hline
 \end{tabular}
 \caption{\label{cu-bojar-scenarios}List of various experiments and their
-settings for "cu-bojar" setup. The parameters of "baseline", "eppex-1-in"
-and "eppex-1-out" are set in such a way that they conform to the
+settings for "cu-bojar" setup. The parameters of "baseline", "eppex 1-in"
+and "eppex 1-out" are set in such a way that they conform to the
 corresponding 2011 experiments.}
 \end{table}
 
@@ -219,20 +290,20 @@ fast than our optimized baseline).
 \centering
 \begin{tabular}{ | c | c c | c c | c c | }
 \hline
-name & \multicolumn{2}{|c|}{total} & \multicolumn{2}{|c|}{phrase extraction} & \multicolumn{2}{|c|}{phrase scoring} \\
+experiment & \multicolumn{2}{|c|}{total} & \multicolumn{2}{|c|}{phrase extraction} & \multicolumn{2}{|c|}{phrase scoring} \\
  & wall & CPU & wall & CPU & wall & CPU \\
 \hline
 \hline
-baseline*    & 08:49:44 & 07:03:48 & 02:05:56 & 01:00:09 & 06:43:48 & 06:03:39 \\
-baseline     & 05:44:12 & 04:47:41 & 02:36:00 & 01:33:40 & 03:08:12 & 03:14:00 \\
-opt-baseline & 02:42:15 & 05:57:45 & 01:00:03 & 01:39:16 & 01:42:12 & 04:18:29 \\
-eppex-zero   & 01:22:53 & 01:22:49 & -- & -- & -- & -- \\
+baseline*     & 08:49:44 & 07:03:48 & 02:05:56 & 01:00:09 & 06:43:48 & 06:03:39 \\
+baseline      & 05:44:12 & 04:47:41 & 02:36:00 & 01:33:40 & 03:08:12 & 03:14:00 \\
+opt. baseline & 02:42:15 & 05:57:45 & 01:00:03 & 01:39:16 & 01:42:12 & 04:18:29 \\
+eppex zero    & 01:22:53 & 01:22:49 & -- & -- & -- & -- \\
 \hline
-eppex-1-in*  & 04:03:04 & 03:42:29 & 01:48:14 & 01:28:53 & 02:14:50 & 02:13:36 \\
-eppex-1-in   & 00:44:10 & 00:44:08 & -- & -- & -- & -- \\
+eppex 1-in*   & 04:03:04 & 03:42:29 & 01:48:14 & 01:28:53 & 02:14:50 & 02:13:36 \\
+eppex 1-in    & 00:44:10 & 00:44:08 & -- & -- & -- & -- \\
 \hline
-eppex-1-out* & 01:50:03 & 01:36:19 & 01:35:38 & 01:21:57 & 00:14:25 & 00:14:22 \\
-eppex-1-out  & 00:30:23 & 00:30:21 & -- & -- & -- & -- \\
+eppex 1-out*  & 01:50:03 & 01:36:19 & 01:35:38 & 01:21:57 & 00:14:25 & 00:14:22 \\
+eppex 1-out   & 00:30:23 & 00:30:21 & -- & -- & -- & -- \\
 \hline
 \end{tabular}
 \caption{\label{cu-bojar-time-benchmarks}Wallclock times and CPU usage values
@@ -258,19 +329,19 @@ run without any pruning at all.
 \centering
 \begin{tabular}{ | c | c | }
 \hline
-name & VM peak \\
+experiment & VM peak \\
 \hline
 \hline
-baseline*    & 1.1~GB \\
-baseline     & 1.2~GB \\
-opt-baseline & 24.1~GB \\
-eppex-zero   & 16.8~GB \\
+baseline*     & 1.1~GB \\
+baseline      & 1.2~GB \\
+opt. baseline & 24.1~GB \\
+eppex zero    & 16.8~GB \\
 \hline
-eppex-1-in*  & 19.2~GB \\
-eppex-1-in   & 13.4~GB \\
+eppex 1-in*   & 19.2~GB \\
+eppex 1-in    & 13.4~GB \\
 \hline
-eppex-1-out* & 16.7~GB \\
-eppex-1-out  & 11.3~GB \\
+eppex 1-out*  & 16.7~GB \\
+eppex 1-out   & 11.3~GB \\
 \hline
 \end{tabular}
 \caption{\label{cu-bojar-vm-peak-benchmarks}Virtual memory peaks of
