@@ -38,13 +38,13 @@ settings for "Cs-En" setup.}
 experiment & phrase pairs & .gz file size & BLEU score \\
 \hline
 \hline
-baseline        & 336.0~M & 8.8~GB & ??.?? \\ % TODO.
+baseline        & 336.0~M & 8.8~GB & 0.2583 [0.2521, 0.2646] \\
+sigfilter 30    & 301.9~M & 8.2~GB & ??.?? \\ % TODO.
+sigfilter a-e   & 203.1~M & 5.9~GB & ??.?? \\ % TODO.
 eppex def.      & 109.8~M & 2.7~GB & 0.2598 [0.2531, 0.2664] \\
 eppex zero-n    &  86.2~M & 2.3~GB & 0.2586 [0.2527, 0.2649] \\
+sigfilter a+e   &  70.0~M & 1.9~GB & ??.?? \\ % TODO.
 eppex 1:n+1     &  25.7~M & 0.7~GB & 0.2537 [0.2477, 0.2603] \\
-sigfilter a-e   &   ?.?~M & ?.?~GB & ??.?? \\ % TODO.
-sigfilter a+e   &   ?.?~M & ?.?~GB & ??.?? \\ % TODO.
-sigfilter 30    &   ?.?~M & ?.?~GB & ??.?? \\ % TODO.
 \hline
 \end{tabular}
 \caption{\label{cs-en-wmt13-pt-size-and-bleu}Phrase table sizes and BLEU scores
