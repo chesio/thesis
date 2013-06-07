@@ -429,8 +429,9 @@ to $\alpha + \epsilon$ results in removal of all phrase pairs occurring exactly 
 In addition to setting the pruning threshold for p-values, the \emph{sigfilter} tool
 allows also to prune all but top $M$ translation options of each phrase, $M$ being
 referred to as \emph{cutoff} limit.
-The combination of both is also possible: first, phrase pairs are pruned with
-respect to the p-value threshold; then, the cutoff limit is applied when necessary.
+The combination of both is also possible: first, the cutoff limit is applied leaving
+only top $M$ options; then, remaining phrase pairs are pruned with respect to the
+p-value threshold.
 
 Finally, the important aspect for comparison of significance filtering and the
 filtering method described in this work is that due its design, significance
