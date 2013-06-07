@@ -232,9 +232,9 @@ to build the table.
 % Introduce train-model.perl and steps of training pipeline.
 
 % TODO: Moses release 1.0
-Moses release 1.0\footurl{http://...} comes with a training script that incorporates
-all the steps involved in creation of ready-to-go translation system from
-the parallel corpus, including phrase table creation.
+Moses release 1.0\footurl{http://www.statmt.org/moses/?n=Moses.Releases} comes
+with a training script that incorporates all the steps involved in creation of
+ready-to-go translation system from the parallel corpus, including phrase table creation.
 In the \emph{train-model.perl} script this whole training process is covered by
 9 subsequent steps\footurl{http://www.statmt.org/moses/?n=FactoredTraining.HomePage},
 including word alignment, lexical table construction, phrase table construction and more.
@@ -299,7 +299,8 @@ Further parallelization is done within the scoring process itself.
 First, similarly as with extraction, the input is split into $N$ chunks.
 However, this time it is important that all phrase pairs with the same source
 phrase are kept together in the same chunk (and vice versa for target phrases
-in case of inverse phrase table).\footnote{N.B., this is the reason behind the sorting done in the final stage of phrase extraction.}
+in case of inverse phrase table).\footnote{N.B., this is the reason behind
+the sorting done in the final stage of phrase extraction.}
 Then, $N$ scorers are run in parallel: each of them is provided with its set
 of chunks to process.
 For each chunk the scorer outputs the phrase pairs populated either with direct
@@ -319,9 +320,125 @@ to disk tends to slow down the overall process much more than additional
 CPU processing required to perform compression and decompression.
 
 \subsection{Phrase table pruning}
-
 % Introduce Johnson's significance filtering.
 
-\subsection{Phrase table compression}
+% The problem.
+Despite that \Tref{phrase-table-europarl} contains only excerpts from the list
+of all translations of "Europe" from English to Czech, it is easy to notice
+that the quality of translations rapidly diminishes to the bottom of the table
+and that the total number of possible translations (more than 1000) suggests
+that many of them are just wrong and/or will be never used in any translation.
+This observation likewise holds true to the whole phrase table: we could pick up
+any other phrase to illustrate this phenomenon, however, short and frequent
+phrases tend to accumulate more of such "noise".
 
+% The solution.
+Such significant presence of poor translation options in translation tables led to
+attempts to design methods of their removal that could effectively produce smaller,
+easier to manipulate phrase tables and in the same time retain, or possibly even improve,
+the overall quality of translation process by discarding the misleading options.
+
+\subsubsection*{Significance filtering}
+
+% Introduce the idea of significance filtering
+A phrase table filtering method popular within Moses community is \emph{significance filter}
+introduced by \citet{johnson:sigfilter} and implemented by the \emph{sigfilter} tool
+that is part of third party contributions to Moses toolkit.\footnote{More information
+about \emph{sigfilter} is available in the section "Pruning the Translation Table" of
+\tt{http://www.statmt.org/moses/?n=Moses.AdvancedFeatures}.}
+It proved to be capable of pruning out a substantial amount of phrase table with no
+significant harm to its quality: authors reported savings up to 90\% and in some cases
+even improvement of quality after pruning as measured by BLEU score.
+The idea behind significance filtering is that phrase pairs that are weakly supported
+by the data or, in other words, more statistically insignificant than others, can be
+removed, because it is more likely that they occurrence is either a chance or an artifact
+incurred by models used to prepare the parallel data (such as the model creating word
+alignments).
+
+% Describe counts necessary for contingency table
+Internally, significance filter performs significance testing using two by two
+contingency tables that are populated with the following counts (see
+\Tref{two-by-two-contingency-table}):
+\begin{itemize}
+  \item $C(\bar{s},\bar{t})$ as the number of parallel sentences that contain one or more
+    occurrences of phrase $\bar{s}$ on source side and phrase $\bar{t}$ on target side
+  \item $C(\bar{s})$ as the number of parallel sentences that contain one or more
+    occurrences of phrase $\bar{s}$ on the source side
+  \item $C(\bar{t})$ as the number of parallel sentences that contain one or more
+    occurrences of phrase $\bar{t}$ on the target side
+  \item $N$ as the total number of parallel sentences
+\end{itemize}
+
+% An example of 2x2 contingency table
+\begin{table}[ht]
+\centering
+\def\arraystretch{1.5}
+\begin{tabular}{ | c c | c | }
+\hline
+$C(\bar{s},\bar{t})$  &  $C(\bar{s}) - C(\bar{s},\bar{t})$  &  $C(\bar{s})$ \\
+$C(\bar{t}) - C(\bar{s},\bar{t})$  &  $N - C(\bar{s}) - C(\bar{t}) + C(\bar{s},\bar{t})$  & $N - C(\bar{s})$ \\
+\hline
+$C(\bar{t})$  &  $N - C(\bar{t})$  &  $N$ \\
+\hline
+\end{tabular}
+\caption{\label{two-by-two-contingency-table}
+Two by two contingency table for $\bar{s}$ and $\bar{t}$.}
+\end{table}
+
+% Define p-value, mention Fisher's exact test
+\emph{Significance test} allows to statistically assess the importance of association
+represented by the contingency table by calculating the probability (formally denoted
+as \emph{p-value}) that the observed contingency table or any more extreme one could
+occur by chance assuming the model of independence: thus, the lower the p-value of
+particular table the more significant the represented association.
+Several significance tests exist, but many depend on asymptotic assumptions
+that are not valid for small counts, therefore significance filtering employs
+\emph{Fisher's exact test} that calculates \emph{p-value} using hypergeometric
+distribution and is valid for all sample sizes.
+
+% Put phrase table filtering in perspective to significance testing
+In case of significance filtering the co-occurrence of phrases $\bar{s}$ and $\bar{t}$
+forming a particular phrase pair $(\bar{s},\bar{t})$ is the association being tested
+and the independence of model simply presumes that there is no explicit dependence
+between phrases from source and target side.
+% TODO: Does the above make sense? :)
+
+To prune the phrase table a threshold marking the maximum p-value must be given.
+Because the probabilities are very small numbers, their negative logarithm is used
+instead, and as a consequence the threshold has to be a positive real number with
+bigger values meaning more pruning.
+
+% 1-1-1 phrase pairs and related a-e and a+e thresholds
+The significance filter has no predefined thresholds with an exception for a special
+(but frequent) case of phrase pairs with $C(\bar{s},\bar{t}) = C(\bar{s}) = C(\bar{t}) = 1$.
+The p-value of contingency table of these \emph{1-1-1 phrase pairs} under Fisher's
+exact test is $1/N$ and by setting $\alpha = log(N)$ and picking $\epsilon$ such that
+$0 < \epsilon \ll 1$, we can define two useful thresholds:
+\begin{itemize}
+  \item $\alpha + \epsilon$ is the smallest threshold that results in complete removal
+    of 1-1-1 phrase pairs
+  \item $\alpha - \epsilon$ is the largest threshold that results in complete preservation
+    of 1-1-1 phrase pairs
+\end{itemize}
+
+Moreover, since the contingency table for 1-1-1 phrase pairs has the lowest p-value
+from all contingency tables with $C(\bar{s},\bar{t}) = 1$, setting pruning threshold
+to $\alpha + \epsilon$ results in removal of all phrase pairs occurring exactly once.
+
+% The cutoff limit
+In addition to setting the pruning threshold for p-values, the \emph{sigfilter} tool
+allows also to prune all but top $M$ translation options of each phrase, $M$ being
+referred to as \emph{cutoff} limit.
+The combination of both is also possible: first, phrase pairs are pruned with
+respect to the p-value threshold; then, the cutoff limit is applied when necessary.
+
+Finally, the important aspect for comparison of significance filtering and the
+filtering method described in this work is that due its design, significance
+filtering can be only used as post-processing filter and therefore, in contrast to
+our method, it does not interfere with the process of phrase table creation in any way.
+
+\subsubsection*{Relative entropy filtering}
+% Introduce phrase table filtering by Ling.
+
+\subsection{Phrase table compression}
 % Introduce phrase table compacting tool by Marcin.
