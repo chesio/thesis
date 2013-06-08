@@ -3,28 +3,96 @@
 
 We conducted a series of experimental phrase table extractions in order to
 assess \eppex{} memory demands, determine the ratio of speed up of the whole
-process and evaluate the impact of filtering on the ultimate quality of phrase
-tables.
+process obtainable with various pruning levels and evaluate the impact of both
+lossy counting and significance filtering on the quality of pruned phrase tables.
 In this chapter we are going to describe the parameters of our experiments,
-while the results of runtime and quality benchmarking are presented in
+the employed data sets and the means of runtime benchmarking and quality
+evaluation, while the actual results and comments on them are presented in
 \Cref{chap:results}.
 
-\section{Baseline setup}
+\section{Setups}
 
-Our baseline is naturally determined by the \emph{phrase-extract} suite that
-is core part of Moses toolkit.
-In \Cref{chap:phrase-based} we explained that the phrase table creation process
-is implemented in two steps: phrase pairs extraction and phrase pairs scoring.
-% The first of these steps is implemented within \emph{extract} program, the second
-% is implemented within \emph{score} and \emph{consolidate} programs.
-Both steps can be partially run in parallel and therefore we decided to run
-experiments with two types of baseline: non-parallel and parallel.
+\subsection{Baseline}
 
-% Parallel setup.
-In parallel setup we run phrase table extraction by \emph{train-model.perl}
-with \verb|--cores| set to $N-1$, where $N$ is number of CPU threads of the machine.
-We leave one thread idle to make sure our benchmarking script will not interfere
-with benchmarked processes.
+Our baseline is naturally determined by the phrase table creation process
+that is implemented within 5th and 6th step of Moses training pipeline.
+In the brief description of this process in section \ref{sec:phrase-table-creation-in-moses}
+we have mentioned that both steps can be partially run in parallel.
+This option helps to speed up the whole process whenever training is
+attempted on a machine with multiple processing units (cores or threads).
+Besides the parallelization, the training script also supports a more subtle
+runtime optimization: the sorting process, that is invoked to sort both halves
+of phrase table in the phrase extraction step and later to sort the inverse
+half before final consolidation of both halves, may be enabled to use a bigger
+memory buffer, order to compress the output or to run in parallel mode.
+\Tref{baseline-optimization-parameters} sums up all the parameters of Moses
+training script that can be set in order to optimize the process of phrase
+table creation and briefly explains their role.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{ r p{86mm} }
+parameter & description \\
+\hline
+\hline
+\verb|--parallel|               & run scoring of both phrase table halves in parallel \\
+\verb|--cores <num>|            & run extraction of phrases and scoring of each table half using \verb|num| threads (eg. 4) \\
+\verb|--sort-buffer <memsize>|  & allow sorting process to use internal buffer of \verb|memsize| RAM (eg. 12G)\\
+\verb|--sort-compress <cmd>|    & order sorting process to compress the output using \verb|cmd| program (eg. gzip) \\
+\verb|--sort-parallel <num>|    & allow sorting process to run using \verb|num| threads (eg. 4, sort program must support it)\\
+\hline
+\hline
+\end{tabular}
+\caption{\label{baseline-optimization-parameters}
+List of parameters to Moses training script that allows to speed up
+the process of phrase table creation.}
+\end{table}
+
+To give a better picture of the performance of the baseline system with respect
+to various optimization options and to get some insight into their importance,
+we decided to run experiments with four different sets of optimization parameters
+each being either proper subset/superset of the others (the short name in
+parentheses is designated for use in result tables):
+\begin{itemize}
+  \item default (\emph{def-base}) -- no optimization parameters are set
+  \item multi-core (\emph{multi-base}) -- multiple cores are used
+  \item compressed (\emph{comp-base}) -- multiple cores are used and
+    sorting process is ordered to compress its output
+  \item optimized (\emph{opt-base}) -- multiple cores are used, sorting process
+    is ordered to compress its output and to use more than default amount of memory
+\end{itemize}
+
+This selection by our own experience should also represent the most popular ways of
+invoking phrase table creation process via Moses training script and is designed to
+reflect phrase table creation benchmarks that earlier popped out on Moses mailing
+list.\footnote{Our selection is particularly inspired by the most recent benchmark
+we are aware of: \tt{http://article.gmane.org/gmane.comp.nlp.moses.user/6749}.}
+
+% On number of cores...
+In the non-default baselines we decided to turn on parallel processing using \verb|--cores|
+option as this setting applies to both steps of phrase table construction, whereas
+\verb|--parallel| is applicable only to scoring step.
+We set \verb|--cores| to 4 in all our experiments, despite that all machines employed in
+our experiments have 8 or more cores.
+In earlier experiments we observed that using more than 4 cores rarely brings in
+a significant improvement and even more importantly we intentionally left some cores
+idle to make sure our benchmarking script or any cluster administrative processes
+will not interfere with benchmarking.
+
+% On sort options...
+Regarding the optimization parameters for \emph{sort}, we use \emph{gzip} as compressing
+program and set sort buffer size to either use the whole memory available on machine
+(with some reasonable reserve for the remaining processes) or use approximately the same
+amount of memory as consumed by \eppex{} when creating the full phrase table from
+the same data (ie. without pruning -- the most "hungry" setting).
+We did not set parallelization on for \emph{sort} -- simply because we were using older
+version of \emph{sort} program that did not yet implement this feature.
+
+% Moses 1.0 only.
+For clarity and reproducibility of results we sticked to Moses release 1.0 in all our 
+experiments.\footnote{Precisely the Github commit 1530ae4f5ff59cfd30f6f933e4dc05ea89cca8fc.}
+
+\subsection{Significance filtering}
 
 % Post-filtering baseline.
 Post-filtering the phrase table with significance filter can be considered as
@@ -32,10 +100,7 @@ yet another baseline, mainly useful for quality benchmarking, because
 phrase table extraction with post-filtering is by design more time-consuming
 than just sole phrase table extraction.
 
-% Moses 1.0 only
-For clarity of results in all our experiments we sticked to Moses release 1.0.
-
-\section{Eppex setup}
+\subsection{Eppex}
 
 The runtime performance of \eppex{} and the degree of pruning is determined
 by the parameters of Lossy Counting.
