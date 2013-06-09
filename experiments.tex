@@ -51,7 +51,7 @@ the process of phrase table creation.}
 To give a better picture of the performance of the baseline system with respect
 to various optimization options and to get some insight into their importance,
 we decided to run experiments with four different sets of optimization parameters
-each being either proper subset/superset of the others (the short name in
+each being either proper subset or superset of the others (the short name in
 parentheses is designated for use in result tables):
 \begin{itemize}
   \item default (\emph{def-base}) -- no optimization parameters are set
@@ -69,15 +69,16 @@ list.\footnote{Our selection is particularly inspired by the most recent benchma
 we are aware of: \tt{http://article.gmane.org/gmane.comp.nlp.moses.user/6749}.}
 
 % On number of cores...
-In the non-default baselines we decided to turn on parallel processing using \verb|--cores|
+In the non-default baselines we favored to turn on parallel processing using \verb|--cores|
 option as this setting applies to both steps of phrase table construction, whereas
 \verb|--parallel| is applicable only to scoring step.
-We set \verb|--cores| to 4 in all our experiments, despite that all machines employed in
-our experiments have 8 or more cores.
-In earlier experiments we observed that using more than 4 cores rarely brings in
-a significant improvement and even more importantly we intentionally left some cores
-idle to make sure our benchmarking script or any cluster administrative processes
-will not interfere with benchmarking.
+Despite that all machines employed in our experiments have 8 or more cores (or threads),
+in most of the experiments we decided to utilize 4 cores only as this is configuration
+affordable not only on computational servers equipped with multiple CPUs, but also on most
+of the modern laptops and we expect such results to be more apt for the Moses community.
+All the time, however, we intentionally left at least one core idle to make sure our
+benchmarking script or any administrative process of software managing the computational
+cluster will not interfere with benchmarking.
 
 % On sort options...
 Regarding the optimization parameters for \emph{sort}, we use \emph{gzip} as compressing
