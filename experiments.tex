@@ -62,11 +62,14 @@ parentheses is designated for use in result tables):
     is ordered to compress its output and to use more than default amount of memory
 \end{itemize}
 
-This selection by our own experience should also represent the most popular ways of
+This selection by our own experience should represent the most popular ways of
 invoking phrase table creation process via Moses training script and is designed to
 reflect phrase table creation benchmarks that earlier popped out on Moses mailing
 list.\footnote{Our selection is particularly inspired by the most recent benchmark
 we are aware of: \tt{http://article.gmane.org/gmane.comp.nlp.moses.user/6749}.}
+Also, by exploring the impact of available optimization options we aim to establish
+as challenging baseline as possible given the computation resources of the machines
+at our disposal.
 
 % On number of cores...
 In the non-default baselines we favored to turn on parallel processing using \verb|--cores|
@@ -96,10 +99,40 @@ experiments.\footnote{Precisely the Github commit 1530ae4f5ff59cfd30f6f933e4dc05
 \subsection{Significance filtering}
 
 % Post-filtering baseline.
-Post-filtering the phrase table with significance filter can be considered as
-yet another baseline, mainly useful for quality benchmarking, because
-phrase table extraction with post-filtering is by design more time-consuming
-than just sole phrase table extraction.
+Post-filtering the phrase table with \emph{significance filter} can be considered as yet
+another baseline, sensible mainly for quality benchmarking, because time requirements
+will be by design above those of baseline phrase extraction.
+Nevertheless, we attempted both performance and quality benchmarking of the \emph{sigfilter}
+tool introduced in \Sref{sec:significance-filtering} to give the whole picture.
+
+% Parameters of sigfiltering.
+The degree of pruning done by \emph{sigfilter} is determined by the pruning
+threshold for p-values (set via \verb|-l| option), by cutoff limit for forward
+(direct) translation probabilities (set via \verb|-n| option) or by both.
+A particularly interesting values for pruning threshold are \verb|a+e| and
+\verb|a-e|: the former implies $\alpha + \epsilon$ threshold and results
+in removal of all 1-1-1 phrase pairs, the latter implies $\alpha - \epsilon$
+threshold and result in all 1-1-1 phrase pairs being preserved.
+As for cutoff limit, in \citep{johnson:sigfilter} a limit of 30 is applied to
+all experiments in order to control the width of beam search in decoding.
+In Moses, the width of beam is controlled directly by the decoder, but
+in the manual section on significance filtering the cutoff limit of 30
+in combination with pruning threshold $\alpha + \epsilon$ is recommended as
+"a good setting". % TODO: Footnote the section again?
+
+% TODO: A sum up table of various experiments and their parameters?
+
+% Preprocessing steps.
+Before \emph{sigfilter} can be run, some preprocessing is required.
+The counts $C(\bar{s})$, $C(\bar{t})$ and $C(\bar{s},\bar{t})$ necessary for
+population of contingency tables are established on the fly during the
+pruning process by querying a suffix-array index built over the parallel
+corpus used for phrase table creation.
+This suffix-array index has to be produced by indexer that is part of SALM
+toolkit,\footurl{http://projectile.sv.cmu.edu/research/public/tools/salm/salm.htm}
+and because SALM indexer cannot process sentences longer than 254 words,\footnote{Although SALM
+indexer complains about sentences being longer than 256 words, the actual limit is 254 words.}
+such sentences have to be trimmed in advance.
 
 \subsection{Eppex}
 
@@ -118,7 +151,7 @@ errors.}
 Another setup interesting to consider is the approximation of significance
 filtering with $\alpha \pm \epsilon$ thresholds.
 By setting \emph{support} $s$ to value such that $sN < 1$, all of the 1-1-1
-phrases will be preserved (like in $\alpha - \epsilon$), while setting
+phrase pairs will be preserved (like in $\alpha - \epsilon$), while setting
 \emph{support} $s$ and \emph{error} $\epsilon$ to satisfy $(s - \epsilon)N > 1$
 will result in their complete removal (like in $\alpha + \epsilon$).
 
@@ -130,17 +163,19 @@ that is the number of all extracted phrase pairs, have to be known in advance.
 \section{Data}
 % Data we used in experiments.
 
+%\subsection*{Cs-En}
 % Czech-English
 We used CzEng 1.0 parallel corpus \citep{czeng10:lrec2012} to train Czech-English
-translation model.
+translation model...
 % TODO: Update with more precise info when Obo reply.
 
+%\subsection*{Fr-En}
 % French-English
 To confront \eppex{} with even more challenging input data (in terms of size),
 we also prepared French-English translation model using data available for
 Shared Machine Translation Task for 2013 Workshop on Statistical Machine
 Translation (WMT~13 in short).\footurl{http://www.statmt.org/wmt13/translation-task.html}
-These data consist of following parallel corpora:
+These data consist of the following parallel corpora:
 \begin{itemize}
   \item Europarl v7 (Fr-En data)\footurl{http://www.statmt.org/europarl/}
   \item Common Crawl corpus
@@ -152,6 +187,7 @@ The size of our joint French-English training data is (after preprocessing descr
 below) 39,143,703 sentences with 1,173,485,756 French and 1,000,538,764 English tokens.
 % TODO: Add information about monolingual data used.
 
+%\subsection*{cu-bojar}
 % Czech-English (cu-bojar)
 Finally, we were curious to get some insight in the rate of performance improvement
 of both \eppex{} and \emph{phrase-extract} tools since their older versions that have
@@ -162,6 +198,8 @@ This parallel corpus is the smallest from our three configurations: it contains
 approximately 8.4~M sentence pairs with 93.2~M Czech and 107.2~M English tokens.
 Since we are mainly interested in comparison of the runtime benchmarking figures,
 we did not attempt the quality benchmarking with this dataset.
+Also, we omit the significance filtering setup, as \emph{sigfilter} did not change
+since the version tested in 2011.
 
 \subsection{Preprocessing}
 
@@ -207,15 +245,16 @@ Usually during this step one wants to remove also any empty lines as the same pr
 \section{Runtime benchmarking}
 
 % What has been benchmarked?
-We benchmarked phrase table construction by measuring CPU time, wall clock time
-and maximum virtual memory requirements of \eppex{} and \emph{phrase-extract} tools.
+We benchmarked phrase table construction by measuring CPU time, wall clock time,
+virtual memory usage peak and disk usage peak both of \eppex{} and standard Moses
+pipeline.
 
 % Environment.
 For all experiments we used servers that are part of Sun Grid Engine cluster.
 Although these machines were standard nodes in a cluster, we kept jobs of other
 users away by ordering SGE to reserve all memory of the machine for our job only.
 All the input and output files of benchmarked processes were read from and written
-to a locally mounted hard disk, therefore network load had minimal impact on
+to a locally mounted hard disk, therefore network load had no impact on
 benchmarking results.
 
 % Software and hardware configuration.
@@ -243,15 +282,15 @@ that satisfies memory and disk demands incurred by the size of particular datase
 % How the benchmarking was implemented?
 % TODO: Make script available online.
 
-% TODO: More info on complexity of training script (a lot of subprocesses).
-
+% On wall clock, CPU time and VM peak benchmarking.
 The baseline phrase table creation managed by the training script involves
 running multitude of working subprocesses to perform various intermediate
 tasks like phrase pairs extraction, phrase pairs scoring, phrase table
 consolidation, gzipping, wrapping the parallel execution etc.
 To measure the overall runtime demands of this dynamically changing tree
 of processes, we crafted a special Python script:
-it periodically gathers list consisting of the main observed process\footnote{The main training script \texttt{train-model.perl} in our case.}
+it periodically gathers list consisting of the main observed
+process\footnote{The main training script \texttt{train-model.perl} in our case.}
 and all its subprocesses, captures the values of their CPU time used so far
 and currently occupied virtual memory and updates the total CPU time counter
 and virtual memory peak.
@@ -266,6 +305,17 @@ subprocesses, but we are mainly interested in the final summary that presents
 the total wall clock time, aggregated CPU time consumed by all subprocesses
 and their joint virtual memory peak.
 
+% On disk usage peak measurement.
+The disk usage have been measured by a separate bash script that invoked Unix
+\texttt{du} command with summarizing option on the working directory with
+a period of 1 second and updated relevant log file with the full output of
+\texttt{du} whenever new peak was reached.
+In case of \eppex{} experiments the peak disk usage is always equal to the
+size of phrase table file as there are no temporary files produced and we
+ignored the disk usage incurred by input files.
+
 \section{Phrase table quality benchmarking}
 
 % BLEU score
+
+...

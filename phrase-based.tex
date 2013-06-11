@@ -157,7 +157,8 @@ that should reflect the goodness of translating $\bar{f}$ as $\bar{e}$.
 The standard approach to obtain such scores is to use \emph{maximum likelihood
 probability} of the phrase $\bar{e}$ given the phrase $\bar{f}$ and vice versa.
 The probabilities $\phi(\bar{e}|\bar{f})$ and $\phi(\bar{f}|\bar{e})$ are often
-referred to as \emph{direct} and \emph{inverse} \emph{phrase translation probabilities}.
+referred to as \emph{direct} and \emph{inverse} (or \emph{forward} and \emph{backward})
+\emph{phrase translation probabilities}.
 
 It should be obvious from the definition that the concept of phrase tables is not tied
 to any linguistic notion and neither the phrase pairs nor the scores have to be meaningful
@@ -340,6 +341,7 @@ easier to manipulate phrase tables and in the same time retain, or possibly even
 the overall quality of translation process by discarding the misleading options.
 
 \subsubsection*{Significance filtering}
+\label{sec:significance-filtering}
 
 % Introduce the idea of significance filtering
 A phrase table filtering method popular within Moses community is \emph{significance filter}
