@@ -5,6 +5,7 @@
 % -- with alternatives: memscore
 % - phrase table post filtering
 % -- sigfilter
+% -- relent filter
 % - alternatives to precomputed phrase table
 % -- dynamic suffix arrays
 % - mention phrase table compression tools
@@ -443,6 +444,43 @@ our method, it does not interfere with the process of phrase table creation in a
 
 \subsubsection*{Relative entropy filtering}
 % Introduce phrase table filtering by Ling.
+
+% Sketch the problem.
+One of the motivations behind the move from word-based to phrase-based models
+is that phrase pairs allow to capture contextual information that contributes
+to more precise translation.
+However, a typical phrase table will contain many phrase pairs that does not
+encode any context relevant for phrase translation: often, several short
+phrase pairs can be used to achieve the approximately same effect in translation
+as the longer phrase pair, that as a consequence can be deemed superfluous and
+a viable candidate for pruning.
+
+% Introduce the relent filter.
+\citet{ling:relentfilter} presented a phrase table filtering method based on
+this observation called \emph{relative entropy filtering}.
+Their method first establish relative entropy model that measures how likely
+a phrase pair encodes a translation event that might be derived from translation
+events represented by shorter phrase pairs with the similar overall translation
+probability. Then, it applies this model to phrase table pruning.
+The reported results show that this method has little negative impact on
+translation quality and in some situations can even lead to small improvements,
+because the pruning of redundant translation options effectively compress
+the search space during decoding and wider spectrum of options is explored.
+
+% Briefly describe the relative entropy metric.
+...
+
+% Give some practical thresholds to consider.
+...
+
+% Compare relent filter to sigfilter.
+Technically, the \emph{relative entropy filter} also acts as post-filtering tool,
+but is more complex to apply than the \emph{significance filter}: the complete
+translation model has to be set up in advance with its weights tuned properly
+to ensure the soundness of relative entropy metric.
+Because of this prerequisite, time requirements of relative entropy pruning will be
+most often far above those of significance pruning as the state of art methods of
+translation model tuning are generally very time demanding.
 
 \subsection{Phrase table compression}
 % Introduce phrase table compacting tool by Marcin.
