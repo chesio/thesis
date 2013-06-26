@@ -21,4 +21,4 @@ thesis.dvi: thesis.tex $(wildcard *.tex)
 	latex $<
 
 clean:
-	rm -f *.log *.dvi *.aux *.toc *.lof *.out
+	rm -f *.bbl *.blg *.log *.dvi *.aux *.toc *.lof *.out
