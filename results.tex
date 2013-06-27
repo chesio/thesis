@@ -52,7 +52,7 @@ between the best and worst is only 0.61 point.
 Moreover, none of the differences in BLEU score between two systems is statistically
 significant. % TODO: Get more info from Bojar on this.
 
-% CS-En: phrase tables sizes and BLEU scores
+% Cs-En: phrase tables sizes and BLEU scores
 \begin{table}[ht]
 \centering
 \begin{tabular}{ | c | c c | c | }
@@ -177,8 +177,8 @@ eppex zero-n   & 10.5~GB &      eppex &   2.2~GB \\
 eppex 1:n+1    &  9.6~GB &      eppex &   0.7~GB \\
 \hline
 \end{tabular}
-\caption{\label{cs-en-wmt13-vm-and-disk-usage-peaks}Virtual memory peaks of
-the phrase table construction for various experiments of "Cs-En" setup.}
+\caption{\label{cs-en-wmt13-vm-and-disk-usage-peaks}
+Virtual memory peaks of the phrase table construction for various experiments of "Cs-En" setup.}
 \end{table}
 
 \Eppex{} memory demands are largely dependent on the amount of pruning requested: with \emph{zero}
@@ -243,18 +243,109 @@ phrase pairs extracted from the parallel corpus.
 name & description and parameters \\
 \hline
 \hline
-baseline      & Standard Moses pipeline with no special parameters \\
-opt. baseline & Standard Moses pipeline with an optimized setup that is available in Moses 1.0:
-\verb|--sort-compress gzip|, \verb|--sort-buffer 20G| and \verb|--cores 15| \\
+opt-base      & Standard Moses pipeline with \verb|--sort-buffer 100G|, \verb|--sort-compress gzip| and \verb|--cores 4| \\
+opt-c8-base   & Standard Moses pipeline with \verb|--sort-buffer 100G|, \verb|--sort-compress gzip| and \verb|--cores 8| \\
 eppex zero    & \eppex{} set to no pruning and \verb|--GZOutput| option \\
-eppex zero-n  & \eppex{} with \verb|--limits| set to \verb|1:0:1,2:0:2,...,7:0:7| and \verb|--GZOutput| option \\
 eppex def.    & \eppex{} with \verb|--limits| set to \verb|1-3:0:1,4-5:1:4,6-7:4:8| and \verb|--GZOutput| option \\
+eppex zero-n  & \eppex{} with \verb|--limits| set to \verb|1:0:1,2:0:2,...,7:0:7| and \verb|--GZOutput| option \\
+eppex 1:n+1   & \eppex{} with \verb|--limits| set to \verb|1:1:2,2:1:3,...,7:1:8| and \verb|--GZOutput| option \\
+eppex 2:n+2   & \eppex{} with \verb|--limits| set to \verb|1:2:3,2:2:4,...,7:2:9| and \verb|--GZOutput| option \\
 \hline
 \hline
 \end{tabular}
 \caption{\label{fr-en-80-scenarios}
 List of various experiments and their settings for "Fr-En" setup.}
 \end{table}
+
+\subsection{Translation phrase table size and quality}
+
+\Tref{fr-en-pt-size-and-bleu} presents phrase table sizes and BLEU scores for all
+distinct phrase tables created in our experiments.
+
+% Fr-En: phrase tables sizes and BLEU scores
+\begin{table}[ht]
+\centering
+\begin{tabular}{ | c | c c | c | }
+\hline
+ & \multicolumn{2}{|c|}{final phrase table size} & \\
+experiment & phrase pairs & .gz file size & BLEU score \\
+\hline
+\hline
+baseline          & 1782.0~M & 42.5~GB & ? \\ % TODO.
+sigfilter 30      &    ?.?~M &  ?.?~GB & ? \\ % TODO.
+sigfilter a-e     &    ?.?~M &  ?.?~GB & ? \\ % TODO.
+eppex def.        &  463.4~M & 10.6~GB & ? \\ % TODO.
+eppex zero-n      &  283.2~M &  7.0~GB & ? \\ % TODO.
+sigfilter a+e     &    ?.?~M &  ?.?~GB & ? \\ % TODO.
+sigfilter 30 a+e  &    ?.?~M &  ?.?~GB & ? \\ % TODO.
+eppex 1:n+1       &  127.9~M &  3.2~GB & ? \\ % TODO.
+eppex 2:n+2       &   77.0~M &  2.0~GB & ? \\ % TODO.
+\hline
+\end{tabular}
+\caption{\label{fr-en-pt-size-and-bleu}
+Phrase table sizes and BLEU scores for various experiments of "Fr-En" setup.}
+\end{table}
+
+...
+
+\subsection{Memory and time requirements}
+
+\Tref{fr-en-time-benchmarks} presents the amount of time necessary to finish
+phrase table extraction with various systems and their configurations.
+
+% Fr-En: baseline and eppex wall clock and CPU time values
+\begin{table}[ht]
+\centering
+\begin{tabular}{ | c | c c | c c | c c | }
+\hline
+ & \multicolumn{2}{|c|}{total time} & \multicolumn{2}{|c|}{phrase extraction} & \multicolumn{2}{|c|}{phrase scoring} \\
+experiment & wall & CPU & wall & CPU & wall & CPU \\
+\hline
+\hline
+opt-base      & 56:45:41 & 146:06:57 & 14:59:56 & 39:12:55 & 41:45:45 & 106:54:01 \\
+opt-c8-base   & 45:05:05 & 149:48:59 & 12:43:22 & 39:41:57 & 32:21:42 & 110:07:02 \\
+eppex zero    & 25:28:49 &  25:24:43 &       -- &       -- &       -- &        -- \\
+\hline
+eppex def.    & 12:14:54 &  12:13:28 &       -- &       -- &       -- &        -- \\
+eppex zero-n  & 10:40:26 &  10:39:12 &       -- &       -- &       -- &        -- \\
+eppex 1:n+1   & 09:29:50 &  09:28:40 &       -- &       -- &       -- &        -- \\
+eppex 2:n+2   & 09:18:18 &  09:13:48 &       -- &       -- &       -- &        -- \\
+\hline
+\end{tabular}
+\caption{\label{fr-en-time-benchmarks}
+Wallclock times and CPU usage values (in hh:mm:ss format) of the phrase table
+construction for various experiments of "Fr-En" setup.}
+\end{table}
+
+...
+
+\Tref{fr-en-vm-and-disk-usage-peaks} illustrates both memory and disk space demands of baseline
+and \eppex{} experiments.
+
+% Fr-En: virtual memory and disk usage peaks
+\begin{table}[ht]
+\centering
+\begin{tabular}{ | c | r l | c | }
+\hline
+ & \multicolumn{2}{|c|}{VM peak} & \\
+experiment & size & step & disk usage peak \\
+\hline
+\hline
+opt-base       & 200.1~GB & extraction & 160.5~GB \\
+opt-c8-base    & 200.1~GB & extraction & 160.5~GB \\
+eppex zero     & 203.0~GB &      eppex &  48.0~GB \\
+\hline
+eppex def.     &  89.9~GB &      eppex &  16.0~GB \\
+eppex zero-n   &  48.7~GB &      eppex &   8.0~GB \\
+eppex 1:n+1    &  46.4~GB &      eppex &   4.0~GB \\
+eppex 2:n+2    &  45.6~GB &      eppex &   2.0~GB \\
+\hline
+\end{tabular}
+\caption{\label{fr-en-vm-and-disk-usage-peaks}
+Virtual memory peaks of the phrase table construction for various experiments of "Fr-En" setup.}
+\end{table}
+
+...
 
 
 \section{Comparison to 2011 version}
