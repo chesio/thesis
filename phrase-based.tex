@@ -23,8 +23,8 @@ phrase-based models: models that translate small word sequences at a time.}{--- 
 Phrase-based models are nowadays considered the most eminent approach
 in the field of Statistical Machine Translation.
 In this chapter we are going to describe their concept with a particular stress
-on description of phrase translation tables and methods of their construction.
-Our introduction will be, inevitably, very condensed.
+on description of phrase translation tables and methods of their construction,
+but our introduction will be, inevitably, very condensed.
 For a more detailed insight into phrase-based models and statistical machine
 translation in general, we gently point our reader to \citet{koehn:smt}.
 
@@ -132,8 +132,8 @@ First, as it is not build upon probabilistic reasoning, it does not require its
 components to be based on valid probability distributions.
 This way new features can be easily incorporated into the model, for example the direct
 phrase translation probability $\phi(e|f)$\footnote{Recall, that the phrase translation
-probability model $\phi(f|e)$ is inverted due to the use of noisy channel model.}.
-Second, the $\lambda_i$ parameters can be used to put more weight to some of the components,
+probability model $\phi(\bar{f}|\bar{e})$ is inverted due to the use of noisy channel model.}.
+Second, the $\lambda_i$ parameters can be used to put more weight on some of the components,
 for example accenting the language model more if the translation is good, but the output
 lacks fluency etc.
 
@@ -155,28 +155,40 @@ to the notation introduced earlier in this chapter.
 pairs of phrases $\bar{f}$ and $\bar{e}$, $\bar{f}$ being the phrase from the source
 language and $\bar{e}$ being the phrase from the target language, along with scores
 that should reflect the goodness of translating $\bar{f}$ as $\bar{e}$.
-The standard approach to obtain such scores is to use \emph{maximum likelihood
+The standard approach to obtain such scores is to estimate \emph{maximum likelihood
 probability} of the phrase $\bar{e}$ given the phrase $\bar{f}$ and vice versa.
 The probabilities $\phi(\bar{e}|\bar{f})$ and $\phi(\bar{f}|\bar{e})$ are often
 referred to as \emph{direct} and \emph{inverse} (or \emph{forward} and \emph{backward})
 \emph{phrase translation probabilities}.
 
-It should be obvious from the definition that the concept of phrase tables is not tied
-to any linguistic notion and neither the phrase pairs nor the scores have to be meaningful
-in terms of syntax or semantics.
+To estimate maximum likelihood probabilities, the following frequency counts
+of phrase pairs extracted from parallel corpus must be collected:
+\begin{itemize}
+  \item $C(\bar{f},\bar{e})$ -- number of occurrences of phrase pair $(\bar{f},\bar{e})$
+  \item $C(\bar{f})$ -- number of occurrences of phrase pairs with phrase $\bar{f}$ on source side:
+    $C(\bar{f}) = \sum_{e}{C(\bar{f},e)}$
+  \item $C(\bar{e})$ -- number of occurrences of phrase pairs with phrase $\bar{e}$ on target side:
+    $C(\bar{e}) = \sum_{f}{C(f,\bar{e})}$
+\end{itemize}
+
+The maximum likelihood probabilities $\phi(\bar{e}|\bar{f})$ and
+$\phi(\bar{f}|\bar{e})$ are then calculated from these counts as follows:
+\begin{equation}
+  \phi(\bar{e}|\bar{f}) = \frac{C(\bar{f},\bar{e})}{C(\bar{f})}
+  ~~~~~~~~~~ % Maybe not the cleanest, but definitely working solution :)
+  \phi(\bar{f}|\bar{e}) = \frac{C(\bar{f},\bar{e})}{C(\bar{e})}
+\end{equation}
 
 \Tref{phrase-table-europarl} presents an extract from the actual phrase table
 (with only the direct phrase translation probabilities).
 The full table has been constructed from Europarl v6 Czech-English
-corpus\footurl{http://www.statmt.org/europarl/archives.html}.
-
-% TODO: Continue & finish.
+corpus.\footurl{http://www.statmt.org/europarl/archives.html}
 
 % An example of actual phrase table.
 \begin{table}[h]
 \centering
 \begin{tabular}{ l l l l}
-No. & English ($f$) & Czech ($e$) & $\phi(e|f)$ \\
+No. & English ($\bar{f}$) & Czech ($\bar{e}$) & $\phi(\bar{e}|\bar{f})$ \\
 \hline
 \hline
 1. & europe & evropě & 0.325794 \\
@@ -209,32 +221,26 @@ No. & English ($f$) & Czech ($e$) & $\phi(e|f)$ \\
 \hline
 \hline
 \end{tabular}
-\caption{\label{phrase-table-europarl}An extract from phrase table
-listing some of the possible translations of English word "Europe"
-into Czech sorted by their maximum likelihood probability.
-The full table contained more than 26 millions of phrase pairs
-and has been extracted from Europarl v6 Czech-English corpus.}
+\caption{\label{phrase-table-europarl}
+An extract from phrase table listing some of the possible translations of English word
+"Europe" into Czech sorted by their maximum likelihood probability.
+The full table contained more than 26 millions of phrase pairs and has been extracted
+from Europarl v6 Czech-English corpus.}
 \end{table}
-
-% TODO: Ctrl+C Ctrl+V from the eppex paper.
-To estimate $p(s|t)$ and $p(t|s)$, frequency counts $C(t,s)$, $C(s)$ and
-$C(t)$ are usually collected from the entire training corpus.
-For substantial coverage of source and target languages, such corpora are
-often very big so all phrase pairs and their counts cannot fit in the
-physical memory of the computer.
-To overcome this limitation, phrase table construction methods often simply
-dump observed phrases to local disk and sort and count them on disk.
-This approach allows to construct phrase tables of size limited only by the
-capacity of the disk.
-The obvious drawback of this solution is that much more time is needed
-to build the table.
 
 \subsection{Phrase table creation in Moses}
 \label{sec:phrase-table-creation-in-moses}
 % What's the state-of-art implementation of phrase table extraction in Moses?
 % Introduce train-model.perl and steps of training pipeline.
 
-% TODO: Moses release 1.0
+It has been already said in introduction that the phrase table construction methods
+usually store all the temporary data on the disk, because the amount of extracted
+phrase pairs is often very big and so they cannot fit in the physical memory of
+the computer.
+The phrase table construction process in \emph{Moses} also adheres to this concept.
+In the following text, we describe this process in great detail to give our reader
+a clear picture of its quite complex layout and all the steps and substeps involved.
+
 Moses release 1.0\footurl{http://www.statmt.org/moses/?n=Moses.Releases} comes
 with a training script that incorporates all the steps involved in creation of
 ready-to-go translation system from the parallel corpus, including phrase table creation.
@@ -322,8 +328,8 @@ more CPU time, which in typical case is a worthy deal as parallel reads/writes
 to disk tends to slow down the overall process much more than additional
 CPU processing required to perform compression and decompression.
 
-\subsection{Phrase table pruning}
-% Introduce Johnson's significance filtering.
+\section{Phrase table pruning}
+\label{sec:phrase-table-pruning}
 
 % The problem.
 Despite that \Tref{phrase-table-europarl} contains only excerpts from the list
@@ -338,14 +344,75 @@ phrases tend to accumulate more of such "noise".
 % The solution.
 Such significant presence of poor translation options in translation tables led to
 attempts to design methods of their removal that could effectively produce smaller,
-easier to manipulate phrase tables and in the same time retain, or possibly even improve,
-the overall quality of translation process by discarding the misleading options.
+easier to manipulate phrase tables and in the same time retain the overall quality of
+translation process or possibly even improve it by discarding the misleading options.
 
-\subsubsection*{Significance filtering}
-\label{sec:significance-filtering}
+A systematic overview of existing phrase table pruning methods is presented in \citep{zens:systcomp}.
+Notably, three main approaches are mentioned:
+\begin{enumerate}
+  \item Simple statistics pruning -- pruning based either on frequency counts or
+    translation probabilities of phrase pairs
+  \item Significance pruning -- pruning based on significance testing of
+    cooccurrences of phrases aiming at filtration of poor translation options caused
+    by input data noise
+  \item Relative entropy pruning -- pruning based on relative entropy model established
+    on top of the translation model aiming at reduction of its internal redundancy
+\end{enumerate}
+
+\subsection{Simple statistics pruning}
+\label{sec:simple-statistics-pruning}
+
+The simplest pruning methods define their pruning criteria on the statistics immediately
+available in the pruned phrase table. \citet{zens:systcomp} specify 4 different criteria
+categorized to be either an absolute or a relative pruning method.
+
+\subsubsection*{Absolute pruning}
+
+Absolute pruning methods rely on statistics of a single phrase pair only and therefore
+they prune each phrase pair independently of others.
+This way, it is possible to remove all translation options of a particular source
+phrase.\footnote{However, whether the quality of translation model can be hurt by this is
+still an open question.}
+
+\emph{Count-based pruning} prunes a phrase pair $(\bar{f},\bar{e})$ if its frequency count
+$C(\bar{f},\bar{e})$ is below a threshold $\theta_{c}$:
+\begin{equation} \label{eq:count-based-pruning}
+  C(\bar{f},\bar{e}) < \theta_{c}
+\end{equation}
+
+\emph{Probability-based pruning} prunes a phrase pair $(\bar{f},\bar{e})$ if its forward
+translation probability $\phi(\bar{e}|\bar{f})$ is below a threshold $\theta_{p}$:
+\begin{equation}
+  \phi(\bar{e}|\bar{f}) < \theta_{p}
+\end{equation}
+
+\subsubsection*{Relative pruning}
+
+Relative pruning methods process a whole set of phrase pairs with the same source phrase
+$\bar{f}$ at once and always retain at least one phrase pair from each set, therefore they
+ensure there will remain at least one translation option for each source phrase.
+
+\emph{Threshold pruning} prunes phrase pairs $(\bar{f},\bar{e})$ that have forward translation
+probability far worse than the phrase pair representing the best translation option for source
+phrase $\bar{f}$ with respect to given minimum ratio threshold $\theta_{t} \in [0,1]$:
+\begin{equation}
+  \phi(\bar{e}|\bar{f}) < \theta_{t} \max_{\bar{e}}{\phi(\bar{e}|\bar{f})}
+\end{equation}
+
+\emph{Histogram pruning} prunes all but top $K$ phrase pairs $(\bar{f},\bar{e})$ from the set
+of all phrase pairs with the same source phrase $\bar{f}$ based on their forward translation
+probability.
+
+It is easy to note the similarity of both criteria and as a matter of fact with $\theta_{t} = 1$
+and $K = 1$ both methods give the same result: only the best translation option(s) for each
+source phrase are kept in pruned phrase table.
+
+\subsection{Significance pruning}
+\label{sec:significance-pruning}
+% Introduce Johnson's significance filtering.
 
 % Introduce the idea of significance filtering
-A phrase table filtering method popular within Moses community is \emph{significance filter}
+A phrase table pruning method popular within Moses community is \emph{significance filter}
 introduced by \citet{johnson:sigfilter} and implemented by the \emph{sigfilter} tool
 that is part of third party contributions to Moses toolkit.\footnote{More information
 about \emph{sigfilter} is available in the section "Pruning the Translation Table" of
@@ -364,12 +431,12 @@ Internally, significance filter performs significance testing using two by two
 contingency tables that are populated with the following counts (see
 \Tref{two-by-two-contingency-table}):
 \begin{itemize}
-  \item $C(\bar{s},\bar{t})$ as the number of parallel sentences that contain one or more
-    occurrences of phrase $\bar{s}$ on source side and phrase $\bar{t}$ on target side
-  \item $C(\bar{s})$ as the number of parallel sentences that contain one or more
-    occurrences of phrase $\bar{s}$ on the source side
-  \item $C(\bar{t})$ as the number of parallel sentences that contain one or more
-    occurrences of phrase $\bar{t}$ on the target side
+  \item $C(\bar{f},\bar{e})$ as the number of parallel sentences that contain one or more
+    occurrences of phrase $\bar{f}$ on source side and phrase $\bar{e}$ on target side
+  \item $C(\bar{f})$ as the number of parallel sentences that contain one or more
+    occurrences of phrase $\bar{f}$ on the source side
+  \item $C(\bar{e})$ as the number of parallel sentences that contain one or more
+    occurrences of phrase $\bar{e}$ on the target side
   \item $N$ as the total number of parallel sentences
 \end{itemize}
 
@@ -379,14 +446,14 @@ contingency tables that are populated with the following counts (see
 \def\arraystretch{1.5}
 \begin{tabular}{ | c c | c | }
 \hline
-$C(\bar{s},\bar{t})$  &  $C(\bar{s}) - C(\bar{s},\bar{t})$  &  $C(\bar{s})$ \\
-$C(\bar{t}) - C(\bar{s},\bar{t})$  &  $N - C(\bar{s}) - C(\bar{t}) + C(\bar{s},\bar{t})$  & $N - C(\bar{s})$ \\
+$C(\bar{f},\bar{e})$  &  $C(\bar{f}) - C(\bar{f},\bar{e})$  &  $C(\bar{f})$ \\
+$C(\bar{e}) - C(\bar{f},\bar{e})$  &  $N - C(\bar{f}) - C(\bar{e}) + C(\bar{f},\bar{e})$  & $N - C(\bar{f})$ \\
 \hline
-$C(\bar{t})$  &  $N - C(\bar{t})$  &  $N$ \\
+$C(\bar{e})$  &  $N - C(\bar{e})$  &  $N$ \\
 \hline
 \end{tabular}
 \caption{\label{two-by-two-contingency-table}
-Two by two contingency table for $\bar{s}$ and $\bar{t}$.}
+Two by two contingency table for $\bar{f}$ and $\bar{e}$.}
 \end{table}
 
 % Define p-value, mention Fisher's exact test
@@ -401,8 +468,8 @@ that are not valid for small counts, therefore significance filtering employs
 distribution and is valid for all sample sizes.
 
 % Put phrase table filtering in perspective to significance testing
-In case of significance filtering the co-occurrence of phrases $\bar{s}$ and $\bar{t}$
-forming a particular phrase pair $(\bar{s},\bar{t})$ is the association being tested
+In case of significance filtering the co-occurrence of phrases $\bar{f}$ and $\bar{e}$
+forming a particular phrase pair $(\bar{f},\bar{e})$ is the association being tested
 and the independence of model simply presumes that there is no explicit dependence
 between phrases from source and target side.
 % TODO: Does the above make sense? :)
@@ -414,7 +481,7 @@ bigger values meaning more pruning.
 
 % 1-1-1 phrase pairs and related a-e and a+e thresholds
 The significance filter has no predefined thresholds with an exception for a special
-(but frequent) case of phrase pairs with $C(\bar{s},\bar{t}) = C(\bar{s}) = C(\bar{t}) = 1$.
+(but frequent) case of phrase pairs with $C(\bar{f},\bar{e}) = C(\bar{f}) = C(\bar{e}) = 1$.
 The p-value of contingency table of these \emph{1-1-1 phrase pairs} under Fisher's
 exact test is $1/N$ and by setting $\alpha = log(N)$ and picking $\epsilon$ such that
 $0 < \epsilon \ll 1$, we can define two useful thresholds:
@@ -426,23 +493,26 @@ $0 < \epsilon \ll 1$, we can define two useful thresholds:
 \end{itemize}
 
 Moreover, since the contingency table for 1-1-1 phrase pairs has the lowest p-value
-from all contingency tables with $C(\bar{s},\bar{t}) = 1$, setting pruning threshold
+from all contingency tables with $C(\bar{f},\bar{e}) = 1$, setting pruning threshold
 to $\alpha + \epsilon$ results in removal of all phrase pairs occurring exactly once.
 
 % The cutoff limit
 In addition to setting the pruning threshold for p-values, the \emph{sigfilter} tool
-allows also to prune all but top $M$ translation options of each phrase, $M$ being
-referred to as \emph{cutoff} limit.
+allows also to prune all but top $K$ translation options of each source phrase,
+$K$ being referred to as \emph{cutoff} limit.\footnote{In other words \emph{sigfilter}
+also implements \emph{histogram pruning} method.}
 The combination of both is also possible: first, the cutoff limit is applied leaving
-only top $M$ options; then, remaining phrase pairs are pruned with respect to the
+only top $K$ options; then, remaining phrase pairs are pruned with respect to the
 p-value threshold.
 
+% TODO: Already said in the introduction:
 Finally, the important aspect for comparison of significance filtering and the
 filtering method described in this work is that due its design, significance
 filtering can be only used as post-processing filter and therefore, in contrast to
 our method, it does not interfere with the process of phrase table creation in any way.
 
-\subsubsection*{Relative entropy filtering}
+\subsection{Relative entropy pruning}
+\label{sec:relent-pruning}
 % Introduce phrase table filtering by Ling.
 
 % Sketch the problem.
@@ -450,37 +520,102 @@ One of the motivations behind the move from word-based to phrase-based models
 is that phrase pairs allow to capture contextual information that contributes
 to more precise translation.
 However, a typical phrase table will contain many phrase pairs that does not
-encode any context relevant for phrase translation: often, several short
-phrase pairs can be used to achieve the approximately same effect in translation
-as the longer phrase pair, that as a consequence can be deemed superfluous and
-a viable candidate for pruning.
+encode any context relevant for phrase translation: often, using a particular
+phrase pair in translation process will have a similar effect to instead using
+several shorter phrase pairs independent of each other.
+As a consequence, such longer phrase pairs can be deemed superfluous and thus
+a viable candidates for pruning.
 
 % Introduce the relent filter.
-\citet{ling:relentfilter} presented a phrase table filtering method based on
-this observation called \emph{relative entropy filtering}.
-Their method first establish relative entropy model that measures how likely
+Based on this observation, a phrase table filtering method called \emph{relative
+entropy pruning} has been recently proposed by \citet{ling:relentfilter} and
+\citet{zens:systcomp}.
+This method first establish relative entropy model that measures how likely
 a phrase pair encodes a translation event that might be derived from translation
 events represented by shorter phrase pairs with the similar overall translation
-probability. Then, it applies this model to phrase table pruning.
+probability. Then, it applies this model to phrase table pruning, removing
+the most redundant translation options.
 The reported results show that this method has little negative impact on
 translation quality and in some situations can even lead to small improvements,
 because the pruning of redundant translation options effectively compress
 the search space during decoding and wider spectrum of options is explored.
 
 % Briefly describe the relative entropy metric.
-...
+The goal of relative entropy pruning is to deliver the pruned model $\phi'(\bar{e}|\bar{f})$
+as similar as possible to the original model $\phi(\bar{e}|\bar{f})$.
+To measure models similarity Kullback-Leibler divergence is used: % TODO: Cite?
+\begin{equation}
+  D(\phi||\phi') = \sum_{\bar{f},\bar{e}}{p(\bar{f},\bar{e}) \Big[log\big(\phi(\bar{e}|\bar{f})\big) - log\big(\phi'(\bar{e}|\bar{f})\big)\Big]}
+\end{equation}
 
-% Give some practical thresholds to consider.
-...
+For each phrase pair $(\bar{f},\bar{e})$ the deviation between probability emission
+from the pruned model and the original model expressed as
+$log\big(\phi(\bar{e}|\bar{f})\big) - log\big(\phi'(\bar{e}|\bar{f})\big)$ is weighted
+by the frequency that the pair is observed given by $p(\bar{f}, \bar{e})$.
 
+% On computation of p(f,e)
+There is no obvious optimal distribution to the weight component $p(\bar{f}, \bar{e})$,
+so a simple solution is to just use uniform distribution.
+However, \citet{ling:relentfilter} suggest that as the input data size grows, this
+approach proves to be inferior to more complex approach of using multinomial distribution
+modeled by the fraction:
+\begin{equation}
+  p(\bar{f}, \bar{e}) = \frac{N(\bar{f},\bar{e})}{N}
+\end{equation}
+where $N(\bar{f},\bar{e})$ is the number of sentence pairs with phrase $f$ observed on the
+source side and $e$ on the target side and $N$ is the total number of sentence pairs
+in the parallel data.
+
+% On computation of p'(e|f)
+The probability $\phi'(\bar{e}|\bar{f})$ under the pruned model is estimated by using the
+decoder to select the best translation options with the phrase pair $(\bar{f},\bar{e})$
+being no longer available.
+In such a case, the decoder is forced to use shorter phrase pairs to produce the same
+translation.
+Therefore, the pruned model probability has to account for all possible segmentations
+$S_I^K$ of phrase pair $(\bar{f},\bar{e})$ into $K$ "sub-phrase-pairs"
+$\bar{e}_k$ and $\bar{f}_{\pi_k}$ with all possible reorderings $\pi_I^K$ determining
+the alignment of such "sub-phrase-pairs".
+The ultimate approximation of this probability is following:\footnote{See
+\citet{zens:systcomp} for a more detailed derivation of this approximation.}
+\begin{equation}
+  \phi'(\bar{e}|\bar{f}) \approx \max_{S_I^K,\pi_I^K}{\prod_{k=1}^{K} \phi(\bar{e}_k|\bar{f}_{\pi_k})}
+\end{equation}
+
+% Note about the "independence of phrase pairs" assumption.
+The probability assigned to a phrase pair $(\bar{f},\bar{e})$ by the translation model
+may, in general, depend on ordering of phrase pairs within the sentence pair, but from
+a computational perspective a search for the best model adhering to such consideration
+would be infeasible, because all possible subsets of a given size would have to be evaluated.
+Because of this, an assumption that all phrase pairs affect the relative entropy roughly
+independently on their context is applied and with this assumption the problem can be
+reduced to a local optimization problem that offers a simple criterion for pruning.
+Namely, a phrase pair $(\bar{f},\bar{e})$ is pruned if its contribution to the overall
+divergence of pruned and original model is below a threshold $\theta_{re}$:
+\begin{equation}
+  p(\bar{f},\bar{e}) \Big[log\big(\phi(\bar{e}|\bar{f})\big) - log\big(\phi'(\bar{e}|\bar{f})\big)\Big] < \theta_{re}
+\end{equation}
+
+% No parametric thresholds here.
+The conception of relative entropy pruning does not provide any option to set
+the pruning threshold parametrically as in the case of $\alpha \pm \epsilon$ option
+available with \emph{significance filtering}.
+The typical usage potential of the method lies rather in possibility to prune off
+a given portion of a phrase table (eg. 50\% of it), ensuring that the translation model
+powered by the pruned table will perform as closely to the original model as possible.
+
+% Mention the relent filter in Moses 0.91
+An implementation of relative entropy pruning by \citet{ling:relentfilter} named
+\emph{relent-filter} is also part of third-party contributions to Moses toolkit,
+but works only with an older version of Moses (release 0.91).\footnote{More information
+about \emph{relent-filter} is available in the section "Pruning the Phrase Table based
+on Relative Entropy" of Advanced Features chapter of Moses manual:
+\tt{http://www.statmt.org/moses/?n=Moses.AdvancedFeatures}.}
 % Compare relent filter to sigfilter.
-Technically, the \emph{relative entropy filter} also acts as post-filtering tool,
-but is more complex to apply than the \emph{significance filter}: the complete
-translation model has to be set up in advance with its weights tuned properly
-to ensure the soundness of relative entropy metric.
-Because of this prerequisite, time requirements of relative entropy pruning will be
-most often far above those of significance pruning as the state of art methods of
-translation model tuning are generally very time demanding.
-
-\subsection{Phrase table compression}
-% Introduce phrase table compacting tool by Marcin.
+Despite that technically the \emph{relent-filter} acts as a post-filtering tool,
+the same way \emph{sigfilter} does, it is more complex to apply, because the weights
+of translation model has to be tuned in advance to ensure the soundness of relative
+entropy metric.
+Because of this prerequisite, time requirements of relative entropy pruning run with
+Moses toolkit will be most often far above those of significance pruning as the state of art
+methods of translation model tuning are, in general, very time demanding.

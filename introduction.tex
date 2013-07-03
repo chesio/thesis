@@ -75,7 +75,7 @@ standard is to use \emph{maximum likelihood probability} of the target language
 phrase given the source language phrase and vice versa.
 
 % Sketch the problem (partially copy-pasted from eppex paper).
-To estimate maximum likelihood probabilities, frequency counts of source
+To estimate maximum likelihood probabilities, \emph{frequency counts} of source
 phrases, target phrases and all their co-occurrences must be collected from
 the entire parallel corpus.
 For substantial coverage of source and target languages, such corpus is often
@@ -87,16 +87,48 @@ This approach allows to construct phrase tables of size limited only by
 the capacity of the disk, with an obvious drawback that much more time is
 needed to build the table.
 
-% Introduce existing tools for phrase table filtration.
-In recent years it has been demonstrated that the load of phrase pairs can
-be much reduced without loss of translation quality:
-\citet{johnson:sigfilter} demonstrated filtering method based on significance
-testing of phrase pair cooccurrences in the parallel corpus that allowed for
-substantial savings (up to 90\%) and caused no reduction in BLEU score
-\citep{papineni:bleu}.
-However, the phrase table construction time is unaffected by this method,
-as it requires frequency counts of phrases and phrase pairs and therefore acts
-as a post-filter applied to already built phrase table.
+% Underline the urgency of the problem.
+In recent years the amount of parallel data available increased significantly,
+but the more data are exploited in the process of MT system training,
+the more computational resources are consumed by the phrase table component.
+The growing phrase tables not only make translation models expensive to store and process,
+but can even pose a challenging problem for further utilization of the system
+(eg. in case of handheld devices or in otherwise constrained environments).
+
+% Introduce the idea of phrase table pruning.
+This arising problem attracted attention of MT community and several methods
+aiming at \emph{pruning of phrase tables} have been demonstrated.
+The design of such methods typically allows to control the degree of pruning by setting
+a threshold value that either ensures removal of certain bottom-ratio of phrase pairs
+sorted by values given by the internal pruning criterion or directly sets
+a maximum/minimum limit for the positive values with respect to this criterion.
+Moreover, to prove their usefulness, the method designers also provide theoretically
+or empirically grounded means of how to set the threshold in order to remove
+a significant portion of phrase table and in the same time retain the overall quality
+of the underlying translation model.
+
+% A systematic comparison of phrase table pruning techniques.
+A recent work by \citet{zens:systcomp} presented a systematic description of existing
+phrase table pruning techniques and also stated desiderata for a good phrase table pruning
+criterion:
+\begin{itemize}
+  \item \emph{Soundness} -- the criterion should optimize some established
+    information-theoretic measure of translation model quality.
+  \item \emph{Efficiency} -- pruning should be fast (linear in the size of the phrase table).
+  \item \emph{Self-containedness} -- pruning should use only information contained in the model
+  (the phrase table) itself.
+  \item \emph{Good empirical behavior} -- the criterion should be capable of pruning large parts
+    of the phrase table without significant loss in translation quality.
+\end{itemize}
+
+These desiderata also served as a motivation for a proposal of a novel pruning method introduced
+in their work: \emph{relative entropy pruning} reportedly outperforms all the existing methods and 
+achieves consistently high savings between 85\% and 95\% of the phrase table with a negligible loss
+of translation quality as measured by BLEU score \citep{papineni:bleu}.
+
+From the perspective of this work it is worth to note that all the established pruning methods
+mentioned by \citet{zens:systcomp} operates on complete phrase tables, i.e. no method attempts
+to prune phrase pairs immediately in the process of their extraction from parallel corpus.
 
 % TODO: Mention phrase table compacting?
 
@@ -121,21 +153,22 @@ Beside the implementation and its detailed description, the crucial part of
 this work also consists of a careful examination of the impact that various
 settings of the algorithm imply on memory vs. time and translation quality
 trade-offs when compared to current state-of-art methods of phrase table
-creation and filtration.
+construction and pruning.
 
-As a state-of-art SMT system to set our baseline, we decided to choose
-\emph{Moses}\footurl{http://www.statmt.org/moses/}, an open-source toolkit
-with rich documentation and active community of researchers and developers.
+As a state-of-art SMT system to set our baseline, we decided to choose \emph{Moses}
+\citep{koehn:moses}: an open-source toolkit with rich documentation and active
+community of researchers and developers.\footurl{http://www.statmt.org/moses/}
 
 \section{Thesis outline}
 
 We start with more detailed introduction to the phrase-based SMT,
 carefully describe the process of phrase translation table construction
-and mention some of the existing filtration tools.
+and mention some of the existing pruning methods and their available
+implementations.
 
 In Chapter 3 we introduce the algorithm that is the basis of our implementation
 of on-the-fly filtration and show the properties of the output produced
-by the algorithm that make it particularly applicable in the filtration process.
+by the algorithm that make it particularly applicable for phrase table pruning.
 
 Chapter 4 is devoted to in-depth description of implementation details of our
 phrase table extraction tool, \emph{epochal extractor} (or shortly \eppex{}).
@@ -143,14 +176,14 @@ Notably, various memory-management optimizations are mentioned.
 
 To assess \eppex{} usability in real world applications, we carried out a set
 of carefully crafted experiments aiming at comparison of resources usage as well as
-the ultimate translation quality of \eppex{} and some of the methods mentioned
+the ultimate translation quality of \eppex{} and some of the methods described
 in Chapter 2.
 Detailed design of experiments is subject of Chapter 5,
 while the results are discussed in Chapter 6.
 
-In last chapter we comment on our results and provide a conclusion of
+In the final chapter we comment on our results and provide a conclusion of
 what have been done and what can be done in the future work on this topic.
 
-In Appendix A you may find \eppex{} installation instructions.
+In Appendix A we give the instructions on how to get \eppex{} working on Linux machines.
 
-In Appendix B all the program options are explained with examples of their usage.
+In Appendix B all the program options of \eppex{} are explained with examples of their usage.

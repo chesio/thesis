@@ -12,14 +12,6 @@
 % \openright zařídí, aby následující text začínal na pravé straně knihy
 \let\openright=\clearpage
 
-% Use additional margin space instead of indented first line to mark new paragraph.
-% http://en.wikibooks.org/wiki/LaTeX/Paragraph_Formatting
-\usepackage{parskip}
-
-% Allow for more padding in tables.
-% http://tex.stackexchange.com/questions/31672/column-padding-in-tables
-\usepackage{booktabs}
-
 %% Pokud tiskneme oboustranně:
 % \documentclass[12pt,a4paper,twoside,openright]{report}
 % \setlength\textwidth{145mm}
@@ -30,6 +22,14 @@
 % \setlength\headsep{0mm}
 % \setlength\headheight{0mm}
 % \let\openright=\cleardoublepage
+
+% Use additional margin space instead of indented first line to mark new paragraph.
+% http://en.wikibooks.org/wiki/LaTeX/Paragraph_Formatting
+\usepackage{parskip}
+
+% Allow for more padding in tables.
+% http://tex.stackexchange.com/questions/31672/column-padding-in-tables
+\usepackage{booktabs}
 
 % Why use T1 for fontenc package:
 % http://tex.stackexchange.com/questions/664/
