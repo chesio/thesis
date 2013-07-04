@@ -263,21 +263,21 @@ distinct phrase tables created in our experiments.
 % Fr-En: phrase tables sizes and BLEU scores
 \begin{table}[ht]
 \centering
-\begin{tabular}{ | c | c c | c | }
+\begin{tabular}{ | c | r r | c c | }
 \hline
- & \multicolumn{2}{|c|}{final phrase table size} & \\
-experiment & phrase pairs & .gz file size & BLEU score \\
+ & \multicolumn{2}{|c|}{final phrase table size} & \multicolumn{2}{|c|}{BLEU score} \\
+experiment & phrase pairs & .gz file size & wmt-12 & wmt-13 \\
 \hline
 \hline
-baseline          & 1782.0~M & 42.5~GB & ? \\ % TODO.
-sigfilter 30      &    ?.?~M &  ?.?~GB & ? \\ % TODO.
-sigfilter a-e     &    ?.?~M &  ?.?~GB & ? \\ % TODO.
-eppex def.        &  463.4~M & 10.6~GB & ? \\ % TODO.
-eppex zero-n      &  283.2~M &  7.0~GB & ? \\ % TODO.
-sigfilter a+e     &    ?.?~M &  ?.?~GB & ? \\ % TODO.
-sigfilter 30 a+e  &    ?.?~M &  ?.?~GB & ? \\ % TODO.
-eppex 1:n+1       &  127.9~M &  3.2~GB & ? \\ % TODO.
-eppex 2:n+2       &   77.0~M &  2.0~GB & ? \\ % TODO.
+baseline          & 1782.0~M & 42.5~GB & 0.2860 & 0.2958 \\ % TODO.
+sigfilter 30      &    ?.?~M &  ?.?~GB & ? & ? \\ % TODO.
+sigfilter a-e     &    ?.?~M &  ?.?~GB & ? & ? \\ % TODO.
+eppex def.        &  463.4~M & 10.6~GB & 0.2867 & 0.2950 \\ % TODO.
+eppex zero-n      &  283.2~M &  7.0~GB & 0.2841 & 0.2950 \\ % TODO.
+sigfilter a+e     &    ?.?~M &  ?.?~GB & ? & ? \\ % TODO.
+sigfilter 30 a+e  &    ?.?~M &  ?.?~GB & ? & ? \\ % TODO.
+eppex 1:n+1       &  127.9~M &  3.2~GB & 0.2859 & 0.2953 \\ % TODO.
+eppex 2:n+2       &   77.0~M &  2.0~GB & 0.2839 & 0.2943 \\ % TODO.
 \hline
 \end{tabular}
 \caption{\label{fr-en-pt-size-and-bleu}
