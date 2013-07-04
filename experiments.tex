@@ -10,13 +10,16 @@ the employed data sets and the means of runtime benchmarking and quality
 evaluation, while the actual results and comments on them are presented in
 \Cref{chap:results}.
 
-\section{Setups}
+\section{Scenarios}
+
+We use the term scenario to denote a particular toolkit (or phrase table construction process)
+and the set of its configurations that we aim to evaluate.
 
 \subsection{Baseline}
 
 Our baseline is naturally determined by the phrase table creation process
 that is implemented within 5th and 6th step of Moses training pipeline.
-In the brief description of this process in section \ref{sec:phrase-table-creation-in-moses}
+In the detailed description of this process in section \ref{sec:phrase-table-creation-in-moses}
 we have mentioned that both steps can be partially run in parallel.
 This option helps to speed up the whole process whenever training is
 attempted on a machine with multiple processing units (cores or threads).
@@ -103,7 +106,7 @@ Post-filtering the phrase table with \emph{significance filter} can be considere
 another baseline, sensible mainly for quality benchmarking, because time requirements
 will be by design above those of baseline phrase extraction.
 Nevertheless, we attempted both performance and quality benchmarking of the \emph{sigfilter}
-tool introduced in \Sref{sec:significance-filtering} to give the whole picture.
+tool introduced in \Sref{sec:significance-pruning} to give the whole picture.
 
 % Parameters of sigfiltering.
 The degree of pruning done by \emph{sigfilter} is determined by the pruning
@@ -118,7 +121,7 @@ all experiments in order to control the width of beam search in decoding.
 In Moses, the width of beam is controlled directly by the decoder, but
 in the manual section on significance filtering the cutoff limit of 30
 in combination with pruning threshold $\alpha + \epsilon$ is recommended as
-"a good setting". % TODO: Footnote the section again?
+"a good setting".
 
 % TODO: A sum up table of various experiments and their parameters?
 
@@ -130,35 +133,71 @@ pruning process by querying a suffix-array index built over the parallel
 corpus used for phrase table creation.
 This suffix-array index has to be produced by indexer that is part of SALM
 toolkit,\footurl{http://projectile.sv.cmu.edu/research/public/tools/salm/salm.htm}
-and because SALM indexer cannot process sentences longer than 254 words,\footnote{Although SALM
-indexer complains about sentences being longer than 256 words, the actual limit is 254 words.}
-such sentences have to be trimmed in advance.
+and because SALM indexer cannot process sentences longer than 254 words,\footnote{Although
+SALM indexer complains about sentences being longer than 256 words, the actual limit
+is 254 words.} such sentences have to be trimmed in advance.
 
 \subsection{Eppex}
 
-The runtime performance of \eppex{} and the degree of pruning is determined
-by the parameters of Lossy Counting.
-For each phrase pair length a separate Lossy Counter instance can be set.
+The runtime performance of \eppex{} and the degree of pruning heavily depends
+on the parameters of Lossy Counting: more intensive pruning results in less phrase pairs
+being extracted and then scored, thus with more pruning \eppex{} runs faster.
+
+The earlier experiments with \eppex{} \citep{przywara:eppex} showed that the pruning
+should not be too intensive: especially the removal of short phrase pairs can be
+damaging to the quality of translation model.
+This findings has been reflected in \eppex{} design in the possibility to instantiate
+a separate Lossy Counter instance for each phrase pair length (or range of them).
 
 % all-in setup
-The simplest case is to use no pruning at all. All phrase pairs will be
-output and the phrase table will be equal to the one created by baseline
-extraction.\footnote{Equal does not necessarily mean identical: some minor
-differences in scores with floating point values might occur due to rounding
-errors.}
+However, the simplest scenario to run is to use no pruning at all.
+All phrase pairs will be output and the phrase table will be equal to the one
+created by baseline extraction.\footnote{Equal does not necessarily mean identical:
+some minor differences in scores with floating point values might occur due to
+rounding errors.}
+Obviously, this scenario is also the most memory demanding.
+
+% hypothetical p=n+1 setup
+Perhaps not as obviously, the scenario with \emph{positive and negative limits} set as
+$p = n + 1$ will be as memory demanding as the one with no pruning.
+The same cause applies in both cases, although here it might be not as striking:
+when the Lossy Counting algorithm is given no space for error, it will make none,
+but will consequently consume the most of space given a particular input size.
+Therefore, despite this scenario is theoretically interesting, it is rather not very
+usable in practice, unless one has a plenty of RAM available and wants to perform perfect
+count-based pruning on the fly.
 
 % sigfilter-like setups
-Another setup interesting to consider is the approximation of significance
-filtering with $\alpha \pm \epsilon$ thresholds.
-By setting \emph{support} $s$ to value such that $sN < 1$, all of the 1-1-1
-phrase pairs will be preserved (like in $\alpha - \epsilon$), while setting
-\emph{support} $s$ and \emph{error} $\epsilon$ to satisfy $(s - \epsilon)N > 1$
-will result in their complete removal (like in $\alpha + \epsilon$).
+A more practically interesting scenario to consider is the possibility to approximate
+significance filtering with $\alpha \pm \epsilon$ thresholds with a proper setting of
+\emph{limits}: by setting \emph{positive limit} to one, all of the 1-1-1 phrase pairs
+will be preserved (like in $\alpha - \epsilon$), while setting \emph{negative limit} to
+one will result in their complete removal (like in $\alpha + \epsilon$).
+It is important to realize, that it is really just an approximation:
+with the former setting, all phrase pairs will be actually preserved,
+and with the latter all single occurring phrase pairs will be actually removed,
+not only 1-1-1 phrase pairs.
+On the other hand, the option to set a separate Lossy Counting allows us to come up with
+a mix of both approaches: define a less intensive $\alpha - \epsilon$-like pruning for
+shorter phrase pairs and a more intensive $\alpha + \epsilon$-like pruning for longer
+phrase pairs.
 
-% frequency limits setup
-To set \emph{support} and \emph{error} parameters properly, the value of $N$,
-that is the number of all extracted phrase pairs, have to be known in advance.
-% TODO: Finish.
+% frequency-range rising limits setup
+To sum up this reflection on various \eppex{} scenarios, the main reasoning that should
+determine the settings of \emph{limits} is the observation that short phrases pairs are
+more crucial to the overall translation quality of phrase-based models than longer ones
+and therefore they have to be pruned with more caution.
+This phenomenon has been observed also by \citet[p. 7]{zens:systcomp} when examining the
+properties of output produced by the various pruning methods. In case of methods that
+performed well in their evaluations, they found out that:
+\begin{quote}
+  The more aggressive the pruning, the larger the percentage of short phrases.
+\end{quote}
+
+Finally, an important note to make is that for all experiments with \eppex{} we have used
+the version 2.5.1\footnote{Precisely the Github commit 7052adc50c46f74d36175632977f6b93c2e4f931.}
+compiled with \verb|--with-hashtables| option.\footnote{Compilation options are explained in
+\Aref{chap:installation}.}
 
 \section{Data}
 % Data we used in experiments.
@@ -316,6 +355,3 @@ ignored the disk usage incurred by input files.
 
 \section{Phrase table quality benchmarking}
 
-% BLEU score
-
-...

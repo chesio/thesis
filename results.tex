@@ -49,26 +49,24 @@ distinct phrase tables created in our experiments.
 Despite that phrase table sizes are very different, with the smallest phrase table being only
 $1/13$ size of the biggest one, the achieved BLEU scores are very tight and the difference
 between the best and worst is only 0.61 point.
-Moreover, none of the differences in BLEU score between two systems is statistically
-significant. % TODO: Get more info from Bojar on this.
 
 % Cs-En: phrase tables sizes and BLEU scores
 \begin{table}[ht]
 \centering
-\begin{tabular}{ | c | c c | c | }
+\begin{tabular}{ | c | c c | c c | }
 \hline
- & \multicolumn{2}{|c|}{final phrase table size} & \\
-experiment & phrase pairs & .gz file size & BLEU score \\
+ & \multicolumn{2}{|c|}{final phrase table size} & \multicolumn{2}{|c|}{BLEU score} \\
+experiment & phrase pairs & .gz file size & wmt-12 & wmt-13 \\
 \hline
 \hline
-baseline          & 336.0~M & 8.8~GB & 0.2583 [0.2521, 0.2646] \\
-sigfilter 30      & 301.9~M & 8.2~GB & 0.2562 [0.2503, 0.2627] \\
-sigfilter a-e     & 203.1~M & 5.9~GB & 0.2560 [0.2499, 0.2625] \\
-eppex def.        & 109.8~M & 2.7~GB & \textbf{0.2598 [0.2531, 0.2664]} \\
-eppex zero-n      &  86.2~M & 2.3~GB & 0.2586 [0.2527, 0.2649] \\
-sigfilter a+e     &  70.0~M & 1.9~GB & 0.2559 [0.2498, 0.2625] \\
-sigfilter 30 a+e  &  60.2~M & 1.7~GB & 0.2563 [0.2505, 0.2627] \\
-eppex 1:n+1       &  25.7~M & 0.7~GB & 0.2537 [0.2477, 0.2603] \\
+baseline          & 336.0~M & 8.8~GB & 0.2327 & 0.2583 \\
+sigfilter 30      & 301.9~M & 8.2~GB & 0.2312 & 0.2562 \\
+sigfilter a-e     & 203.1~M & 5.9~GB & 0.2301 & 0.2560 \\
+eppex def.        & 109.8~M & 2.7~GB & \textbf{0.2338} & \textbf{0.2598} \\
+eppex zero-n      &  86.2~M & 2.3~GB & 0.2324 & 0.2586 \\
+sigfilter a+e     &  70.0~M & 1.9~GB & 0.2321 & 0.2559 \\
+sigfilter 30 a+e  &  60.2~M & 1.7~GB & 0.2305 & 0.2563 \\
+eppex 1:n+1       &  25.7~M & 0.7~GB & 0.2272 & 0.2537 \\
 \hline
 \end{tabular}
 \caption{\label{cs-en-wmt13-pt-size-and-bleu}

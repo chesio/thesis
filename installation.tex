@@ -78,9 +78,9 @@ just run \emph{bjam} shell script from Moses root instead of the system \emph{bj
 that the first invocation will attempt to compile the actual \emph{bjam} executable from sources.}
 
 If you would like to compile \eppex{} with faster (unordered) associative containers
-just pass \texttt{--with-hashtables} flag to \emph{bjam} command.
+just pass \verb|--with-hashtables| flag to \emph{bjam} command.
 The limit for maximum phrase length can be risen to 128 by adding
-\texttt{--allow-long-phrases}.
+\verb|--allow-long-phrases|.
 \begin{verbatim}
   cd contrib/eppex
   bjam [--with-hashtables] [--allow-long-phrases]
