@@ -199,22 +199,72 @@ the version 2.5.1\footnote{Precisely the Github commit 7052adc50c46f74d361756329
 compiled with \verb|--with-hashtables| option.\footnote{Compilation options are explained in
 \Aref{chap:installation}.}
 
-\section{Data}
+\section{Datasets}
 % Data we used in experiments.
 
-%\subsection*{Cs-En}
-% Czech-English
-We used CzEng 1.0 parallel corpus \citep{czeng10:lrec2012} to train Czech-English
-translation model...
-% TODO: Update with more precise info when Obo reply.
+The thesis assignment specifically dictated that a massive parallel dataset has to be
+employed in the evaluation of the epochal extraction performance.
+For this reason, we picked up data available as part of Shared Machine Translation Task
+for 2013 Workshop on Statistical Machine Translation (or WMT~13 in short) that presents
+the de facto standard in the area of MT systems evaluation.\footurl{http://www.statmt.org/wmt13/translation-task.html}
 
-%\subsection*{Fr-En}
+\subsection{Cs-En setup}
+% Czech-English
+
+The Czech-English setup was based on data and models prepared as a part of a larger
+effort to deliver a competitive system for WMT~13 Translation Task.\footnote{The author
+took only minor part in this effort, but was kindly allowed to make use of the results
+including the baseline system and all data not directly produced by the tools evaluated
+in this work.}
+%The description of this setup is therefore a rather brief as only part of the system
+%has been built directly by the author.
+
+As a training data for construction of the translation model we put together CzEng 1.0
+parallel corpus\footurl{http://ufal.mff.cuni.cz/czeng/czeng10/} \citep{czeng10:lrec2012}
+and Czech-English section of Europarl v7 corpus\footurl{http://www.statmt.org/europarl/}.
+The joined data have 15,478,910 parallel sentences with 220,173,420 Czech and 253,283,160
+English tokens.
+The word-alignments were established on a lemmatized version of this combined corpus using
+the \emph{fast-align} tool \citep{dyer:fastalign} and the translation model was created
+with two factors on both sides of the corpus:
+\begin{enumerate}
+  \item token with case determined by supervised truecaser
+  \item morphological tag assigned by state-of-art part-of-speech taggers % TODO: More info?
+\end{enumerate}
+
+The translation model defined only single decoding step: two factors on the source side
+were directly translated to two factors on the target side.\footnote{To say it in the language
+of Moses command line: translation factors were set as \texttt{0,1-0,1}.}
+
+Three language models were used:
+\begin{enumerate}
+  \item an interpolated language model of order 6 for the first factor built from News Crawl
+    articles from years 2007-2011 treated with supervised truecaser and with perplexity tuned
+    on target side of \emph{news-test2010} dataset
+  \item an interpolated language model of order 8 for the second factor built from (and tuned
+    on) the same data as model for the first factor
+  \item a language model of order 6 for the first factor built over target side of CzEng 1.0
+    treated with supervised truecaser
+\end{enumerate}
+
+We did not train lexicalized reordering model and instead relied only on the built-in
+distance-based distortion model.
+
+The weights of all the components have been tuned using standard MERT implementation
+that is part of Moses. % TODO: More info (or link or citation) on MERT?
+As the development data for tuning, the \emph{news-test2011} dataset were used.
+
+The evaluation of BLEU score was done using \texttt{evaluator} tool that is also part of Moses
+with a bootstrap value of 1000.
+As the testing data, the \emph{news-test2012} and \emph{news-test2013} datasets were used.
+
+\subsection{Fr-En setup}
 % French-English
-To confront \eppex{} with even more challenging input data (in terms of size),
-we also prepared French-English translation model using data available for
-Shared Machine Translation Task for 2013 Workshop on Statistical Machine
-Translation (WMT~13 in short).\footurl{http://www.statmt.org/wmt13/translation-task.html}
-These data consist of the following parallel corpora:
+
+To confront \eppex{} with even more challenging input data (in terms of their size),
+we built and evaluated French-English MT system, as significantly more French-English parallel
+corpora were available as part of WMT~13 Translation Task. Concretely, the training data for
+the French-English setup were gathered from the following parallel corpora:
 \begin{itemize}
   \item Europarl v7 (Fr-En data)\footurl{http://www.statmt.org/europarl/}
   \item Common Crawl corpus
@@ -226,21 +276,7 @@ The size of our joint French-English training data is (after preprocessing descr
 below) 39,143,703 sentences with 1,173,485,756 French and 1,000,538,764 English tokens.
 % TODO: Add information about monolingual data used.
 
-%\subsection*{cu-bojar}
-% Czech-English (cu-bojar)
-Finally, we were curious to get some insight in the rate of performance improvement
-of both \eppex{} and \emph{phrase-extract} tools since their older versions that have
-been evaluated in a similar manner by \citet{przywara:eppex}.
-Therefore, as a third dataset we picked up the same data that have been used in their
-work -- see \citet{marecek:twostep} for the exact setup of the system \emph{cu-bojar}.
-This parallel corpus is the smallest from our three configurations: it contains
-approximately 8.4~M sentence pairs with 93.2~M Czech and 107.2~M English tokens.
-Since we are mainly interested in comparison of the runtime benchmarking figures,
-we did not attempt the quality benchmarking with this dataset.
-Also, we omit the significance filtering setup, as \emph{sigfilter} did not change
-since the version tested in 2011.
-
-\subsection{Preprocessing}
+\subsubsection*{Preprocessing}
 
 Input data preprocessing is essential to almost any natural language processing task
 and model training in SMT is no exception.
@@ -280,6 +316,20 @@ During sentence-length filtering both sides of parallel corpus must be processed
 because the overlong sentence must be removed along with its counterpart from the other part of corpus
 to keep the remaining sentences properly aligned.
 Usually during this step one wants to remove also any empty lines as the same principle applies to them.
+
+\subsection{The 2011 setup}
+% Czech-English (cu-bojar)
+Finally, we were curious to get some insight in the rate of performance improvement
+of both \eppex{} and \emph{phrase-extract} tools since their older versions that have
+been evaluated in a similar manner by \citet{przywara:eppex}.
+Therefore, as a third dataset we picked up the same data that have been used in their
+work -- see \citet{marecek:twostep} for the exact setup of the system \emph{cu-bojar}.
+This parallel corpus is the smallest from our three configurations: it contains
+approximately 8.4~M sentence pairs with 93.2~M Czech and 107.2~M English tokens.
+Since we are mainly interested in comparison of the runtime benchmarking figures,
+we did not attempt the quality benchmarking with this dataset.
+Also, we omit the significance filtering setup, as \emph{sigfilter} did not change
+since the version tested in 2011.
 
 \section{Runtime benchmarking}
 
@@ -354,4 +404,3 @@ size of phrase table file as there are no temporary files produced and we
 ignored the disk usage incurred by input files.
 
 \section{Phrase table quality benchmarking}
-
