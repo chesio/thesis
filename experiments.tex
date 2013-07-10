@@ -189,10 +189,8 @@ more crucial to the overall translation quality of phrase-based models than long
 and therefore they have to be pruned with more caution.
 This phenomenon has been observed also by \citet[p. 7]{zens:systcomp} when examining the
 properties of output produced by the various pruning methods. In case of methods that
-performed well in their evaluations, they found out that:
-\begin{quote}
-  The more aggressive the pruning, the larger the percentage of short phrases.
-\end{quote}
+performed well in their evaluations, they found out that the more aggressive the pruning,
+the larger the percentage of short phrases.
 
 Finally, an important note to make is that for all experiments with \eppex{} we have used
 the version 2.5.1\footnote{Precisely the Github commit 7052adc50c46f74d36175632977f6b93c2e4f931.}
@@ -211,11 +209,11 @@ the de facto standard in the area of MT systems evaluation.\footurl{http://www.s
 \subsection{Cs-En setup}
 % Czech-English
 
-The Czech-English setup was based on data and models prepared as a part of a larger
+The Czech-English setup was based on data and models prepared as a part of a broader
 effort to deliver a competitive system for WMT~13 Translation Task.\footnote{The author
 took only minor part in this effort, but was kindly allowed to make use of the results
-including the baseline system and all data not directly produced by the tools evaluated
-in this work.}
+including the baseline system and all data not directly produced by or depending on
+the tools evaluated in this work.}
 %The description of this setup is therefore a rather brief as only part of the system
 %has been built directly by the author.
 
@@ -224,12 +222,14 @@ parallel corpus\footurl{http://ufal.mff.cuni.cz/czeng/czeng10/} \citep{czeng10:l
 and Czech-English section of Europarl v7 corpus\footurl{http://www.statmt.org/europarl/}.
 The joined data have 15,478,910 parallel sentences with 220,173,420 Czech and 253,283,160
 English tokens.
-The word-alignments were established on a lemmatized version of this combined corpus using
-the \emph{fast-align} tool \citep{dyer:fastalign} and the translation model was created
-with two factors on both sides of the corpus:
+
+The word-alignments were established on a lemmatized version of the combined corpus using
+the recently published \emph{fast-align} tool \citep{dyer:fastalign}.
+
+The translation model was created with two factors on both sides of the corpus:
 \begin{enumerate}
   \item token with case determined by supervised truecaser
-  \item morphological tag assigned by state-of-art part-of-speech taggers % TODO: More info?
+  \item tag assigned by state-of-art morphological tagger \emph{Morče}\footurl{http://ufal.mff.cuni.cz/morce/}
 \end{enumerate}
 
 The translation model defined only single decoding step: two factors on the source side
@@ -250,12 +250,12 @@ Three language models were used:
 We did not train lexicalized reordering model and instead relied only on the built-in
 distance-based distortion model.
 
-The weights of all the components have been tuned using standard MERT implementation
+The weights of all the components were tuned using standard MERT implementation
 that is part of Moses. % TODO: More info (or link or citation) on MERT?
 As the development data for tuning, the \emph{news-test2011} dataset were used.
 
-The evaluation of BLEU score was done using \texttt{evaluator} tool that is also part of Moses
-with a bootstrap value of 1000.
+The BLEU score was evaluated using \texttt{evaluator} tool that is also part of Moses\footnote{The \texttt{evaluator}
+tool is implemented in file \texttt{<moses>/mert/evaluator.cpp}} with a bootstrap value of 1000.
 As the testing data, the \emph{news-test2012} and \emph{news-test2013} datasets were used.
 
 \subsection{Fr-En setup}
@@ -273,15 +273,29 @@ the French-English setup were gathered from the following parallel corpora:
   \item $10^9$ French-English corpus
 \end{itemize}
 The size of our joint French-English training data is (after preprocessing described
-below) 39,143,703 sentences with 1,173,485,756 French and 1,000,538,764 English tokens.
-% TODO: Add information about monolingual data used.
+at the end of the section) 39,143,703 sentences with 1,173,485,756 French and 1,000,538,764
+English tokens.
+
+GIZA++ \citep{och:giza}, the recommended aligner for Moses,\footurl{http://www.statmt.org/moses/?n=FactoredTraining.RunGIZA}
+was used to establish the word alignments over the lowercased corpus.
+The lowercased forms of tokens were also the single factor for both sides of
+the translation model.
+As a language model, only the target side of parallel corpora was used.
+As in the "Cs-En" setup, no lexicalized reordering model was built and reordering was
+determined only by built-in distortion model.
+
+Weights tuning and evaluation of translation quality were done with the same methods
+(Moses implementation of MERT and \texttt{evaluator} tool) and the same datasets
+(\emph{news-test2011} for tuning, \emph{news-test2012} and \emph{news-test2013} for
+evaluation) as in case of "Cs-En" setup. We did not, however, truecase the data before
+evaluation in this setup, instead we used a lowercased version of test data.
 
 \subsubsection*{Preprocessing}
 
 Input data preprocessing is essential to almost any natural language processing task
-and model training in SMT is no exception.
+and translation model training in phrase-based SMT is no exception.
 
-We treated our input data with following preprocessing steps:
+We treated our "Fr-En" data with the following preprocessing steps:
 \begin{enumerate}
   \item Cleaning of tokenization format:
   \begin{itemize}
@@ -292,7 +306,7 @@ We treated our input data with following preprocessing steps:
   \item Normalization of punctuation encoding
   \item Tokenization
   \item Cleaning of any superfluous white space from tokenization -- ensures that the output contains only spaces and line-feed characters
-  \item Special characters escaping:
+  \item Special characters escaping (necessary in case of Moses):
   \begin{itemize}
     \item pipes ("\textbar") are replaced by "\&pipe;"
     \item less-than characters ("<") are replaced by "\&lt;"
@@ -301,21 +315,24 @@ We treated our input data with following preprocessing steps:
   \end{itemize}
 \end{enumerate}
 
-We used our own tools for cleaning of tokenization format,
-post-tokenization cleaning and escaping of special characters.
-For normalization of punctuation encoding we used script provided by organizers of
-WMT 2011 Translation Task,\footurl{http://www.statmt.org/wmt11/normalize-punctuation.perl}
+We used our own tools for cleaning of tokenization format, post-tokenization cleaning
+and escaping of special characters.
+For the normalization of punctuation encoding we used script provided by organizers of
+WMT~11 Translation Task,\footurl{http://www.statmt.org/wmt11/normalize-punctuation.perl}
 while for tokenization we used \emph{tokenizer} shipped with
-Moses.\footnote{Tokenization script may be found in \texttt{scripts/tokenizer/tokenizer.perl}}
+Moses.\footnote{Tokenization script may be found in \texttt{<moses>/scripts/tokenizer/tokenizer.perl}}
 
-The alignment tool, GIZA++, further requires that too long sentences are removed from parallel corpus.
+The alignment tool we employed, GIZA++, further requires that overly long sentences are
+removed from parallel corpus.
 No hard-coded limit exists, but as a rule of thumb the limit of 80 words is
-recommended.\footnote{The 80 words limit is for example mentioned in "Corpus Preparation" section of Moses tutorial:
-\url{http://www.statmt.org/moses/?n=moses.baseline}}
-During sentence-length filtering both sides of parallel corpus must be processed simultaneously,
-because the overlong sentence must be removed along with its counterpart from the other part of corpus
-to keep the remaining sentences properly aligned.
-Usually during this step one wants to remove also any empty lines as the same principle applies to them.
+recommended.\footnote{The 80 words limit is for example mentioned in "Corpus Preparation"
+section of Moses tutorial: \url{http://www.statmt.org/moses/?n=moses.baseline}}
+During sentence-length filtering both sides of parallel corpus must be
+processed simultaneously, because each overlong sentence must be removed along
+with its counterpart from the other part of corpus to keep the remaining sentences
+properly aligned.
+Usually during this step one wants to remove also any empty lines as the same principle
+applies to them.
 
 \subsection{The 2011 setup}
 % Czech-English (cu-bojar)
@@ -326,6 +343,7 @@ Therefore, as a third dataset we picked up the same data that have been used in 
 work -- see \citet{marecek:twostep} for the exact setup of the system \emph{cu-bojar}.
 This parallel corpus is the smallest from our three configurations: it contains
 approximately 8.4~M sentence pairs with 93.2~M Czech and 107.2~M English tokens.
+
 Since we are mainly interested in comparison of the runtime benchmarking figures,
 we did not attempt the quality benchmarking with this dataset.
 Also, we omit the significance filtering setup, as \emph{sigfilter} did not change
@@ -353,9 +371,10 @@ For each dataset we use a server or set of servers with hardware configuration
 that satisfies memory and disk demands incurred by the size of particular dataset:
 \begin{itemize}
   \item "cu-bojar" configuration was run on a machine with two Quad-Core
-  AMD Opteron\texttrademark{} 2387 processors (each with 4~cores with clock speed
-  of 2.8~GHz; 8~threads in total),
+  AMD Opteron\texttrademark{} 2387 processors (each with 4~cores capable of working
+  with clock speed of 2.8~GHz; 8~threads in total),
   32~GB of RAM and approximately 429~GB of hard disk space. % andromeda7
+  This is the same machine that was employed in 2011 experiments.
   \item "cs-en" configuration was run on several machines with identical hardware
   configuration: two Intel\textregistered{} Xeon\textregistered{} E5620
   processors\footurl{http://ark.intel.com/products/47925/Intel-Xeon-Processor-E5620}
@@ -402,5 +421,3 @@ a period of 1 second and updated relevant log file with the full output of
 In case of \eppex{} experiments the peak disk usage is always equal to the
 size of phrase table file as there are no temporary files produced and we
 ignored the disk usage incurred by input files.
-
-\section{Phrase table quality benchmarking}
