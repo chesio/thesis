@@ -69,7 +69,7 @@ This selection by our own experience should represent the most popular ways of
 invoking phrase table creation process via Moses training script and is designed to
 reflect phrase table creation benchmarks that earlier popped out on Moses mailing
 list.\footnote{Our selection is particularly inspired by the most recent benchmark
-we are aware of: \tt{http://article.gmane.org/gmane.comp.nlp.moses.user/6749}.}
+we are aware of: \url{http://article.gmane.org/gmane.comp.nlp.moses.user/6749}}
 Also, by exploring the impact of available optimization options we aim to establish
 as challenging baseline as possible given the computation resources of the machines
 at our disposal.
@@ -104,7 +104,8 @@ experiments.\footnote{Precisely the Github commit 1530ae4f5ff59cfd30f6f933e4dc05
 % Post-filtering baseline.
 Post-filtering the phrase table with \emph{significance filter} can be considered as yet
 another baseline, sensible mainly for quality benchmarking, because time requirements
-will be by design above those of baseline phrase extraction.
+of phrase table construction with significance filtering will be by design above those of
+the baseline phrase extraction.
 Nevertheless, we attempted both performance and quality benchmarking of the \emph{sigfilter}
 tool introduced in \Sref{sec:significance-pruning} to give the whole picture.
 
@@ -112,18 +113,16 @@ tool introduced in \Sref{sec:significance-pruning} to give the whole picture.
 The degree of pruning done by \emph{sigfilter} is determined by the pruning
 threshold for p-values (set via \verb|-l| option), by cutoff limit for forward
 (direct) translation probabilities (set via \verb|-n| option) or by both.
-A particularly interesting values for pruning threshold are \verb|a+e| and
-\verb|a-e|: the former implies $\alpha + \epsilon$ threshold and results
-in removal of all 1-1-1 phrase pairs, the latter implies $\alpha - \epsilon$
-threshold and result in all 1-1-1 phrase pairs being preserved.
-As for cutoff limit, in \citep{johnson:sigfilter} a limit of 30 is applied to
-all experiments in order to control the width of beam search in decoding.
+A particularly interesting values for the pruning threshold are \verb|a+e| and
+\verb|a-e|: the former serves to set threshold value to $\alpha + \epsilon$ and
+results in removal of all 1-1-1 phrase pairs, the latter serves to set threshold
+value to $\alpha - \epsilon$ and results in all 1-1-1 phrase pairs being preserved.
+As for the cutoff limit, \citet{johnson:sigfilter} applied limit of 30 to all
+experiments in order to control the width of beam search in decoding.
 In Moses, the width of beam is controlled directly by the decoder, but
 in the manual section on significance filtering the cutoff limit of 30
 in combination with pruning threshold $\alpha + \epsilon$ is recommended as
 "a good setting".
-
-% TODO: A sum up table of various experiments and their parameters?
 
 % Preprocessing steps.
 Before \emph{sigfilter} can be run, some preprocessing is required.
@@ -134,8 +133,23 @@ corpus used for phrase table creation.
 This suffix-array index has to be produced by indexer that is part of SALM
 toolkit,\footurl{http://projectile.sv.cmu.edu/research/public/tools/salm/salm.htm}
 and because SALM indexer cannot process sentences longer than 254 words,\footnote{Although
-SALM indexer complains about sentences being longer than 256 words, the actual limit
-is 254 words.} such sentences have to be trimmed in advance.
+our version of SALM indexer complained about sentences being longer than 256 words,
+the actual limit was 254 words.} such sentences have to be trimmed in advance.
+
+\subsection{Relative entropy filtering}
+
+We attempted to post-filter phrase tables with the \emph{relent-filter} toolkit as well,
+but it turned out that the forced decoding of phrases in phrase table required by this
+method makes it extremely time consuming when dealt with phrase tables as enormous as ours:
+in case of "Cs-En" setup described below, it took several days to calculate the pruning
+scores for 10~M of phrase pairs (approx. 3\% of the phrase table). % TODO: How many days exactly.
+Despite that the filtration process can be scaled to process more data by running multiple
+instances of scoring script in parallel, the applicability of such approach is in practice
+limited by the considerable memory demands: in our case, the parallel run of two instances
+fed with 25~K phrases to be decoded at a time required as many as 45~GB of memory.
+
+The excessive time requirements made it impossible to fit the evaluation of \emph{relent-filter}
+into our experiments schedule, therefore we were forced to abandon it.
 
 \subsection{Eppex}
 
@@ -250,8 +264,8 @@ Three language models were used:
 We did not train lexicalized reordering model and instead relied only on the built-in
 distance-based distortion model.
 
-The weights of all the components were tuned using standard MERT implementation
-that is part of Moses. % TODO: More info (or link or citation) on MERT?
+The weights of all the components were tuned using Minimum Error Rate Training (MERT)
+implementation that is part of Moses \citep{bertoldi:mert}.\footurl{http://www.statmt.org/moses/?n=FactoredTraining.Tuning}
 As the development data for tuning, the \emph{news-test2011} dataset were used.
 
 The BLEU score was evaluated using \texttt{evaluator} tool that is also part of Moses\footnote{The \texttt{evaluator}
@@ -285,7 +299,7 @@ As in the "Cs-En" setup, no lexicalized reordering model was built and reorderin
 determined only by built-in distortion model.
 
 Weights tuning and evaluation of translation quality were done with the same methods
-(Moses implementation of MERT and \texttt{evaluator} tool) and the same datasets
+(MERT implemented in Moses and \texttt{evaluator} tool) and the same datasets
 (\emph{news-test2011} for tuning, \emph{news-test2012} and \emph{news-test2013} for
 evaluation) as in case of "Cs-En" setup. We did not, however, truecase the data before
 evaluation in this setup, instead we used a lowercased version of test data.
@@ -387,16 +401,15 @@ that satisfies memory and disk demands incurred by the size of particular datase
   512~GB of RAM and approximately 1.7~TB of hard disk space. % iridium
 \end{itemize}
 
-% How the benchmarking was implemented?
-% TODO: Make script available online.
-
 % On wall clock, CPU time and VM peak benchmarking.
 The baseline phrase table creation managed by the training script involves
 running multitude of working subprocesses to perform various intermediate
 tasks like phrase pairs extraction, phrase pairs scoring, phrase table
 consolidation, gzipping, wrapping the parallel execution etc.
+% How the benchmarking was implemented?
 To measure the overall runtime demands of this dynamically changing tree
-of processes, we crafted a special Python script:
+of processes, we crafted a special Python script:\footnote{The script is available
+from: \url{https://github.com/chesio/tools/tree/master/Benchie}}
 it periodically gathers list consisting of the main observed
 process\footnote{The main training script \texttt{train-model.perl} in our case.}
 and all its subprocesses, captures the values of their CPU time used so far

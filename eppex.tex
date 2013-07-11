@@ -40,8 +40,6 @@ Instructions on how to install \eppex{} on Linux-based operating system are give
 
 \section{Design goals and philosophy}
 
-% TODO: Info on GCC versions with std::unordered_ implementation.
-
 % What and why is a target platform?
 \Eppex{} is implemented as a command-line program and, as indicated above, it is written in C++.
 From the development perspective, \eppex{} adheres to the philosophy of Moses, what is mainly
@@ -49,7 +47,7 @@ reflected by the selection of development platform and third party libraries:
 \begin{enumerate}
   \item The primary development platform is Linux --
   \eppex{} has been developed and tested on desktop version of Ubuntu 12.04 LTS with GCC 4.6.3 and
-  server version of Ubuntu 10.04 LTS with GCC 4.4.3 installed. % TODO: Check server version.
+  server version of Ubuntu 10.04 LTS with GCC 4.4.3 installed.
   \item \Eppex{} relies on Boost C++ library\footurl{http://www.boost.org/} -- it is used to provide
   some essential functionality, so \eppex{} cannot be compiled without access to some of Boost
   headers and packages.\footnote{See \Aref{chap:installation} for details.}
@@ -305,12 +303,12 @@ Both source and target phrases can be further decomposed into sequence of words,
 information can be further decomposed into sequence of alignment points (arranged in pairs).
 
 \section{Compressed I/O}
-% TODO: Is it worth mentioning? Maybe move to Usage part?
 
 \Eppex{} can read/write directly from/to gzipped files, the same way legacy \emph{phrase-extract}
 tools does.
 This option allows to save a significant amount of disk space, as a typical phrase table will be
-3-4 times smaller when gzipped. % TODO: Proof-check the guess.
+several times smaller when compressed.\footnote{In case of phrase tables produced in our experiments
+the compression ratio of gzipped phrase tables varied between 14.0\% and 22.9\%.}
 Moreover, in environments when disks are under heavy load (shared computation servers are often
 the case), it may even speed up the whole I/O process.
 
