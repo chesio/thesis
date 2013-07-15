@@ -180,14 +180,49 @@ $\phi(\bar{f}|\bar{e})$ are then calculated from these counts as follows:
 \end{equation}
 
 \Tref{phrase-table-europarl} presents an extract from the actual phrase table
-(with only the direct phrase translation probabilities).
-The full table has been constructed from Europarl v6 Czech-English
-corpus.\footurl{http://www.statmt.org/europarl/archives.html}
+that was constructed from Europarl v6 Czech-English corpus.\footurl{http://www.statmt.org/europarl/archives.html}
+The extract lists some of the translation options of English phrase "europe" and
+indicates that there is more than 1000 of such options in the full phrase table.
+
+One of the reasons behind the high numbers of translation options of a particular
+source phrase is the way phrase pairs extraction algorithms works:
+in simple words, it basically loops over all possible target language phrases
+and find the minimal source phrase that matches each of them with respect to
+constraints imposed by word alignment points, while also accounting for
+the unaligned words.
+The unaligned words are in fact often responsible for the additional phrase pairs
+being extracted: if the minimal source phrase borders unaligned words,
+then it is extended to these words and the extended phrase is also extracted.
+On the other hand, no phrase pair can be extracted if there are only unaligned
+words, therefore the observation that more unaligned words leads to more
+extracted phrase pairs is not valid in extreme.
+In theory, the number of extracted phrase pairs is roughly quadratic in the number
+of words in sentence, therefore in practice often a maximum phrase length limit
+is enforced \citep[Chapter 5.2]{koehn:smt}.
+
+\Fref{fig:phrase-pair-alignment} presents snippet picked up from French-English
+phrase table with two phrase pairs and their alignment information.
+In the first example, French words "de" and "liberté" are unaligned,
+punctuation mark ";" in French phrase is aligned to the same mark in English phrase
+and French "et" is aligned to English "and".
+In the second example, all words in both phrases are aligned:
+the French word "de" is aligned to English word "of", the word "liberté" to "liberty"
+and both words "a" and "été" are aligned to word "was".
+
+\begin{figure}[ht]
+\begin{verbatim}
+  de liberté ; et ||| ; and ||| 2-0 3-1
+  ...
+  de liberté a été ||| of liberty was ||| 0-0 1-1 2-2 3-2
+\end{verbatim}
+\caption{\label{fig:phrase-pair-alignment}
+An example of phrase pairs with word alignment information.}
+\end{figure}
 
 % An example of actual phrase table.
 \begin{table}[h]
 \centering
-\begin{tabular}{ l l l l}
+\begin{tabular}{ l l l l }
 No. & English ($\bar{f}$) & Czech ($\bar{e}$) & $\phi(\bar{e}|\bar{f})$ \\
 \hline
 \hline
@@ -222,8 +257,8 @@ No. & English ($\bar{f}$) & Czech ($\bar{e}$) & $\phi(\bar{e}|\bar{f})$ \\
 \hline
 \end{tabular}
 \caption{\label{phrase-table-europarl}
-An extract from phrase table listing some of the possible translations of English word
-"Europe" into Czech sorted by their maximum likelihood probability.
+An extract from an actual phrase table listing some of the possible translations of English
+word "Europe" into Czech sorted by their maximum likelihood probability.
 The full table contained more than 26 millions of phrase pairs and has been extracted
 from Europarl v6 Czech-English corpus.}
 \end{table}

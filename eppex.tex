@@ -42,7 +42,7 @@ Instructions on how to install \eppex{} on Linux-based operating system are give
 
 % What and why is a target platform?
 \Eppex{} is implemented as a command-line program and, as indicated above, it is written in C++.
-From the development perspective, \eppex{} adheres to the philosophy of Moses, what is mainly
+From the development perspective, \eppex{} adheres to the philosophy of Moses, which is mainly
 reflected by the selection of development platform and third party libraries:
 \begin{enumerate}
   \item The primary development platform is Linux --
@@ -61,8 +61,8 @@ a requirement: to process a parallel corpus of reasonable size, \eppex{} will in
 setting require much more memory than 32-bit environments can provide\footnote{In 32-bit
 environment the virtual address space holds no more than $2^{32}$ addresses, so at maximum
 4,294,967,296 bytes (4~GB) of memory are utilizable. Workarounds exist, but they might be
-considered unfeasible nowadays, as 64-bit architecture is well established.} (see \Cref{chap:results}
-for exact numbers).
+considered unfeasible nowadays, as 64-bit architecture is well established.} (see
+\Sref{sec:eppex-memory-demands} for some experimentally established figures).
 Therefore, although not tested, \eppex{} should run as smoothly on 32-bit machine as it runs
 on 64-bit, but the amount of input data that it will manage to process will have to be decent
 or aggressive pruning will have to be undertaken.
@@ -76,8 +76,10 @@ Both aspects are important to us, but memory usage optimization is our primary c
 since the execution speed, when compared to legacy tools, is implicitly boosted by
 the Lossy Counting algorithm and the fact that we keep all temporary data in the computer
 memory instead of disk.
+Besides, as pointed out in epigraph on the beginning of this chapter, memory, unlike time,
+is a limited resource.
 In this section we present several universal rules and techniques for effective C++
-programming that we followed and applied during implementation of \emph{eppex}.
+programming, that we followed and applied during implementation of \emph{eppex}.
 
 \subsection{Data alignment and structure packing}
 
@@ -93,12 +95,12 @@ struct LossyCounterItem {
 \end{verbatim}
 
 Given the definition above and with respect to the byte sizes of individual members,
-one would expect that \verb|sizeof(LossyCountItem)| equals to 7, but this guess
+one could expect that \verb|sizeof(LossyCountItem)| equals to 7, but this guess
 will be wrong in most of the cases as the most likely result is 12.
 
 This unexpected behavior stems from the fact that many machines require that
 objects of certain type are aligned on architecture-dependent boundaries,
-for example integers are often allocated on word\footnote{Word in computer
+for example integers are often allocated on word\footnote{\emph{Word} in computer
 architecture terminology denotes a fixed-sized group of bits that are handled
 as a unit by the instruction  set and/or hardware of the processor.} boundaries
 \citep[Chapter 5]{stroustrup:cplusplus}.
@@ -109,14 +111,15 @@ This way our \verb|LossyCounterItem| structure can be shrunk to 8 bytes,
 but still there will be one byte of blank padding at the end of the structure.
 With some compilers this padding can be trimmed by setting on \emph{structure packing}
 using \verb|#pragma| preprocessor directive, but doing this will slow data access
-on most processors that read memory by words, because objects in misaligned structures
-will span multiple words and in consequence require more reads.
+on most processors that read memory by words, because misaligned structures will span
+multiple words and in consequence require more reads.
 
 This being said, the best solution in terms of code portability and effectiveness
 is to design data structures in such a way that all their members properly align:
 this ensures their effective handling by processing unit without spurious memory padding.
 
 \subsection{C-string vs. std::string}
+\label{sec:strings}
 % Why had we used C-string instead of std::string.
 
 Unlike Java, C and C++ have no fundamental data type for strings, instead they have
@@ -127,8 +130,8 @@ several \emph{string} classes that mimic behavior of ordinary data types
 \citep[Chapter 11]{josuttis:stl}:
 STL strings may be copied, assigned and compared like any other fundamental type,
 without the programmer being worried about the internal memory allocations and deallocations.
-Because both approaches are very often used side by side, there exists usual terminology to
-distinguish between them:
+Because both approaches are very often used side by side, there exists well-established
+terminology to distinguish between them:
 the arrays of characters are called \emph{C-like-strings} (or shortly \emph{C-strings}) and
 STL string classes are just \emph{strings} (sometimes labeled \emph{std::string} after the
 most commonly used class).
@@ -144,42 +147,52 @@ The reference counting feature seems to be useful for our phrase-counting proble
 but it would imply to rely on proprietary implementation that is not enforced by
 standard, which is a bad design choice for any open-source software.
 
-To sum up: when memory footprint of strings storage is more important than
-the convenience and flexibility of their handling, C-string is a better option
+Therefore, whenever memory footprint of strings storage is more important than
+the convenience and flexibility of their handling, C-string is a better choice
 than any STL string implementation.
 
 \subsection{Objects unification}
+\label{sec:objects-unification}
 
-When processing large stream of items that might be compared to each other
-and decided to be either different or equal, it is often useful to keep only
-a single representation of each \emph{unique} item in computer memory and use
-some type of reference to this representation in all the program parts that
-has to access it instead of a full copy of item data.
-Obviously, this technique is not applicable universally, because reference
-handling as such incurs some additional memory overhead.
-In general, the efficiency of \emph{objects unification} depends on following
-factors:
+When processing large stream of items that have the property of being distinguishable
+either as different or equal to each other, it is often efficient to keep only a single
+copy of each \emph{unique} item in computer memory and use some type of lightweight
+reference to this copy in all the program parts that has to access item data.
+For example, when counting $n$-grams in a text corpus, instead of keeping $n$ strings
+within each $n$-gram object, it might be more efficient to just keep $n$ references to
+unique, separately stored copies of such strings.\footnote{An observant reader may realize
+that the task of items counting itself implicitly requires objects unification. In fact,
+the example was deliberately picked to demonstrate that there are two aspects to object
+unification: it is inherent in case of some tasks, such as items counting, but also more
+generally applicable as a technique to achieve some memory savings.}
+Obviously, this technique of \emph{objects unification} is not applicable universally and,
+in general, its efficiency depends on the following factors:
 \begin{enumerate}
-  \item The input redundancy of objects -- the greater the redundancy, the greater
-  the memory savings.
-  \item The processing redundancy of objects -- the more the objects have to be
-  referenced within the program, the greater the memory savings.
-  \item The ratio between average size of object and size of reference to it
-  -- the greater the ratio, the more memory is saved by each reference.
+  \item The input redundancy of items -- the greater the redundancy, the greater
+  the possible memory savings. If there are no redundant items, this technique is useless,
+  because it is cheaper to just store the item without an additional reference to it.
+  \item The processing redundancy of items -- the more the items have to be
+  referenced within the program, the greater the possible memory savings.
+  \item The ratio between average in-memory size of item and reference to it -- the greater
+  the ratio, the more memory is saved by each reference.
   Clearly, this ratio has to be greater than one.
 \end{enumerate}
 
 Typically, a programmer cannot affect the first factor, but should carefully consider it.
-For example, Zipf's law \citep[Chapter 1]{manning:stat-nlp} suggests that using
-unification for words pulled from natural language corpus can be viable.
-% A half of Brown corpus can be represented with only 135 vocabulary items.
+For example, in case of words pulled from natural language corpus it is generally hard to
+presume whether their unification in program memory will be efficient:
+Zipf's law \citep[Chapter 1]{manning:stat-nlp} suggests that the efficiency of words unification
+will largely depend on the overhead imposed by the referencing scheme and if the references are
+too heavy, the memory spared thanks to the most frequent words can be easily depleted by
+the massive amount of words occurring only once.
 
 The second factor might be tricky to consider in programs with non-linear work flow,
 for example when the amount of items within program scope depends on some external
 factor (time of day etc.), but in case of streamline input processing this value is
-most often approximated well by some constant.
+most often linear with respect to the input size.
 
-As for the third factor, with C++ we have two options, how to reference an object:
+The third factor is the only one that is completely in hands of the programmer.
+With C++ we have two basic options, how to reference an object:
 \begin{enumerate}
   \item by using object's address within memory
   \item by using a numeric index that uniquely identifies an object within a large storage
@@ -187,18 +200,20 @@ As for the third factor, with C++ we have two options, how to reference an objec
 \end{enumerate}
 
 We may note that both options are fundamentally the same:
-the pointer is basically a numeric index into the container of maximum size (entire memory)
+the pointer is basically a numeric index into the container of a maximum size (entire memory)
 and the numeric index is just a pointer into restrained part of memory (container).
 The pointer is easier to dereference, but comes in single size only -- the size of
-\emph{processor unit word}, which on 64-bit architecture is 8 bytes long.
-On the other hand, to dereference numeric index always a corresponding container must be
-accessed to provide reference starting point, but numeric index data type can be adjusted to
-the size of domain of unified items, if it is known or can be assessed by some upper bound.
-Being able to reference 4 billions of unique objects is enough in many situations and
-thus 4 bytes long integer type will suffice.
+\emph{processor unit word}, which on 64-bit architecture is 8~bytes long.
+On the other hand, to dereference the numeric index, a corresponding container must be
+accessed to determine the address of index start.
+However, a numeric index data type can be adjusted to the size of domain of unified items,
+if it is known in advance or can be assessed by some upper bound.
+Being able to reference 4~billions of unique objects is enough in many situations and
+in such cases only 4~bytes long integer type will suffice, reducing referencing overhead
+to half of that of the pointer.
 
-Finally, we shall point out that when unifying objects we save memory in favor
-of processing time: especially insertion of new object is more time-consuming,
+As a final note, we shall point out that objects unification comes with a cost of
+additional processing overhead: especially insertion of new object is more time-consuming,
 as every new object have to be first checked for an existing copy.
 
 \subsection{Simple segregated storage}
@@ -220,15 +235,15 @@ fixed-size memory blocks once a time and serve these blocks sequentially as new 
 come in, allocating a new pool whenever all memory blocks in existing pools are exhausted.
 This technique is generally called \emph{memory pooling}, but when details of
 memory pool allocation and deallocation matters, usually more specific names are used to
-distinguish between various implementations --  a \emph{simple segregated storage} is an example
-of one specific
+distinguish between various implementations --  a \emph{simple segregated storage} from Boost
+library is an example of one such specific
 implementation.\footurl{http://www.boost.org/doc/libs/1_53_0/libs/pool/doc/html/boost_pool/pool/pooling.html}
 
 % Unions - in current version of Eppex they don't play significant role.
 
 \subsection{Unordered sets}
 
-The recent C++ standard\footnote{ISO/IEC 14882:2011}, marked as C++11, standardizes
+The recent C++ standard,\footnote{ISO/IEC 14882:2011} marked as C++11, standardizes
 a new type of containers, that were already part of almost every implementation of STL,
 but due non-existing standardization they differ slightly in their interfaces across
 various implementations.
@@ -265,11 +280,11 @@ the data as evenly as possible over its output range.
 
 During the program runtime the input data are processed in order to establish frequency counts
 necessary to compute the phrase pair scores and print the complete phrase translation table.
-This requires the phrase pairs to be extracted and kept in the memory along with the frequency
-and maximum error for lossy counting -- essentially, a set of triples $(e, f, \Delta)$ is
-to be maintained.\footnote{I.e. the data structure $D$ described in \Cref{chap:lossy-counting}.}
+This requires the phrase pairs to be extracted and kept in the memory along with the estimated
+frequency and maximum error for Lossy Counting -- essentially, a set of triples $(e, f, \Delta)$
+has to be maintained.\footnote{I.e. the data structure $D$ described in \Cref{chap:lossy-counting}.}
 These data account for most of the memory required during the runtime, therefore their effective
-representation in memory is mission-critical.
+representation in memory is mission-critical and was object of the major programming effort.
 
 \subsection{Size of integer types}
 
@@ -282,15 +297,19 @@ Second, it is important to realize that by processing real life data we may neve
 space as some integer types provide and saving even few bytes per item can lead to gigabytes
 saved in total.
 
-To ensure cross-platform compatibility, we base the definitions of frequency count and maximum
-error (and other crucial numeric types) on definitions of fixed-size integer types from Boost.Integer
-library:\footurl{http://www.boost.org/doc/libs/1_53_0/libs/integer/doc/html/index.html}
-4~bytes allow to store unsigned values up to $2^{32} \approx 4.3 \times 10^9$ and this is definitely
-enough to store frequency counts in our task;\footnote{There is no parallel corpus yet with billions
-of parallel sentences, therefore it is safe to expect no phrase pair will occur billion times.}
-1~byte allow to store values up to 255 and this is enough to store the maximum error values
--- they are always less than the number of epochs and in our experiments we observed that having
-more than just a few epochs led to pruning that already hurt too much.
+To ensure cross-platform compatibility, we base the definitions of estimated frequency count and
+maximum error (and other crucial numeric types) on definitions of fixed-size integer types from
+Boost.Integer library.\footurl{http://www.boost.org/doc/libs/1_53_0/libs/integer/doc/html/index.html}
+For frequency counts we dedicated 4~bytes, to be able to store all unsigned values up to
+$2^{32} \approx 4.3 \times 10^9$ -- this is definitely enough for our task as there is no
+parallel corpus yet with billions of parallel sentences, therefore it is safe to expect no phrase
+pair will occur billion times.
+For the values of maximum error it is sufficient to reserve only 1~byte (range from 0 to 255)
+-- maximum error is always less than the number of epochs in Lossy Counting and from our initial
+experiments we had learned that having more than just a few epochs leads to pruning that already
+hurts too much.\footnote{As results in \Cref{chap:results} demonstrate, with more data it is
+possible to prune more (with more epochs) with no significant loss of quality, but still the 0-255
+range displays a tremendous reserve.}
 
 \subsection{Words, phrases, alignments}
 
@@ -300,11 +319,11 @@ more than just a few epochs led to pruning that already hurt too much.
 In contrast to counters, a phrase pair is quite a complex structure: it consist of source phrase,
 target phrase and also the information about alignment between particular words of both phrases.
 Both source and target phrases can be further decomposed into sequence of words, while alignment
-information can be further decomposed into sequence of alignment points (arranged in pairs).
+information can be further decomposed into sequence of pairs of alignment points.
 
 Let us try to sketch a possible implementation of phrase pair structure.
 Given the description above and being familiar with the containers from standard
-template library, we might come up with something like this:
+template library, we might come up with the following declaration:
 \begin{verbatim}
 struct PhrasePair {
   std::vector<std::string> source; // Sequence of source words.
@@ -313,45 +332,84 @@ struct PhrasePair {
 };
 \end{verbatim}
 
-If we were to check the size of this structure, we would get astonishing value of 72
-bytes!\footnote{With GCC on 64-bit machine, on 32-bit machine this value will be usually
-half as big.}
-It might seem not so horrible at first, but we have to realize that this value accounts only
-for meta information required by STL \verb|vector| container and the actual data will consume
-additional memory, dynamically acquired from heap.
-Assuming a parallel corpus with hundred of millions of phrase pairs, only to store the meta
-information several gigabytes of memory will be necessary.
+Obviously, this is very simple and very naive solution.
+The flexibility of STL containers comes at a cost: each container has to keep track of its
+current size, the memory it has reserved etc.
+In case of our \verb|PhrasePair| structure, the overhead of 3 instances of STL \verb|vector|
+container requires 72 bytes of memory.\footnote{With GCC on 64-bit machine, on 32-bit machine
+this value will be usually half as big.}
+Assuming a parallel corpus with hundred of millions of phrase pairs, only to account for
+this overhead, several gigabytes of memory would be required.
 
-Obviously, we have to design our structure for phrase pair more carefully and
-the main point of the hypothetical example above was just to set a kind of baseline that will help us
-stress the difference between a straight-forward implementation and the implementation based on sound
-analysis of the problem and proper usage of optimization options that come with C++ language.
+The main point of the hypothetical example above was therefore to stress the importance of
+a careful analysis of the problem and a proper usage of optimization options and techniques
+of C++ that were described in previous section.
 
-% This is why we sacrificed convenience of use of \emph{std::string} and backed off to C-strings
-% to store string data in \eppex{}.
+So, let us now describe the actual implementation of phrase pairs handling within \eppex{}.
+As mentioned, the main building blocks of phrase pair are words, phrases and alignments.
 
+\subsubsection*{Words}
+
+In \Sref{sec:strings} we have already discussed the advantage of C-strings over STL strings
+when it comes to memory requirements of both.
+Later, in \Sref{sec:objects-unification} we presented a technique of lowering program memory
+footprint by keeping all unique copies of some type of objects in a single place and keeping
+only a lightweight references to such copies in data structures that have to access them.
+With both these options in mind, it is easy to come up with an idea to store all words as
+C-strings in a separate storage and keep only pointers to them in phrase pair structure.
+The only problem with this idea is that a pointer type in 64-bits environments occupies
+8~bytes, what is simply excessive for representation of a single word (many of words could
+be fit in 8 bytes directly).
+
+Instead, as already suggested in \Sref{sec:objects-unification}, it is more effective to
+use numeric index as a reference.
+Although such solution incurs an additional overhead, because pointers to C-strings have to
+be maintained in some index-like structure anyway, the nature of phrase pairs extraction
+process suggests that each word occurrence in the input corpus will be referenced from within
+several phrase pairs.\footnote{Recall that the phrase extraction algorithm may, in theory,
+extract as many as $N^2$ phrases from a sentence of $N$ words.}
+The data type of numeric index has to be capable of representing the whole domain of input
+factor forms, therefore we picked up \verb|boost::uint32_t| data type from Boost.Integer
+library for this purpose with a reasonable assumption that no model will have factor with
+more than 4.2~billions of distinct forms.
+
+\subsubsection*{Phrases}
+
+With the words represented as numeric indexes, it is straight-forward to represent phrase as
+a sequence of such indexes and this is in fact the solution we sticked to.
+
+An alternative implementation could also make use of objects unification, but the positive
+effect of this technique is doubtful on this level, because there are far more distinct
+phrase forms than there are word forms.
+Also, because a lot of phrase pairs will be pruned out during a typical \eppex{} run,
+with object unification it would be impossible to wipe out their data without some reference
+counting scheme, but such scheme would bring in an additional overhead, further diminishing
+the already uncertain efficiency of such solution.\footnote{Although the same reasoning applies
+for words, the scale of the problem is less prominent in this case as there are fewer word forms.
+Consequently, we do not attempt to detect and remove words that are no more referenced by
+a phrase pair (as a result of pruning).}
+
+\subsubsection*{Alignments}
 
 % Properties of phrase pair alignment.
-Each word can be either aligned with one counterpart word or can have so called \emph{NULL-alignment}.
-A phrase can be treated as a coherent unit, but it is useful to break phrase into words.
+The phrase pair alignment marks words from source and target side that were aligned to
+each other in word alignment of sentence from which the phrase pair was extracted.
+The phrase extraction algorithm ensures that each extracted phrase pair is based on
+at least one alignment pair, ...
 
 % TODO: Alignment length.
 
-During the program runtime, a multitude of objects of following three types has to be
-kept in memory:
-\begin{itemize}
-  \item word -- a sequence of characters (bytes)
-  \item phrase -- a sequence of words
-  \item alignment -- a sequence of pairs of indexes
-\end{itemize}
+\subsubsection*{Phrase pairs}
 
-The word is just a string.
+Now it is time to put all the phrase pairs building blocks together: ...
 
-\subsection{Persistence and memory pooling}
+\subsection{Persistence of objects}
+
+...
 
 % Indexed strings storage (and memory pools)
 
-\section{Compressed I/O}
+\subsection{Compressed I/O}
 
 \Eppex{} can read/write directly from/to gzipped files, the same way legacy \emph{phrase-extract}
 tools does.
