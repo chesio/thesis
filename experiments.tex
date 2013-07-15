@@ -139,17 +139,17 @@ the actual limit was 254 words.} such sentences have to be trimmed in advance.
 \subsection{Relative entropy filtering}
 
 We attempted to post-filter phrase tables with the \emph{relent-filter} toolkit as well,
-but it turned out that the forced decoding of phrases in phrase table required by this
+but it turned out that the forced decoding of all phrases in phrase table required by this
 method makes it extremely time consuming when dealt with phrase tables as enormous as ours:
-in case of "Cs-En" setup described below, it took several days to calculate the pruning
-scores for 10~M of phrase pairs (approx. 3\% of the phrase table). % TODO: How many days exactly.
+in case of "Cs-En" setup described below, it took more than 30~hours to calculate the pruning
+scores for 336~K of phrase pairs (approx. 0.1\% of the phrase table).
 Despite that the filtration process can be scaled to process more data by running multiple
 instances of scoring script in parallel, the applicability of such approach is in practice
-limited by the considerable memory demands: in our case, the parallel run of two instances
-fed with 25~K phrases to be decoded at a time required as many as 45~GB of memory.
-
-The excessive time requirements made it impossible to fit the evaluation of \emph{relent-filter}
-into our experiments schedule, therefore we were forced to abandon it.
+limited by the considerable memory demands of decoding: in our case, the parallel run of
+two \emph{relent-filter} instances fed with 25~K phrases to be decoded at a time required
+45~GB of memory.
+Such excessive time requirements made it impossible to fit the proper evaluation of
+\emph{relent-filter} into our experiments schedule, therefore we were forced to abandon it.
 
 \subsection{Eppex}
 

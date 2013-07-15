@@ -607,12 +607,13 @@ on Relative Entropy" of Advanced Features chapter of Moses manual:
 \url{http://www.statmt.org/moses/?n=Moses.AdvancedFeatures}.}
 % Compare relent filter to sigfilter.
 Despite that technically the \emph{relent-filter} acts as a post-filtering tool,
-the same way \emph{sigfilter} does, it is more complex to apply, because the weights
-of translation model has to be tuned in advance to ensure the soundness of relative
-entropy metric.
-Because of this prerequisite, time requirements of relative entropy pruning run with
-Moses toolkit will be most often far above those of significance pruning as the state of art
-methods of translation model tuning are, in general, very time demanding.
+the same way \emph{sigfilter} does, it is more complex to apply and also far more
+computationally demanding.
+The increased complexity stems from the fact that the weights of translation model has to
+be tuned in advance to ensure the soundness of relative entropy metric.
+The increased computation time is mainly caused by the forced decoding of the whole set of
+phrase pairs in the phrase table that is required for calculation of divergence scores for
+pruning.
 
 \section{Phrase table compacting}
 
