@@ -638,17 +638,16 @@ An implementation of relative entropy pruning by \citet{ling:relentfilter}, name
 \emph{relent-filter}, is also part of third-party contributions to Moses toolkit,
 but works only with an older version of Moses (release 0.91).\footnote{More information
 about \emph{relent-filter} is available in the section "Pruning the Phrase Table based
-on Relative Entropy" of Advanced Features chapter of Moses manual:
+on Relative Entropy" of Advanced Features chapter of Moses online manual:
 \url{http://www.statmt.org/moses/?n=Moses.AdvancedFeatures}.}
 % Compare relent filter to sigfilter.
 Despite that technically the \emph{relent-filter} acts as a post-filtering tool,
 the same way \emph{sigfilter} does, it is more complex to apply and also far more
 computationally demanding.
-The increased complexity stems from the fact that the weights of translation model has to
-be tuned in advance to ensure the soundness of relative entropy metric.
-The increased computation time is mainly caused by the forced decoding of the whole set of
-phrase pairs in the phrase table that is required for calculation of divergence scores for
-pruning.
+The increased complexity stems from the fact that weights for all the components of the
+translation system has to be tuned in advance to ensure the soundness of relative entropy metric.
+The increased computation demands are mainly caused by the forced decoding of the whole set of
+phrase pairs in the phrase table that is required for calculation of divergence scores.
 
 \section{Phrase table compacting}
 

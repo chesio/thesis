@@ -14,7 +14,7 @@ The algorithm has been initially developed to help with identification of
 large network flows that is essential to network monitoring, but poses a big
 computational problem due to the variability of monitored packets and limited
 memory of networking hardware.
-The specific design of the algorithm results in regular pruning of low frequent
+The specific design of the algorithm results in repeated pruning of low frequent
 items from the frequency counts list, as the algorithm runs, and thus maintains
 this list small-sized, but in the same time ensures that high frequent items are
 retained (and identified).
@@ -37,7 +37,7 @@ At its initialization, Lossy Counting algorithm expects to be given two paramete
 that $\epsilon \ll s$.
 At any point of time, after being fed with $N$ items from the stream,
 the algorithm can be asked to output the list of items with their approximate
-frequencies that satisfies the following guarantees:
+frequencies. It is guaranteed that:
 \begin{itemize}
  \item All items whose true frequency is greater or equal to $sN$ are output
   (\emph{no false negatives}).\footnote{\citet{manku:lossycounting} formulates this
@@ -48,7 +48,7 @@ frequencies that satisfies the following guarantees:
   (\emph{few false positives}).
  \item Estimated frequencies are less than the true frequencies by at most
   $\epsilon N$ (\emph{close-to-exact frequencies}).
- \item The space used by the algorithm is $O(\frac{1}{\epsilon}~log \epsilon N)$.
+ \item The space used by the algorithm is $O\big(\frac{1}{\epsilon}~log(\epsilon N)\big)$.
 \end{itemize}
 
 Conceptually, Lossy Counting algorithm divides the incoming stream of items
@@ -78,7 +78,7 @@ triples ($e$, $f$, $\Delta$) where $f \geq (s-\epsilon)N$.
 For an entry $(e, f, \Delta)$, the value of $f$ represents the exact frequency
 since this entry was inserted into $D$.
 The value of $\Delta$ assigned to a new entry is the maximum number of times
-$e$ could have occurred in the first $I-1$ buckets. This is exactly $I-1$.
+$e$ could have occurred in the first $I-1$ epochs. This is exactly $I-1$.
 This value remains unchanged as long as the entry remains in $D$.
 
 The intuitive idea behind the Lossy Counting algorithm is that frequent elements
