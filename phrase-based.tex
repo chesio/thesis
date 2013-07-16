@@ -20,10 +20,10 @@
 \epigraph{The currently best performing statistical machine translation systems are based on
 phrase-based models: models that translate small word sequences at a time.}{--- Philipp Koehn, Statistical Machine Translation}
 
-Phrase-based models are nowadays considered the most eminent approach
+Phrase-based models are nowadays considered the most prominent approach
 in the field of Statistical Machine Translation.
-In this chapter we are going to describe their concept with a particular stress
-on description of phrase translation tables and methods of their construction,
+In this chapter, we are going to describe their concept with a particular stress
+on the description of phrase translation tables and methods of their construction,
 but our introduction will be, inevitably, very condensed.
 For a more detailed insight into phrase-based models and statistical machine
 translation in general, we gently point our reader to \citet{koehn:smt}.
@@ -34,19 +34,19 @@ Before phrase-based models were introduced, a yet simpler word-based models were
 the center of interest of MT researchers.
 \emph{Word-based models} use a lexicon of words with their translations to produce
 translation of the full text by proceeding with one word at a time.
-\emph{Phrase-based models} originates from this concept, but instead of using only
-single word as translation unit they allow for sequence of words -- \emph{a phrase}
+\emph{Phrase-based models} originate from this concept, but instead of using only
+a single word as translation unit they allow for a sequence of words -- \emph{a phrase}
 -- to be translated at once.
 This seemingly trivial extension makes for a non-trivial improvement with some
 imminent benefits:
 \begin{enumerate}
-  \item By using phrases rather than words this model is now implicitly able to deal
+  \item By using phrases rather than words, this model is now implicitly able to deal
     with non-compositional phrases
   \item A phrase-based model is able to handle local reordering of words, for example:
-    switching from \emph{noun follows adjective} to \emph{adjective follows noun} order.
-  \item Word context on source side plays now more important role, because it might be kept
-    within the phrase pair and lead to implicit disambiguation during translation.
-  \item With a lot of data the model can be trained to cover long phrases or even
+    switching from \emph{the noun follows adjective} to \emph{the adjective follows noun} order.
+  \item Word context on the source side plays now more important role, because it might be kept
+    within the phrase pair and lead to an implicit disambiguation during translation.
+  \item With a lot of data, the model can be trained to cover long phrases or even
     whole sentences.
 \end{enumerate}
 
@@ -68,7 +68,7 @@ The translation model is further decomposed into:
 The foreign sentence $f$ is broken up into $I$ phrases $\bar{f}_i$, each of them
 being translated into an English phrase $\bar{e}_i$. Since by the use of noisy channel
 model we inverted the translation direction, the phrase translation probability
-$\phi(\bar{f}_i|\bar{e}_i)$ is modeled as a translation from English to foreign language.
+$\phi(\bar{f}_i|\bar{e}_i)$ is modeled as a translation from English to the foreign language.
 
 The reordering of English phrases is handled by \emph{reordering model}, in \Eref{eq:tm}
 denoted by $d(start_i - end_{i-1} - 1)$.
@@ -92,22 +92,23 @@ language model here), we get the mathematical definition of
 Putting mathematical definitions aside, the role of all three components in search of
 the best translation can be explained in more intuitive way:
 \begin{itemize}
-  \item The phrase translation model ensures that best translation for each phrase is selected.
+  \item The phrase translation model provides likely translations for each phrase.
   \item The reordering model ensures the phrases are reordered appropriately.
   \item The language model ensures the output is fluent English.
 \end{itemize}
+
+% OBO: A jeste je tam ten search, ktery dela volby.
 
 \subsection{Log-linear model}
 
 So far we have introduced three components of SMT system -- phrase translation model,
 reordering model and language model -- and described them in terms of probability
 distributions that determine them.
-Then, we laid out the definition of phrase-based model as multiplication of all
+Then, we laid out the definition of phrase-based model as the multiplication of these
 three distributions.
 Despite the elegance of such definition, it has its drawbacks and current SMT
 systems tend to use a more flexible framework to combine all the various
-components that is well-known especially in machine learning community:
-a \emph{log-linear model}.
+components: \emph{log-linear model}.
 It has general form:
 \begin{equation}
   exp \Big( \sum_i^n \lambda_i h_i(x_i) \Big)
@@ -147,8 +148,8 @@ lacks fluency etc.
 %  translation table.
 % \end{quote}
 
-In \Cref{chap:introduction} we already came with a brief definition of phrase
-translation table. Let us repeat it here using more formal notion that adheres
+In \Cref{chap:introduction} we already came with a brief definition of a phrase
+translation table. Let us repeat it here more formally, adhering
 to the notation introduced earlier in this chapter.
 
 \emph{Phrase translation tables} in SMT systems generally take the form of a list of
@@ -220,7 +221,7 @@ An example of phrase pairs with word alignment information.}
 \end{figure}
 
 % An example of actual phrase table.
-\begin{table}[h]
+\begin{table}[ht]
 \centering
 \begin{tabular}{ l l l l }
 No. & English ($\bar{f}$) & Czech ($\bar{e}$) & $\phi(\bar{e}|\bar{f})$ \\
@@ -270,16 +271,15 @@ from Europarl v6 Czech-English corpus.}
 
 It has been already said in introduction that the phrase table construction methods
 usually store all the temporary data on the disk, because the amount of extracted
-phrase pairs is often very big and so they cannot fit in the physical memory of
-the computer.
+phrase pairs is often too big to be fit in the physical memory of the computer.
 The phrase table construction process in \emph{Moses} also adheres to this concept.
-In the following text, we describe this process in great detail to give our reader
+In the following text, we describe this process in a great detail to give our reader
 a clear picture of its quite complex layout and all the steps and substeps involved.
 
 Moses release 1.0\footurl{http://www.statmt.org/moses/?n=Moses.Releases} comes
-with a training script that incorporates all the steps involved in creation of
-ready-to-go translation system from the parallel corpus, including phrase table creation.
-In the \emph{train-model.perl} script this whole training process is covered by
+with a training script that incorporates all the steps involved in the creation of
+ready-to-go translation systems from the parallel corpus, including phrase table creation.
+In the \emph{train-model.perl} script, this whole training process is covered by
 9 subsequent steps\footurl{http://www.statmt.org/moses/?n=FactoredTraining.HomePage},
 including word alignment, lexical table construction, phrase table construction and more.
 
@@ -288,7 +288,7 @@ alternate implementations of particular steps.
 The training script interface explicitly supports use of third party tools by
 allowing only subrange of the nine steps to be executed.
 The only (obvious) requirement is that such tools have to be capable of reading and
-writing data in format that is compatible with the preceding and subsequent steps
+writing data in a format that is compatible with the preceding and subsequent steps
 of the pipeline.
 
 In this work we are exclusively concerned with the fifth and sixth step of
@@ -324,12 +324,12 @@ are still implicitly parallelized.
 
 Let us now describe the phrase extraction and phrase scoring steps in greater detail.
 
-The \emph{phrase extraction phase} starts with optional split of all input files
-(alignment information, both parts of corpus and optional weights file) into $N$
+The \emph{phrase extraction phase} starts with optional splitting of all input files
+(alignment information, both parts of corpus and an optional weights file) into $N$
 parts, where $N$ is the number of threads set by \verb|--cores|.
 Then, the actual extraction of phrases is done by running $N$ extractors in parallel,
 each processing its own split.
-Each extractor produces following set of files: direct phrase pairs table, inverse
+Each extractor produces the following set of files: direct phrase pairs table, inverse
 phrase pairs table and (optional) reordering information table.
 In the final stage, all output files of the same type from all $N$ extractors are
 merged together, sorted and dumped into one direct and one inverse phrase tables
@@ -352,14 +352,14 @@ or inverse scores.
 After all scorers finish their job, all chunks are merged together.
 The inverse phrase table is sorted once more, but this time differently:
 now the phrase pairs order has to match the direct phrase table.
-This make the consolidation of both halves simple; they are just merged
+This makes the consolidation of both halves simple; they are just merged
 in a linear fashion to produce the final \emph{phrase translation table}.
 
 Before we finish this section, it is important to mention that all
 the temporary data stored to disk during processing is compressed
 (and then uncompressed when read later on).
-This helps to lessen the total disk usage and also reduces disk I/O in cost of
-more CPU time, which in typical case is a worthy deal as parallel reads/writes
+This helps to lessen the total disk usage and also reduces disk I/O in exchange for
+increased CPU load, which in typical case is a worthy deal as parallel reads/writes
 to disk tends to slow down the overall process much more than additional
 CPU processing required to perform compression and decompression.
 
@@ -378,33 +378,34 @@ phrases tend to accumulate more of such "noise".
 
 % The solution.
 Such significant presence of poor translation options in translation tables led to
-attempts to design methods of their removal that could effectively produce smaller,
-easier to manipulate phrase tables and in the same time retain the overall quality of
-translation process or possibly even improve it by discarding the misleading options.
+attempts to design methods of their removal that could effectively produce smaller and
+easier to handle phrase tables and at the same time retain the overall quality of
+translation, or possibly even improve it, by discarding the misleading options.
 
-A systematic overview of existing phrase table pruning methods is presented in \citep{zens:systcomp}.
+A systematic overview of the existing phrase table pruning methods is presented in
+\citep{zens:systcomp}.
 Notably, three main approaches are mentioned:
 \begin{enumerate}
-  \item Simple statistics pruning -- pruning based either on frequency counts or
+  \item Simple statistics pruning -- pruning based either on the frequency counts or
     translation probabilities of phrase pairs
-  \item Significance pruning -- pruning based on significance testing of
-    cooccurrences of phrases aiming at filtration of poor translation options caused
-    by input data noise
-  \item Relative entropy pruning -- pruning based on relative entropy model established
-    on top of the translation model aiming at reduction of its internal redundancy
+  \item Significance pruning -- pruning based on the significance testing of
+    cooccurrences of phrases aiming at the filtration of the poor translation options
+    caused by input data noise
+  \item Relative entropy pruning -- pruning based on the relative entropy model established
+    on top of the translation model aiming at the reduction of its internal redundancy
 \end{enumerate}
 
 \subsection{Simple statistics pruning}
 \label{sec:simple-statistics-pruning}
 
-The simplest pruning methods define their pruning criteria on the statistics immediately
+The simplest pruning methods base their pruning criteria on the statistics directly
 available in the pruned phrase table. \citet{zens:systcomp} specify 4 different criteria
-categorized either as an absolute or a relative pruning method.
+categorized either as an absolute or a relative.
 
 \subsubsection*{Absolute pruning}
 
-Absolute pruning methods rely on statistics of a single phrase pair only and therefore
-they prune each phrase pair independently of others.
+Absolute pruning methods rely on the statistics of a single phrase pair only and therefore
+they prune each phrase pair independently of the others.
 This way, it is possible to remove all translation options of a particular source
 phrase.\footnote{However, whether the quality of translation model can be hurt by this is
 still an open question.}
@@ -424,8 +425,8 @@ translation probability $\phi(\bar{e}|\bar{f})$ is below a threshold $\theta_{p}
 \subsubsection*{Relative pruning}
 
 Relative pruning methods process a whole set of phrase pairs with the same source phrase
-$\bar{f}$ at once and always retain at least one phrase pair from each set, therefore they
-ensure there will remain at least one translation option for each source phrase.
+$\bar{f}$ at once and always retain at least one phrase pair from each set (one translation
+option for each source phrase).
 
 \emph{Threshold pruning} prunes phrase pairs $(\bar{f},\bar{e})$ that have forward translation
 probability far worse than the phrase pair representing the best translation option for source
@@ -438,7 +439,7 @@ phrase $\bar{f}$ with respect to given minimum ratio threshold $\theta_{t} \in [
 of all phrase pairs with the same source phrase $\bar{f}$ based on their forward translation
 probability.
 
-It is easy to note the similarity of both criteria and as a matter of fact with $\theta_{t} = 1$
+It is easy to note the similarity of both criteria and as a matter of the fact with $\theta_{t} = 1$
 and $K = 1$ both methods give the same result: only the best translation option(s) for each
 source phrase are kept in pruned phrase table.
 
@@ -447,14 +448,14 @@ source phrase are kept in pruned phrase table.
 % Introduce Johnson's significance filtering.
 
 % Introduce the idea of significance filtering
-A phrase table pruning method popular within Moses community is \emph{significance filter}
+A phrase table pruning method popular within the Moses community is \emph{significance filter}
 introduced by \citet{johnson:sigfilter} and implemented by the \emph{sigfilter} tool
 that is part of third party contributions to Moses toolkit.\footnote{More information
 about \emph{sigfilter} is available in the section "Pruning the Translation Table" of
 \url{http://www.statmt.org/moses/?n=Moses.AdvancedFeatures}.}
 It proved to be capable of pruning out a substantial amount of phrase table with no
 significant harm to its quality: authors reported savings up to 90\% and in some cases
-even improvement of quality after pruning as measured by BLEU score.
+even an improvement of the quality after pruning as measured by the BLEU score.
 The idea behind significance filtering is that phrase pairs that are weakly supported
 by the data or, in other words, more statistically insignificant than others, can be
 removed, because it is more likely that they occurrence is either a chance or an artifact
@@ -467,7 +468,7 @@ contingency tables that are populated with the following counts (see
 \Tref{two-by-two-contingency-table}):
 \begin{itemize}
   \item $C(\bar{f},\bar{e})$ as the number of parallel sentences that contain one or more
-    occurrences of phrase $\bar{f}$ on source side and phrase $\bar{e}$ on target side
+    occurrences of phrase $\bar{f}$ on the source side and phrase $\bar{e}$ on the target side
   \item $C(\bar{f})$ as the number of parallel sentences that contain one or more
     occurrences of phrase $\bar{f}$ on the source side
   \item $C(\bar{e})$ as the number of parallel sentences that contain one or more
@@ -492,7 +493,7 @@ Two by two contingency table for $\bar{f}$ and $\bar{e}$.}
 \end{table}
 
 % Define p-value, mention Fisher's exact test
-\emph{Significance test} allows to statistically assess the importance of association
+\emph{Significance test} allows to statistically assess the importance of an association
 represented by the contingency table by calculating the probability (formally denoted
 as \emph{p-value}) that the observed contingency table or any more extreme one could
 occur by chance assuming the model of independence: thus, the lower the p-value of
@@ -500,14 +501,13 @@ particular table the more significant the represented association.
 Several significance tests exist, but many depend on asymptotic assumptions
 that are not valid for small counts, therefore significance filtering employs
 \emph{Fisher's exact test} that calculates \emph{p-value} using hypergeometric
-distribution and is valid for all sample sizes.
+distribution and it is valid for all sample sizes.
 
 % Put phrase table filtering in perspective to significance testing
-In case of significance filtering the co-occurrence of phrases $\bar{f}$ and $\bar{e}$
+In the case of significance filtering, the co-occurrence of phrases $\bar{f}$ and $\bar{e}$
 forming a particular phrase pair $(\bar{f},\bar{e})$ is the association being tested
-and the independence of model simply presumes that there is no explicit dependence
-between phrases from source and target side.
-% TODO: Does the above make sense? :)
+and the model of independence simply presumes that there is no explicit dependence
+between phrases from the source and target sides.
 
 To prune the phrase table a threshold marking the maximum p-value must be given.
 Because the probabilities are very small numbers, their negative logarithm is used
