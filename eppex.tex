@@ -17,15 +17,15 @@ frequency counts of extracted phrase pairs by using Lossy Counting algorithm
 It is designed to be an alternative to standard phrase extraction and scoring tools that
 are shipped with Moses, implementing most of the functionality of steps 5 and 6 of
 \emph{train-model.perl} script.
-\Eppex{} input and output interface is fully compatible with those of the replaced tools
+\Eppex{} input and output interface is fully compatible with the replaced tools
 and \eppex{} in fact is intended to be invoked from within the Moses training script itself
-by passing specific parameters.
+by adding a few specific parameters.
 
-\Eppex{} differs from its core counterparts in one important aspect: during its runtime
+\Eppex{} differs from its core counterparts in one important aspect: during its runtime,
 only physical memory is utilized, no temporary files are stored on disk as with \emph{extract}
 and \emph{score} tools.
 The goal is to make \eppex{} a faster alternative, aiming at environments with plenty of RAM.
-Benchmarking of time/memory trade-offs was fundamental part of this work and the results are
+Benchmarking of time/memory trade-offs was the fundamental part of this work and the results are
 thoroughly examined in \Cref{chap:results}.
 
 \Eppex{} memory demands may be limited by setting more restrictive support and error thresholds
@@ -42,12 +42,12 @@ Instructions on how to install \eppex{} on Linux-based operating system are give
 
 % What and why is a target platform?
 \Eppex{} is implemented as a command-line program and, as indicated above, it is written in C++.
-From the development perspective, \eppex{} adheres to the philosophy of Moses, which is mainly
+From the development perspective, \eppex{} adheres to the philosophy of Moses, what is mainly
 reflected by the selection of development platform and third party libraries:
 \begin{enumerate}
   \item The primary development platform is Linux --
-  \eppex{} has been developed and tested on desktop version of Ubuntu 12.04 LTS with GCC 4.6.3 and
-  server version of Ubuntu 10.04 LTS with GCC 4.4.3 installed.
+  \eppex{} has been developed and tested on desktop version of Ubuntu 12.04 LTS with GCC~4.6.3 and
+  server version of Ubuntu 10.04 LTS with GCC~4.4.3 installed.\footnote{GCC stands for the GNU Compiler Collection: \url{http://gcc.gnu.org/}}
   \item \Eppex{} relies on Boost C++ library\footurl{http://www.boost.org/} -- it is used to provide
   some essential functionality, so \eppex{} cannot be compiled without access to some of Boost
   headers and packages.\footnote{See \Aref{chap:installation} for details.}
@@ -64,8 +64,8 @@ environment the virtual address space holds no more than $2^{32}$ addresses, so 
 considered unfeasible nowadays, as 64-bit architecture is well established.} (see
 \Sref{sec:eppex-memory-demands} for some experimentally established figures).
 Therefore, although not tested, \eppex{} should run as smoothly on 32-bit machine as it runs
-on 64-bit, but the amount of input data that it will manage to process will have to be decent
-or aggressive pruning will have to be undertaken.
+on 64-bit, but the amount of input data that it will manage to process will have to be rather
+small for practical MT or aggressive pruning will have to be undertaken.
 
 \section{Effective C++}
 
@@ -84,7 +84,7 @@ programming, that we followed and applied during implementation of \emph{eppex}.
 \subsection{Data alignment and structure packing}
 
 The issue behind \emph{data alignment} is best explained using example
--- let us define a dummy structure \verb|LossyCounterItem|:
+-- let us define a dummy structure \texttt{LossyCounterItem}:
 
 \begin{verbatim}
 struct LossyCounterItem {
@@ -95,11 +95,11 @@ struct LossyCounterItem {
 \end{verbatim}
 
 Given the definition above and with respect to the byte sizes of individual members,
-one could expect that \verb|sizeof(LossyCountItem)| equals to 7, but this guess
-will be wrong in most of the cases as the most likely result is 12.
+one could expect that \texttt{sizeof(LossyCounterItem)} equals to 7, but this guess
+will be wrong in most of the cases. The most likely result is 12.
 
 This unexpected behavior stems from the fact that many machines require that
-objects of certain type are aligned on architecture-dependent boundaries,
+objects of a certain type are aligned on architecture-dependent boundaries,
 for example integers are often allocated on word\footnote{\emph{Word} in computer
 architecture terminology denotes a fixed-sized group of bits that are handled
 as a unit by the instruction  set and/or hardware of the processor.} boundaries
@@ -107,10 +107,10 @@ as a unit by the instruction  set and/or hardware of the processor.} boundaries
 
 The easiest way how to minimize effects of data alignment is to order members
 by their size with the largest members first.
-This way our \verb|LossyCounterItem| structure can be shrunk to 8 bytes,
+This way our \texttt{LossyCounterItem} structure can be shrunk to 8 bytes,
 but still there will be one byte of blank padding at the end of the structure.
 With some compilers this padding can be trimmed by setting on \emph{structure packing}
-using \verb|#pragma| preprocessor directive, but doing this will slow data access
+using \texttt{\#pragma} preprocessor directive, but doing this will slow data access
 on most processors that read memory by words, because misaligned structures will span
 multiple words and in consequence require more reads.
 
@@ -123,7 +123,7 @@ this ensures their effective handling by processing unit without spurious memory
 % Why had we used C-string instead of std::string.
 
 Unlike Java, C and C++ have no fundamental data type for strings, instead they have
-to be stored as an array of \verb|chars|.
+to be stored as an array of \texttt{chars}.
 Such string handling is obviously too low-level for most modern applications,
 which are mainly about string processing, so STL creators came to help and designed
 several \emph{string} classes that mimic behavior of ordinary data types
@@ -147,7 +147,7 @@ The reference counting feature seems to be useful for our phrase-counting proble
 but it would imply to rely on proprietary implementation that is not enforced by
 standard, which is a bad design choice for any open-source software.
 
-Therefore, whenever memory footprint of strings storage is more important than
+Therefore, whenever the memory footprint of strings storage is more important than
 the convenience and flexibility of their handling, C-string is a better choice
 than any STL string implementation.
 
@@ -196,7 +196,7 @@ With C++ we have two basic options, how to reference an object:
 \begin{enumerate}
   \item by using object's address within memory
   \item by using a numeric index that uniquely identifies an object within a large storage
-  (either a random access container or array).
+  (either a random access container or an array).
 \end{enumerate}
 
 We may note that both options are fundamentally the same:
@@ -221,16 +221,17 @@ as every new object have to be first checked for an existing copy.
 Almost every non-trivial computer program uses dynamic memory allocation.
 C++ provides two interfaces to ask for a new memory during program runtime:
 one can either use legacy C API function \emph{malloc} or pure C++ API operator \emph{new}.
-Both APIs has to provide means to satisfy any type of memory request -- and for any size.
-Hence, usually the size of allocated memory block (and any other bookkeeping information) is
-kept in memory chunk right before the block itself \citep[Chapter 10]{meyers:effective-cpp}.
-This way, for deallocation either via \emph{free} function or operator \emph{delete}
-memory allocator only needs the pointer to memory block that should be deallocated and
-can easy determine, how much memory should be actually freed.
+Both APIs have to provide means to satisfy any type of memory request -- and for any size.
+Hence, usually the size of an allocated memory block (and any other bookkeeping information) is
+kept in the memory chunk right before the block itself \citep[Chapter 10]{meyers:effective-cpp}.
+This way, for deallocation either via \emph{free} function or the operator \emph{delete},
+the memory allocator only needs the pointer to the memory block that should be deallocated.
+It can easily determine, how much memory should be actually freed, by inspecting the
+bookkeeping information.
 
 The obvious overhead in memory consumption incurred by this approach is usually negligible,
 but may become significant in situations, when a load of small-sized memory blocks is allocated.
-To avoid the overhead in such situations, a frequently used approach is to allocate big pool of
+To avoid the overhead in such situations, a frequently used approach is to allocate a big pool of
 fixed-size memory blocks once a time and serve these blocks sequentially as new memory requests
 come in, allocating a new pool whenever all memory blocks in existing pools are exhausted.
 This technique is generally called \emph{memory pooling}, but when details of
@@ -255,44 +256,43 @@ binary-search-tree-based containers (with an \emph{unordered_} prefix):
 \emph{unordered_set}, \emph{unordered_multiset}, \emph{unordered_map} and \emph{unordered_multimap}.
 The key differences between hash tables and binary-search trees are:
 \begin{itemize}
-  \item Binary-search trees require less-than comparison operator to be defined for stored items,
-  whereas hash tables require equal-to comparison operator and also a hash function to be
+  \item Binary-search trees require the "less-than" comparison operator to be defined for stored items,
+  whereas hash tables require the "equal-to" comparison operator and also a hash function to be
   defined for them.
-  \item When iterating over binary-search tree the items are returned in order provided by
-  less-than comparison operator, whereas iteration over hash table returns items in arbitrary
+  \item When iterating over a binary-search tree, the items are returned in the order provided by
+  the "less-than" comparison operator, whereas the iteration over hash table returns the items in arbitrary
   order.
-  \item Lookup, insertion and deletion operations with hash tables have amortized (constant)
-  average cost per operation (one call to hash function plus one or more equality comparisons),
-  whereas with binary-search tree these operations have cost dependent on the number of items
-  in the tree ($N$): each operation requires $log_2(N)$ comparisons.
+  \item Lookup, insertion and deletion operations with hash tables have (amortized) constant
+  average cost per operation (one call to the hash function plus one or more equality comparisons),
+  whereas with binary-search tree these operations have a cost dependent on the number of items
+  in the tree ($N$): each operation requires $O\big(log_2(N)\big)$ comparisons.
 \end{itemize}
 
 In the real life applications hash tables often perform much better than binary-search
 trees, although their worst case complexity is linear with respect to number of items
-(standard requires that hash tables are implemented using
+(the C++ standard requires that hash tables are implemented using
 \emph{closed addressing}\footurl{http://en.wikipedia.org/wiki/Hash_tables\#Separate_chaining}).
-% TODO: Cite wikipedia or find a "better" source?
-The effectiveness of hash tables stands and falls with a hash function:
-a good hash function has to be fast to compute and display the quality of distributing
+The effectiveness of hash tables stands and falls with the hash function:
+a good hash function has to be fast to compute and possess the quality of distributing
 the data as evenly as possible over its output range.
 
 \section{Implementation analysis and description}
 
-During the program runtime the input data are processed in order to establish frequency counts
-necessary to compute the phrase pair scores and print the complete phrase translation table.
-This requires the phrase pairs to be extracted and kept in the memory along with the estimated
-frequency and maximum error for Lossy Counting -- essentially, a set of triples $(e, f, \Delta)$
-has to be maintained.\footnote{I.e. the data structure $D$ described in \Cref{chap:lossy-counting}.}
-These data account for most of the memory required during the runtime, therefore their effective
+During the program runtime, the input data are processed in order to establish frequency counts
+necessary to compute phrase pair scores and print the complete phrase translation table.
+This requires the phrase pairs to be extracted and kept in memory along with the estimated
+frequency and maximum error for Lossy Counting -- essentially, a set of triples $(e, f, \Delta)$,
+as described in \Cref{chap:lossy-counting}, is to be maintained.
+These data account for most of the memory required during runtime, therefore their effective
 representation in memory is mission-critical and was object of the major programming effort.
 
 \subsection{Size of integer types}
 
 Both frequency count and maximum error are plain unsigned integers, so at first it might seem
 there is nothing that can be possibly done about their optimization.
-However, it will be unwise to just declare them both as \verb|unsigned int|.
+However, it will be unwise to just declare them both as \texttt{unsigned int}.
 First, the size of integer data types is implementation dependent.
-Despite that \verb|int| is typically 4 bytes long, this is not guaranteed \citep[Chapter 4.6]{stroustrup:cplusplus}.
+Despite that \texttt{int} is typically 4 bytes long, this is not guaranteed \citep[Chapter 4.6]{stroustrup:cplusplus}.
 Second, it is important to realize that by processing real life data we may never need as much
 space as some integer types provide and saving even few bytes per item can lead to gigabytes
 saved in total.
@@ -300,16 +300,16 @@ saved in total.
 To ensure cross-platform compatibility, we base the definitions of estimated frequency count and
 maximum error (and other crucial numeric types) on definitions of fixed-size integer types from
 Boost.Integer library.\footurl{http://www.boost.org/doc/libs/1_53_0/libs/integer/doc/html/index.html}
-For frequency counts we dedicated 4~bytes, to be able to store all unsigned values up to
-$2^{32} \approx 4.3 \times 10^9$ -- this is definitely enough for our task as there is no
+For frequency counts we dedicate 4~bytes, a space capable of storing all unsigned values up to
+$2^{32} \approx 4.3 \times 10^9$. This is definitely enough for our task as there is no
 parallel corpus yet with billions of parallel sentences, therefore it is safe to expect no phrase
 pair will occur billion times.
-For the values of maximum error it is sufficient to reserve only 1~byte (range from 0 to 255)
--- maximum error is always less than the number of epochs in Lossy Counting and from our initial
-experiments we had learned that having more than just a few epochs leads to pruning that already
-hurts too much.\footnote{As results in \Cref{chap:results} demonstrate, with more data it is
-possible to prune more (with more epochs) with no significant loss of quality, but still the 0-255
-range displays a tremendous reserve.}
+For maximum error values it is sufficient to dedicate 1~byte only (unsigned values up to 255).
+A maximum error of any item during Lossy Counting is always less than the ID of current epoch and
+from our initial experiments, we had learned that lossy counted phrase extraction with more than just
+a few epochs leads to pruning that already hurts too much.\footnote{As results in \Cref{chap:results}
+demonstrate, with more data it is possible to prune more (with more epochs) with no significant
+loss of quality, but still the 0-255 range displays a tremendous reserve.}
 
 \subsection{Words, phrases, alignments}
 
@@ -335,7 +335,7 @@ struct PhrasePair {
 Obviously, this is very simple and very naive solution.
 The flexibility of STL containers comes at a cost: each container has to keep track of its
 current size, the memory it has reserved etc.
-In case of our \verb|PhrasePair| structure, the overhead of 3 instances of STL \verb|vector|
+In case of our \texttt{PhrasePair} structure, the overhead of 3 instances of STL \texttt{vector}
 container requires 72 bytes of memory.\footnote{With GCC on 64-bit machine, on 32-bit machine
 this value will be usually half as big.}
 Assuming a parallel corpus with hundred of millions of phrase pairs, only to account for
@@ -369,7 +369,7 @@ process suggests that each word occurrence in the input corpus will be reference
 several phrase pairs.\footnote{Recall that the phrase extraction algorithm may, in theory,
 extract as many as $N^2$ phrases from a sentence of $N$ words.}
 The data type of numeric index has to be capable of representing the whole domain of input
-factor forms, therefore we picked up \verb|boost::uint32_t| data type from Boost.Integer
+factor forms, therefore we picked up \texttt{boost::uint32_t} data type from Boost.Integer
 library for this purpose with a reasonable assumption that no model will have factor with
 more than 4.2~billions of distinct forms.
 
@@ -414,10 +414,10 @@ Now it is time to put all the phrase pairs building blocks together: ...
 \Eppex{} can read/write directly from/to gzipped files, the same way legacy \emph{phrase-extract}
 tools does.
 This option allows to save a significant amount of disk space, as a typical phrase table will be
-several times smaller when compressed.\footnote{In case of phrase tables produced in our experiments
-the compression ratio of gzipped phrase tables varied between 14.0\% and 22.9\%.}
-Moreover, in environments when disks are under heavy load (shared computation servers are often
-the case), it may even speed up the whole I/O process.
+several times smaller when compressed.\footnote{In case of the phrase tables produced in our experiments
+the compression ratio of the gzipped files varied between 14.0\% and 22.9\%.}
+In addition, in environments when disks are under heavy load (shared computation servers are often
+the case), compression may even speed up the whole I/O process.
 
 Our implementation simply reuses the respective library shipped with Moses source code,
 as it is cleanly designed and easy to include.
