@@ -11,7 +11,7 @@ asked by Google interviewers I recommend reading the book "Are You Smart
 Enough to Work at Google?" by William Poundstone.} to ask:
 "How many bilingual elves would Google had to employ in order to translate
 all the words, sentences and web pages that are send to Google Translate
-service each day?"\footurl{http://translate.google.com}
+service every day?"\footurl{http://translate.google.com}
 Obviously, it would be a hypothetical one. No bilingual elves are involved
 in translation of the bunch of texts send to Google Translate each day.
 And no human translators either: Google Translate is fully implemented using
@@ -43,7 +43,7 @@ even nowadays no system exists that has reached the holy grail of machine transl
 \emph{fully automatic high quality translation of unrestricted text}.
 
 % Introduce SMT. Slightly inspired by Preface of Koehn's book.
-However, the last 25 years have been very prolific for the field.
+However, the last 25~years have been very prolific for the MT.
 A new paradigm arose, not only in MT but in natural language processing
 field in general, that employs automatic discovery of principles that
 rules human languages (and translation between them) by collecting
@@ -52,12 +52,12 @@ by human experts.
 In \emph{statistical machine translation} (SMT) these statistics are
 collected by pairing the input and output side of the translation process.
 Co-occurrences of \emph{atomic units of translation} are used to
-evaluate properties of statistical model that is afterwards used to
+estimate parameters of a statistical model that is afterwards used to
 search for the most probable translation given the input text.
 The atomic units of translation are typically words or phrases and
 the respective systems are referred to as \emph{word-based} or
-\emph{phrase-based}.\footnote{In SMT context the term phrase is almost
-exclusively used to refer to any short sequence of words and wears no
+\emph{phrase-based}.\footnote{In SMT context, the term \emph{phrase} is almost
+exclusively used to refer to any short sequence of words and bears no
 implicit linguistic notion.}
 
 % Introduce phrase table.
@@ -69,7 +69,7 @@ This table acts as a dictionary, listing all possible translations of phrases
 in one language into phrases in another language along with indication of
 quality of such translation expressed by the scores, and is usually referred
 to as \emph{phrase translation table} or just \emph{phrase table}.
-Any reasonable metric can be used as a phrase table score, but a de facto
+Any reasonable measure can be used as a phrase table score, but a de facto
 standard is to use \emph{maximum likelihood probability} of the target language
 phrase given the source language phrase and vice versa.
 
@@ -87,24 +87,20 @@ the capacity of the disk, with an obvious drawback that much more time is
 needed to build the table.
 
 % Underline the urgency of the problem.
-In recent years the amount of parallel data available increased significantly,
-but the more data are exploited in the process of MT system training,
-the more computational resources are consumed by the phrase table component.
-The growing phrase tables not only make translation models expensive to store and process,
+In recent years the amount of available parallel data increased significantly,
+but the more data is exploited in the process of MT system training,
+the more computational resources are necessary for handling of phrase tables:
+large phrase tables not only make translation models expensive to store and process,
 but can even pose a challenging problem for further utilization of the system
-(eg. in case of handheld devices or in otherwise constrained environments).
+(e.g. in case of handheld devices or in otherwise constrained environments).
 
 % Introduce the idea of phrase table pruning.
-This arising problem attracted attention of MT community and several methods
-aiming at \emph{pruning of phrase tables} have been demonstrated.
-The design of such methods typically allows to control the degree of pruning by setting
-a threshold value that either ensures removal of certain bottom-ratio of phrase pairs
-sorted by values given by the internal pruning criterion or directly sets
-a maximum/minimum limit for the positive values with respect to this criterion.
-Moreover, to prove their usefulness, the method designers also provide theoretically
-or empirically grounded means of how to set the threshold in order to remove
-a significant portion of phrase table and in the same time retain the overall quality
-of the underlying translation model.
+This arising problem attracted attention of MT researchers and several methods
+of \emph{phrase table pruning} have been proposed.
+The phrase table pruning methods are typically based on some pruning criterion
+that is activated with a user-defined threshold, but it is often possible to instead
+set a cutoff limit to remove given bottom-ratio of phrase pairs and thus have a finer
+control over the degree of pruning.
 
 % A systematic comparison of phrase table pruning techniques.
 A recent work by \citet{zens:systcomp} presented a systematic description of existing
@@ -122,8 +118,9 @@ criterion:
 
 These desiderata also served as a motivation for a proposal of a novel pruning method introduced
 in their work: \emph{relative entropy pruning} reportedly outperforms all the existing methods and 
-achieves consistently high savings between 85\% and 95\% of the phrase table with a negligible loss
-of translation quality as measured by BLEU score \citep{papineni:bleu}.
+achieves consistently high savings between 85\% and 95\% of phrase pairs removed from the phrase
+table with only a negligible losses in automatic measure of translation quality, the so-called
+BLEU score \citep{papineni:bleu}.
 
 From the perspective of this work it is worth to note that all the established pruning methods
 mentioned by \citet{zens:systcomp} operates on complete phrase tables, i.e. no method attempts
@@ -152,9 +149,9 @@ settings of the algorithm imply on memory vs. time and translation quality
 trade-offs when compared to current state-of-art methods of phrase table
 construction and pruning.
 
-As a state-of-art SMT system to set our baseline, we decided to choose \emph{Moses}
-\citep{koehn:moses}: an open-source toolkit with rich documentation and active
-community of researchers and developers.\footurl{http://www.statmt.org/moses/}
+As a state-of-the-art SMT system to set our baseline, we chose \emph{Moses}:
+an open-source toolkit with rich documentation and an active community of researchers
+and developers \citep{koehn:moses}.\footurl{http://www.statmt.org/moses/}
 
 \section{Thesis outline}
 
@@ -167,7 +164,7 @@ In Chapter 3 we introduce the algorithm that is the basis of our implementation
 of on-the-fly filtration and show the properties of the output produced
 by the algorithm that make it particularly applicable for phrase table pruning.
 
-Chapter 4 is devoted to in-depth description of implementation details of our
+Chapter 4 is devoted to an in-depth description of implementation details of our
 phrase table extraction tool, \emph{epochal extractor} (or shortly \eppex{}).
 Notably, various memory-management optimizations are mentioned.
 
@@ -175,12 +172,12 @@ To assess \eppex{} usability in real world applications, we carried out a set
 of carefully crafted experiments aiming at comparison of resources usage as well as
 the ultimate translation quality of \eppex{} and some of the methods described
 in Chapter 2.
-Detailed design of experiments is subject of Chapter 5,
+The detailed design of experiments is the subject of Chapter 5,
 while the results are discussed in Chapter 6.
 
-In the final chapter we comment on our results and provide a conclusion of
-what have been done and what can be done in the future work on this topic.
+In the final chapter, we comment on our results and provide a conclusion of
+what has been done and what can be done in the future work on this topic.
 
-In Appendix A we give the instructions on how to get \eppex{} working on Linux machines.
+In Appendix A, we give the instructions on how to get \eppex{} working on Linux machines.
 
-In Appendix B all the program options of \eppex{} are explained with examples of their usage.
+In Appendix B, all the program options of \eppex{} are explained with examples of their usage.
