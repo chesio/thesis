@@ -5,7 +5,7 @@ We conducted a series of experimental phrase table extractions in order to
 assess \eppex{} memory demands, determine the ratio of speed up of the whole
 process obtainable with various pruning levels and evaluate the impact of both
 lossy counting and significance filtering on the quality of pruned phrase tables.
-In this chapter we are going to describe the parameters of our experiments,
+In this chapter, we are going to describe the parameters of our experiments,
 the employed data sets and the means of runtime benchmarking and quality
 evaluation, while the actual results and comments on them are presented in
 \Cref{chap:results}.
@@ -26,8 +26,8 @@ attempted on a machine with multiple processing units (cores or threads).
 Besides the parallelization, the training script also supports a more subtle
 runtime optimization: the sorting process, that is invoked to sort both halves
 of phrase table in the phrase extraction step and later to sort the inverse
-half before final consolidation of both halves, may be enabled to use a bigger
-memory buffer, order to compress the output or to run in parallel mode.
+half before final consolidation of both halves, may be configured to use a bigger
+memory buffer, to compress its temporary data stored on disk or to run in parallel mode.
 \Tref{baseline-optimization-parameters} sums up all the parameters of Moses
 training script that can be set in order to optimize the process of phrase
 table creation and briefly explains their role.
@@ -75,7 +75,7 @@ as challenging baseline as possible given the computation resources of the machi
 at our disposal.
 
 % On number of cores...
-In the non-default baselines we favored to turn on parallel processing using \verb|--cores|
+In the non-default baselines, we favored to turn on parallel processing using \verb|--cores|
 option as this setting applies to both steps of phrase table construction, whereas
 \verb|--parallel| is applicable only to scoring step.
 Despite that all machines employed in our experiments have 8 or more cores (or threads),
@@ -84,7 +84,7 @@ affordable not only on computational servers equipped with multiple CPUs, but al
 of the modern laptops and we expect such results to be more apt for the Moses community.
 All the time, however, we intentionally left at least one core idle to make sure our
 benchmarking script or any administrative process of software managing the computational
-cluster will not interfere with benchmarking.
+cluster will not interfere with the benchmarking.
 
 % On sort options...
 Regarding the optimization parameters for \emph{sort}, we use \emph{gzip} as compressing
@@ -92,8 +92,8 @@ program and set sort buffer size to either use the whole memory available on mac
 (with some reasonable reserve for the remaining processes) or use approximately the same
 amount of memory as consumed by \eppex{} when creating the full phrase table from
 the same data (ie. without pruning -- the most "hungry" setting).
-We did not set parallelization on for \emph{sort} -- simply because we were using older
-version of \emph{sort} program that did not yet implement this feature.
+We did not set parallelization on for \emph{sort} -- simply because we were using an older
+version of the \emph{sort} program that did not yet implement this feature.
 
 % Moses 1.0 only.
 For clarity and reproducibility of results we sticked to Moses release 1.0 in all our 
@@ -138,45 +138,44 @@ the actual limit was 254 words.} such sentences have to be trimmed in advance.
 
 \subsection{Relative entropy filtering}
 
-We attempted to post-filter phrase tables with the \emph{relent-filter} toolkit as well,
+We attempted to post-filter the phrase tables with the \emph{relent-filter} toolkit as well,
 but it turned out that the forced decoding of all phrases in phrase table required by this
 method makes it extremely time consuming when dealt with phrase tables as enormous as ours:
-in case of "Cs-En" setup described below, it took more than 30~hours to calculate the pruning
-scores for 336~K of phrase pairs (approx. 0.1\% of the phrase table).
-Despite that the filtration process can be scaled to process more data by running multiple
-instances of scoring script in parallel, the applicability of such approach is in practice
-limited by the considerable memory demands of decoding: in our case, the parallel run of
+in the case of "Cs-En" setup described below, it took more than 30~hours to calculate the pruning
+scores for 336~K of phrase pairs (approx. 0.1\% of the whole phrase table).
+Despite that the filtration process can be scaled by running multiple
+instances of the scoring script in parallel, the applicability of such approach is in practice
+limited by the considerable memory demands of forced decoding: in our case, the parallel run of
 two \emph{relent-filter} instances fed with 25~K phrases to be decoded at a time required
 45~GB of memory.
 Such excessive time requirements made it impossible to fit the proper evaluation of
-\emph{relent-filter} into our experiments schedule, therefore we were forced to abandon it.
+\emph{relent-filter} into our experiments schedule, therefore we had to abandon it.
 
 \subsection{Eppex}
 
 The runtime performance of \eppex{} and the degree of pruning heavily depends
 on the parameters of Lossy Counting: more intensive pruning results in less phrase pairs
-being extracted and then scored, thus with more pruning \eppex{} runs faster.
+being extracted and then scored, thus more pruning leads to faster \eppex{} runs.
 
-The earlier experiments with \eppex{} \citep{przywara:eppex} showed that the pruning
-should not be too intensive: especially the removal of short phrase pairs can be
+The earlier experiments with \eppex{} \citep{przywara:eppex} suggested that lossy-counted
+pruning should not be very intensive: especially the removal of short phrase pairs can be
 damaging to the quality of translation model.
-This findings has been reflected in \eppex{} design in the possibility to instantiate
-a separate Lossy Counter instance for each phrase pair length (or range of them).
+These findings were also the main reason behind the option to instantiate a separate
+Lossy Counter instance for each phrase pair length (or range of them) in \eppex{}.
 
 % all-in setup
-However, the simplest scenario to run is to use no pruning at all.
-All phrase pairs will be output and the phrase table will be equal to the one
-created by baseline extraction.\footnote{Equal does not necessarily mean identical:
-some minor differences in scores with floating point values might occur due to
-rounding errors.}
+However, the simplest scenario to run is to use no pruning at all and let \eppex{} output
+a phrase table equal to the one that would be created by a baseline extraction.\footnote{Equal
+does not necessarily mean identical: some minor differences in scores with floating point
+values might occur due to rounding errors.}
 Obviously, this scenario is also the most memory demanding.
 
 % hypothetical p=n+1 setup
 Perhaps not as obviously, the scenario with \emph{positive and negative limits} set as
 $p = n + 1$ will be as memory demanding as the one with no pruning.
-The same cause applies in both cases, although here it might be not as striking:
+The same cause applies in both the cases, although here it might be not as striking:
 when the Lossy Counting algorithm is given no space for error, it will make none,
-but will consequently consume the most of space given a particular input size.
+but will consequently reach the space complexity upper bound.
 Therefore, despite this scenario is theoretically interesting, it is rather not very
 usable in practice, unless one has a plenty of RAM available and wants to perform perfect
 count-based pruning on the fly.
@@ -189,18 +188,18 @@ will be preserved (like in $\alpha - \epsilon$), while setting \emph{negative li
 one will result in their complete removal (like in $\alpha + \epsilon$).
 It is important to realize, that it is really just an approximation:
 with the former setting, all phrase pairs will be actually preserved,
-and with the latter all single occurring phrase pairs will be actually removed,
+and with the latter, all single occurring phrase pairs will be actually removed,
 not only 1-1-1 phrase pairs.
 On the other hand, the option to set a separate Lossy Counting allows us to come up with
 a mix of both approaches: define a less intensive $\alpha - \epsilon$-like pruning for
-shorter phrase pairs and a more intensive $\alpha + \epsilon$-like pruning for longer
-phrase pairs.
+the shorter phrase pairs and a more intensive $\alpha + \epsilon$-like pruning for the
+longer phrase pairs.
 
 % frequency-range rising limits setup
 To sum up this reflection on various \eppex{} scenarios, the main reasoning that should
 determine the settings of \emph{limits} is the observation that short phrases pairs are
-more crucial to the overall translation quality of phrase-based models than longer ones
-and therefore they have to be pruned with more caution.
+more crucial to the overall translation quality of phrase-based models than the longer ones
+and therefore the short ones have to be pruned with more caution.
 This phenomenon has been observed also by \citet[p. 7]{zens:systcomp} when examining the
 properties of output produced by the various pruning methods. In case of methods that
 performed well in their evaluations, they found out that the more aggressive the pruning,
@@ -268,8 +267,9 @@ The weights of all the components were tuned using Minimum Error Rate Training (
 implementation that is part of Moses \citep{bertoldi:mert}.\footurl{http://www.statmt.org/moses/?n=FactoredTraining.Tuning}
 As the development data for tuning, the \emph{news-test2011} dataset were used.
 
-The BLEU score was evaluated using \texttt{evaluator} tool that is also part of Moses\footnote{The \texttt{evaluator}
-tool is implemented in file \texttt{<moses>/mert/evaluator.cpp}} with a bootstrap value of 1000.
+The BLEU score was evaluated using the \texttt{evaluator} tool that is also part of
+Moses\footnote{The \texttt{evaluator} tool is implemented in file \texttt{<moses>/mert/evaluator.cpp}}
+with a bootstrap value of 1000.
 As the testing data, the \emph{news-test2012} and \emph{news-test2013} datasets were used.
 
 \subsection{Fr-En setup}
@@ -286,23 +286,23 @@ the French-English setup were gathered from the following parallel corpora:
   \item News Commentary corpus
   \item $10^9$ French-English corpus
 \end{itemize}
-The size of our joint French-English training data is (after preprocessing described
-at the end of the section) 39,143,703 sentences with 1,173,485,756 French and 1,000,538,764
+The size of our joint French-English training data (after the preprocessing described
+at the end of the section) is 39,143,703 sentences with 1,173,485,756 French and 1,000,538,764
 English tokens.
 
-GIZA++ \citep{och:giza}, the recommended aligner for Moses,\footurl{http://www.statmt.org/moses/?n=FactoredTraining.RunGIZA}
+GIZA++ \citep{och:giza}, the recommended word-aligner for Moses,\footurl{http://www.statmt.org/moses/?n=FactoredTraining.RunGIZA}
 was used to establish the word alignments over the lowercased corpus.
-The lowercased forms of tokens were also the single factor for both sides of
+The lowercased form of tokens was also the single factor for both sides of
 the translation model.
-As a language model, only the target side of parallel corpora was used.
+To built the language model, only the target side of parallel corpora was used.
 As in the "Cs-En" setup, no lexicalized reordering model was built and reordering was
-determined only by built-in distortion model.
+determined only by the built-in distortion model.
 
-Weights tuning and evaluation of translation quality were done with the same methods
-(MERT implemented in Moses and \texttt{evaluator} tool) and the same datasets
-(\emph{news-test2011} for tuning, \emph{news-test2012} and \emph{news-test2013} for
-evaluation) as in case of "Cs-En" setup. We did not, however, truecase the data before
-evaluation in this setup, instead we used a lowercased version of test data.
+The weights tuning and the evaluation of translation quality were done with the same methods
+(the MERT implementation from Moses and the \texttt{evaluator} tool) and the same datasets
+(\emph{news-test2011} for the tuning, \emph{news-test2012} and \emph{news-test2013} for
+the evaluation) as in case of the "Cs-En" setup. We did not, however, truecased the
+output translations before evaluation, instead we lowercased the reference side of the test data.
 
 \subsubsection*{Preprocessing}
 
@@ -311,33 +311,33 @@ and translation model training in phrase-based SMT is no exception.
 
 We treated our "Fr-En" data with the following preprocessing steps:
 \begin{enumerate}
-  \item Cleaning of tokenization format:
+  \item White space cleaning:
   \begin{itemize}
     \item spaces at the beginning and end of the lines are removed
     \item all sequences of white space characters are replaced by a single space only
     \item all line endings are converted to Unix-style line endings
   \end{itemize}
-  \item Normalization of punctuation encoding
-  \item Tokenization
-  \item Cleaning of any superfluous white space from tokenization -- ensures that the output contains only spaces and line-feed characters
+  \item Normalization of punctuation to plain ASCII quotes
+  \item Tokenization -- splits the text into the atomic units of translation.
+  \item Cleaning of any superfluous white space from tokenization -- ensures that the output contains only spaces and line-feed characters.
   \item Special characters escaping (necessary in case of Moses):
   \begin{itemize}
+    \item ampersands ("\&") are replaced by "\&amp;"
     \item pipes ("\textbar") are replaced by "\&pipe;"
     \item less-than characters ("<") are replaced by "\&lt;"
     \item greater-than characters (">") are replaced by "\&gt;"
-    \item ampersands ("\&") are replaced by "\&amp;"
   \end{itemize}
 \end{enumerate}
 
-We used our own tools for cleaning of tokenization format, post-tokenization cleaning
+We used our own tools for white space cleaning, post-tokenization cleaning
 and escaping of special characters.
 For the normalization of punctuation encoding we used script provided by organizers of
 WMT~11 Translation Task,\footurl{http://www.statmt.org/wmt11/normalize-punctuation.perl}
-while for tokenization we used \emph{tokenizer} shipped with
+and for tokenization we used \emph{tokenizer} shipped with
 Moses.\footnote{Tokenization script may be found in \texttt{<moses>/scripts/tokenizer/tokenizer.perl}}
 
-The alignment tool we employed, GIZA++, further requires that overly long sentences are
-removed from parallel corpus.
+The word-alignment tool we employed, GIZA++, further requires that overly long sentences are
+removed from the parallel corpus.
 No hard-coded limit exists, but as a rule of thumb the limit of 80 words is
 recommended.\footnote{The 80 words limit is for example mentioned in "Corpus Preparation"
 section of Moses tutorial: \url{http://www.statmt.org/moses/?n=moses.baseline}}
@@ -360,7 +360,7 @@ approximately 8.4~M sentence pairs with 93.2~M Czech and 107.2~M English tokens.
 
 Since we are mainly interested in comparison of the runtime benchmarking figures,
 we did not attempt the quality benchmarking with this dataset.
-Also, we omit the significance filtering setup, as \emph{sigfilter} did not change
+Also, we omit the significance filtering scenario, as \emph{sigfilter} did not change
 since the version tested in 2011.
 
 \section{Runtime benchmarking}
@@ -371,9 +371,11 @@ virtual memory usage peak and disk usage peak both of \eppex{} and standard Mose
 pipeline.
 
 % Environment.
-For all experiments we used servers that are part of Sun Grid Engine cluster.
+For all experiments we used servers that are part of Grid Engine (GE) cluster.\footnote{Formerly
+known as Sun Grid Engine, Grid Engine is now continuation of open source development of SGE:
+\url{http://sourceforge.net/projects/gridscheduler/}}
 Although these machines were standard nodes in a cluster, we kept jobs of other
-users away by ordering SGE to reserve all memory of the machine for our job only.
+users away by ordering GE to reserve all memory of the machine for our job only.
 All the input and output files of benchmarked processes were read from and written
 to a locally mounted hard disk, therefore network load had no impact on
 benchmarking results.
@@ -384,9 +386,9 @@ they were running 64-bit version of Ubuntu 10.04 server edition.
 For each dataset we use a server or set of servers with hardware configuration
 that satisfies memory and disk demands incurred by the size of particular dataset:
 \begin{itemize}
-  \item "cu-bojar" configuration was run on a machine with two Quad-Core
-  AMD Opteron\texttrademark{} 2387 processors (each with 4~cores capable of working
-  with clock speed of 2.8~GHz; 8~threads in total),
+  \item "cu-bojar" configuration was run on a machine with 2 Quad-Core
+  AMD Opteron\texttrademark{} processors\footurl{http://products.amd.com/pages/OpteronCPUDetail.aspx?id=536}
+  (each with 4~cores with clock speed of 2.8~GHz; 8~threads in total),
   32~GB of RAM and approximately 429~GB of hard disk space. % andromeda7
   This is the same machine that was employed in 2011 experiments.
   \item "cs-en" configuration was run on several machines with identical hardware
@@ -427,9 +429,9 @@ the total wall clock time, aggregated CPU time consumed by all subprocesses
 and their joint virtual memory peak.
 
 % On disk usage peak measurement.
-The disk usage have been measured by a separate bash script that invoked Unix
-\texttt{du} command with summarizing option on the working directory with
-a period of 1 second and updated relevant log file with the full output of
+The disk usage has been measured by a separate bash script that invoked Unix
+\texttt{du} command with the summarizing option on the working directory with
+a~period of 1 second and updated relevant log file with the full output of
 \texttt{du} whenever new peak was reached.
 In case of \eppex{} experiments the peak disk usage is always equal to the
 size of phrase table file as there are no temporary files produced and we
