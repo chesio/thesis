@@ -220,7 +220,7 @@ sigfilter 30      & 2.5~h & 3.4~h & 2.7~GB & indexing \\
 \end{tabular}
 \caption{\label{cs-en-wmt13-sigfilter-runtime-benchmarks}
 Wallclock times and CPU usage values, virtual memory peak and the step, in which
-it occurred of significance filtering for various settings of \emph{sigfilter} in "Cs-En" setup.}
+it occurred, of significance filtering for various settings of \emph{sigfilter} in "Cs-En" setup.}
 \end{table}
 
 \subsection{Eppex and memory demands}
@@ -275,15 +275,15 @@ distinct phrase tables created in our experiments.
 experiment & phrase pairs & .gz file size & wmt-12 & wmt-13 \\
 \hline
 \hline
-baseline          & 1782.0~M & 42.5~GB & 0.2860 & 0.2958 \\ % TODO.
-sigfilter 30      &    ?.?~M &  ?.?~GB & ? & ? \\ % TODO.
-sigfilter a-e     &    ?.?~M &  ?.?~GB & ? & ? \\ % TODO.
-eppex def.        &  463.4~M & 10.6~GB & 0.2867 & 0.2950 \\ % TODO.
-eppex zero-n      &  283.2~M &  7.0~GB & 0.2841 & 0.2950 \\ % TODO.
-sigfilter a+e     &    ?.?~M &  ?.?~GB & ? & ? \\ % TODO.
-sigfilter 30 a+e  &    ?.?~M &  ?.?~GB & ? & ? \\ % TODO.
-eppex 1:n+1       &  127.9~M &  3.2~GB & 0.2859 & 0.2953 \\ % TODO.
-eppex 2:n+2       &   77.0~M &  2.0~GB & 0.2839 & 0.2943 \\ % TODO.
+baseline          & 1782.0~M & 42.5~GB & 0.2860 & 0.2958 \\
+sigfilter 30      & 1470.8~M & 35.9~GB & 0.2849 & 0.2964 \\
+sigfilter a-e     &  811.4~M & 21.0~GB & 0.2845 & 0.2953 \\
+eppex def.        &  463.4~M & 10.6~GB & \textbf{0.2867} & 0.2950 \\
+sigfilter a+e     &  329.5~M &  8.4~GB & 0.2866 & \textbf{0.2977} \\
+eppex zero-n      &  283.2~M &  7.0~GB & 0.2841 & 0.2950 \\
+sigfilter 30 a+e  &  270.0~M &  7.0~GB & 0.2857 & 0.2976 \\
+eppex 1:n+1       &  127.9~M &  3.2~GB & 0.2859 & 0.2953 \\
+eppex 2:n+2       &   77.0~M &  2.0~GB & 0.2839 & 0.2943 \\
 \hline
 \end{tabular}
 \caption{\label{fr-en-pt-size-and-bleu}
@@ -351,6 +351,29 @@ Virtual memory and disk usage peaks of the phrase table construction for various
 
 ...
 
+Finally, \Tref{fr-en-sigfilter-runtime-benchmarks} presents the runtime benchmarking
+values for different runs of significance filtering.
+% TODO: Any comment?
+
+% Fr-En: sigfilter runtime requirements
+\begin{table}[ht]
+\centering
+\begin{tabular}{ | c | r r | r l | }
+\hline
+ & \multicolumn{2}{|c|}{time} & \multicolumn{2}{|c|}{VM peak} \\
+experiment & wall & CPU & size & step \\
+\hline
+\hline
+sigfilter a-e     & 82.7~h & 87.9~h & 28.2~GB & filtering \\
+sigfilter a+e     & 83.9~h & 87.2~h & 28.5~GB & filtering \\
+sigfilter 30 a+e  & 46.9~h & 50.3~h & 28.4~GB & filtering \\
+sigfilter 30      & 10.3~h & 13.8~h & 11.5~GB & indexing \\
+\hline
+\end{tabular}
+\caption{\label{fr-en-sigfilter-runtime-benchmarks}
+Wallclock times and CPU usage values, virtual memory peak value and the step,
+in which it occurred, of significance filtering for various settings of \emph{sigfilter} in "Fr-En" setup.}
+\end{table}
 
 \section{Comparison to 2011 version}
 \label{sec:cu-bojar-results}
