@@ -69,7 +69,9 @@ benchmarking statistics account for runs with this additional input processing l
 \section{Command line options}
 
 As already mentioned several times, \eppex{} is a command line tool.
-The command line syntax for \emph{eppex} is following:
+The command line syntax for \emph{eppex} is following:\footnote{The order
+of input files specification (first the target side, second the source side, third the alignment)
+is the same as of \emph{extract} tool.}
 
 \begin{verbatim}
   ./eppex tgt src align [dir-lex-table [inv-lex-table]] <options>
@@ -98,7 +100,7 @@ Options related to phrase pairs counting:
  \item \verb|--max-phrase-len <num>| - maximum length of extracted phrases.
   Default value is 7. If one or more phrase length values or intervals
   are set via \verb|--limits| or \verb|--thresholds|, the maximum phrase
-  length is set accordingly.
+  length is set accordingly and any value provided via this option is ignored.
 \end{itemize}
 
 Options related to phrase pairs extraction:
@@ -108,10 +110,14 @@ Options related to phrase pairs extraction:
   Turns on extraction mode.
  \item \verb|--thresholds <string>| - a comma separated list of \emph{error} and \emph{support}
   thresholds for Lossy Counting. For each phrase pair length or range of lengths
-  a separate lossy counter can be specified, see examples below.
+  a separate lossy counter can be specified as a triple consisting of length/range
+  specification, \emph{error} threshold and \emph{support} threshold joined with
+  a colon sign, for example: \texttt{1:1e-10:1e-9} or \texttt{2-3:2e-7:3e-8}.
  \item \verb|--limits <string>| - a comma separated list of \emph{negative} and \emph{positive}
   limits for Lossy Counting. For each phrase pair length or range of lengths
-  a separate lossy counter can be specified, see examples below
+  a separate lossy counter can be specified as a triple consisting of length or range
+  specification, \emph{negative} limit and \emph{positive} limit joined with
+  a colon sign, for example: \texttt{1-3:0:1} or \texttt{4:1:3}.
  \item \verb|--lambda <float>| - a value for parameter $\lambda \in (0.0, 1.0)$
   used in evaluation of the \emph{error} threshold $\epsilon$ from
   the positive limit $p$ and the negative limit $n$ as $\epsilon = (p - n - \lambda) / N$.

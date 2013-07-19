@@ -89,15 +89,19 @@ language model here), we get the mathematical definition of
   e_{best} = argmax_e \prod_{i=1}^I \phi(\bar{f}_i|\bar{e}_i) d(start_i - end_{i-1} - 1) \prod_{i=1}^{|e|} p_{LM}(e_i|e_{i-n+1}...e_{i-1})
 \end{equation}
 
+The process of searching for the best translation $e_{best}$ according to the definition of
+the translation model above is formally called \emph{decoding} and is a hard problem,
+since there is an exponential number of choices given a particular input sentence.
+The phrase-based decoders therefore usually employ some strategies to limit the search space
+in order to speed up the decoding process.
+
 Putting mathematical definitions aside, the role of all three components in search of
-the best translation can be explained in more intuitive way:
+the best translation (decoding) can be explained in more intuitive way:
 \begin{itemize}
   \item The phrase translation model provides likely translations for each phrase.
   \item The reordering model ensures the phrases are reordered appropriately.
   \item The language model ensures the output is fluent English.
 \end{itemize}
-
-% OBO: A jeste je tam ten search, ktery dela volby.
 
 \subsection{Log-linear model}
 
