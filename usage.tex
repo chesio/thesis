@@ -9,8 +9,8 @@
 Depending on your goal, you may use \eppex{} to:
 \begin{itemize}
  \item collect aggregated counts of phrase pairs of same lengths
- \item generate direct and inverse extract files -- act as alternative to \emph{extract} tool
- \item construct phrase table -- act as alternative to both \emph{extract} and \emph{score} tools
+ \item generate direct and inverse extract files -- acts as an alternative to \emph{extract} tool
+ \item construct phrase table -- acts as an alternative to both \emph{extract} and \emph{score} tools
 \end{itemize}
 
 For any of the three options above, \eppex{} requires three input files to proceed:
@@ -24,7 +24,7 @@ format as \emph{extract} and \emph{score} components.
 
 \section{Lossy Counting parametrization}
 
-For each phrase pair length (or their inclusive interval) a separate Lossy Counter
+For each phrase pair length (or an inclusive interval) a separate Lossy Counter
 instance can be created that does its "lossy counting" separately from other instances
 and is fed only with phrase pairs of length following into the assigned interval.
 This allows to apply different limits (or thresholds) to phrase pairs of different length.
@@ -34,12 +34,12 @@ thresholds only for longer phrase pairs.
 
 A \emph{phrase pair length} is defined as the length of its longest compound:
 thus, a phrase pair $(e,f)$ with $e$ being "\emph{europe}" and $f$ being
-"\emph{životě v evropě}" have the length of three.
+"\emph{životě v evropě}" has the length of three.
 This definition is motivated by the application of maximum phrase length limit
 in core \emph{extract} tool: any phrase pair having either compound of length
 exceeding the limit is not extracted (ie. the phrase length maximum is decisive).
 
-\Eppex{} provide two ways how to set \emph{support} and \emph{error} parameters
+\Eppex{} provides two ways to set \emph{support} and \emph{error} parameters
 for Lossy Counting instances:
 \begin{enumerate}
   \item You may specify the \emph{support} and \emph{error thresholds} directly, but doing so
@@ -47,8 +47,8 @@ for Lossy Counting instances:
     instances of Lossy Counting algorithm, otherwise you can prune too much or do not prune at all.
   \item You may set the negative and positive limits that will directly relate to \emph{true}
     frequency counts of the phrase pairs extracted from your data. The \emph{negative limit}
-    $n$ is such a value that no item with true frequency equal or less than $n$ will be output.
-    The \emph{positive limit} $p$ is such a value that all items with true frequency equal
+    $n$ is such a value that no item whose true frequency is equal or less than $n$ will be output.
+    The \emph{positive limit} $p$ is such a value that all items whose true frequency is equal
     or greater than $p$ will be output. Obviously, this forces $n < p$ (the only exception
     is the possibility to set $n = p = 0$).
 \end{enumerate}
@@ -59,9 +59,11 @@ The only related draw-back is the necessity of reading the input files twice.
 An additional loop over input files is done to grasp the counts of items
 that will be fed to each Lossy Counter instance in order to calculate
 the proper values of their \emph{support} and \emph{error} parameters,
-so the properties of output will match the specified limits.
+so the properties of output will match the specified limits.\footnote{\Sref{sec:lossy-counting-definition}
+provides more details on the relation between the positive and negative limits and
+the support and error thresholds.}
 However, this counting loop runs very fast and, as a matter of fact, all the \eppex{}
-experiments reported in this work have been run in such a way and all runtime
+experiments reported in this work have been run in such a way and all the runtime
 benchmarking statistics account for runs with this additional input processing loop.
 
 \section{Command line options}
@@ -161,7 +163,7 @@ Finally, three program options exist that provides some information about the pr
 
 \section{Missing features}
 
-In the moment eppex cannot extract orientation info data required for training
+In the moment \eppex{} cannot extract orientation info data required for training
 of reordering models.
 
 Also some of the features of the core \emph{phrase-extract} suite from Moses
@@ -182,8 +184,8 @@ Let us finish this chapter with some examples that demonstrate some typical
 patterns of \eppex{} usage. Because input files specification is always required,
 we will only mark it by \verb|<input>| in command line snippets below.
 
-Grab counts of phrase pairs of lengths up to 8 that will be extracted from
-corpus and store it in file \texttt{counts.txt}:
+Grab counts of phrase pairs of lengths up to 8 that would be extracted from
+input corpus and store them in the file \texttt{counts.txt}:
 \begin{verbatim}
   eppex <input> --max-phrase-len 8 --counts-file counts.txt
 \end{verbatim}
