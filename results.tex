@@ -90,26 +90,26 @@ phrase table extraction with various systems and their configurations.
 % Cs-En: baseline and eppex wall clock and CPU time values
 \begin{table}[ht]
 \centering
-\begin{tabular}{ | c | c c | c c | c c | }
+\begin{tabular}{ | c | r r | r r | r r | }
 \hline
- & \multicolumn{2}{|c|}{total time} & \multicolumn{2}{|c|}{phrase extraction} & \multicolumn{2}{|c|}{phrase scoring} \\
+ & \multicolumn{2}{|c|}{total time} & \multicolumn{2}{|c|}{extraction} & \multicolumn{2}{|c|}{scoring} \\
 experiment & wall & CPU & wall & CPU & wall & CPU \\
 \hline
 \hline
-def-base      & 15:36:27 & 15:27:09 & 07:07:37 & 06:27:59 & 08:28:49 & 08:59:09 \\
-multi-base    & 10:25:59 & 19:25:36 & 04:54:29 & 06:40:45 & 05:31:29 & 12:44:51 \\
-comp-base     & 10:33:45 & 25:25:06 & 04:08:42 & 11:19:53 & 06:25:02 & 14:05:12 \\
-opt-base      & 08:16:45 & 19:54:35 & 02:38:39 & 06:57:33 & 05:38:05 & 12:57:02 \\
-opt-c8-base   & 07:01:39 & 20:44:59 & 02:20:57 & 07:10:41 & 04:40:42 & 13:34:17 \\
-eppex zero    & 02:56:57 & 02:56:35 &       -- &       -- &       -- &       -- \\
+def-base      & 15.6 & 15.5 & 7.1 & 6.5 & 8.5 & 9.0 \\
+multi-base    & 10.4 & 19.4 & 4.9 & 6.7 & 5.5 & 12.7 \\
+comp-base     & 10.6 & 25.4 & 4.1 & 11.3 & 6.4 & 14.1 \\
+opt-base      & 8.3 & 19.9 & 2.6 & 7.0 & 5.6 & 13.0 \\
+opt-c8-base   & 7.0 & 20.7 & 2.3 & 7.2 & 4.7 & 13.6 \\
+eppex zero    & 2.9 & 2.9 & -- & -- & -- & -- \\
 \hline
-eppex def.    & 01:35:25 & 01:35:14 &       -- &       -- &       -- &       -- \\
-eppex zero-n  & 01:31:28 & 01:31:17 &       -- &       -- &       -- &       -- \\
-eppex 1:n+1   & 01:13:53 & 01:13:43 &       -- &       -- &       -- &       -- \\
+eppex def.    & 1.6 & 1.6 & -- & -- & -- & -- \\
+eppex zero-n  & 1.5 & 1.5 & -- & -- & -- & -- \\
+eppex 1:n+1   & 1.2 & 1.2 & -- & -- & -- & -- \\
 \hline
 \end{tabular}
 \caption{\label{cs-en-wmt13-time-benchmarks}
-Wallclock times and CPU usage values (in hh:mm:ss format) of the phrase table
+Wallclock times and CPU usage values (in hours) of the phrase table
 construction for various experiments of "Cs-En" setup.}
 \end{table}
 
@@ -126,9 +126,9 @@ of execution time, although not as significant (by 15\%).
 
 An important observation is that adding only the option to make \texttt{sort} program gzip
 its temporary data, did not help to decrease the total execution time.
-More precisely, it did help in phrase extraction step ($-46~mins$), but did the very opposite
-in scoring step ($+54~mins$), so the overall impact on the total wall clock time was eventually
-a bit negative ($+8~mins$).
+More precisely, it did help in phrase extraction step (ca. $-0.8~h$), but did the very opposite
+in scoring step (ca. $+0.9~h$), so the overall impact on the total wall clock time was eventually
+a bit negative (ca. $+0.2~h$).
 A reasonable explanation for such, perhaps unexpected, behavior stems from the fact that in phrase
 extraction step both phrase table halves are sorted simultaneously, whereas in scoring step
 only indirect half is sorted:
@@ -145,8 +145,8 @@ more.\footnote{Given that there are two and one sorting processes, one could exp
 contain every phrase pair occurrence, whereas after scoring they contain only unique phrase pairs,
 so the size of data to sort is rather close to 3:1 than 2:1 ratio.}
 The similar conclusions might be made also by examination of partial wall clock times of \emph{multi-base}
-and \emph{opt-base} experiments: while the phrase extraction time fell down from 4h~54mins to 2h~39mins
-(i.e. almost to $1/2$), the scoring time jumped up a bit from 5h~31mins to 5h~38mins.
+and \emph{opt-base} experiments: while the phrase extraction time fell down from 4.9~hours to 2.6~hours
+(i.e. almost to $1/2$), the scoring time jumped up a bit from 5.5~hours to 5.6~hours.
 Thus, even the significantly increased sorting buffer managed only to neutralize the negative impact of
 temporary data compression on wall clock time of scoring step, but even more pronounced the positive
 impact of the same settings on phrase extraction step.
@@ -162,10 +162,10 @@ and \eppex{} experiments.
 % Cs-En: virtual memory and disk usage peaks
 \begin{table}[ht]
 \centering
-\begin{tabular}{ | c | r l | c | }
+\begin{tabular}{ | c | r l | r | }
 \hline
  & \multicolumn{2}{|c|}{VM peak} & \\
-experiment & size & step & disk usage peak \\
+experiment & size & step & du peak \\
 \hline
 \hline
 def-base       &  2.0~GB &    scoring & 206.7~GB \\
@@ -181,7 +181,7 @@ eppex 1:n+1    &  9.6~GB &      eppex &   0.7~GB \\
 \hline
 \end{tabular}
 \caption{\label{cs-en-wmt13-vm-and-disk-usage-peaks}
-Virtual memory peaks of the phrase table construction for various experiments of "Cs-En" setup.}
+Virtual memory and disk usage peaks of the phrase table construction for various experiments of "Cs-En" setup.}
 \end{table}
 
 \Eppex{} memory demands are largely dependent on the amount of pruning requested: with \emph{zero}
@@ -206,20 +206,20 @@ values for different runs of significance filtering.
 % Cs-En: sigfilter runtime requirements
 \begin{table}[ht]
 \centering
-\begin{tabular}{ | c | c c | c c | }
+\begin{tabular}{ | c | r r | r l | }
 \hline
  & \multicolumn{2}{|c|}{time} & \multicolumn{2}{|c|}{VM peak} \\
 experiment & wall & CPU & size & step \\
 \hline
 \hline
-sigfilter a-e     & 10:09:39 & 11:18:56 & 6.7~GB & filtering \\
-sigfilter a+e     & 09:52:37 & 10:35:03 & 6.8~GB & filtering \\
-sigfilter 30 a+e  & 08:04:25 & 08:44:39 & 6.7~GB & filtering \\
-sigfilter 30      & 02:32:37 & 03:22:35 & 2.7~GB & indexing target \\
+sigfilter a-e     & 10.2~h & 11.3~h & 6.7~GB & filtering \\
+sigfilter a+e     & 9.9~h & 10.6~h & 6.8~GB & filtering \\
+sigfilter 30 a+e  & 8.1~h & 8.7~h & 6.7~GB & filtering \\
+sigfilter 30      & 2.5~h & 3.4~h & 2.7~GB & indexing \\
 \hline
 \end{tabular}
 \caption{\label{cs-en-wmt13-sigfilter-runtime-benchmarks}
-Wallclock times and CPU usage values (in hh:mm:ss format), virtual memory peak and the step, in which
+Wallclock times and CPU usage values, virtual memory peak and the step, in which
 it occurred of significance filtering for various settings of \emph{sigfilter} in "Cs-En" setup.}
 \end{table}
 
@@ -300,24 +300,24 @@ phrase table extraction with various systems and their configurations.
 % Fr-En: baseline and eppex wall clock and CPU time values
 \begin{table}[ht]
 \centering
-\begin{tabular}{ | c | c c | c c | c c | }
+\begin{tabular}{ | c | r r | r r | r r | }
 \hline
- & \multicolumn{2}{|c|}{total time} & \multicolumn{2}{|c|}{phrase extraction} & \multicolumn{2}{|c|}{phrase scoring} \\
+ & \multicolumn{2}{|c|}{total time} & \multicolumn{2}{|c|}{extraction} & \multicolumn{2}{|c|}{scoring} \\
 experiment & wall & CPU & wall & CPU & wall & CPU \\
 \hline
 \hline
-opt-base      & 56:45:41 & 146:06:57 & 14:59:56 & 39:12:55 & 41:45:45 & 106:54:01 \\
-opt-c8-base   & 45:05:05 & 149:48:59 & 12:43:22 & 39:41:57 & 32:21:42 & 110:07:02 \\
-eppex zero    & 25:28:49 &  25:24:43 &       -- &       -- &       -- &        -- \\
+opt-base      & 56.8 & 146.1 & 15.0 & 39.2 & 41.8 & 106.9 \\
+opt-c8-base   & 45.1 & 149.8 & 12.7 & 39.7 & 32.4 & 110.1 \\
+eppex zero    & 25.5 &  25.4 & -- & -- & -- & -- \\
 \hline
-eppex def.    & 12:14:54 &  12:13:28 &       -- &       -- &       -- &        -- \\
-eppex zero-n  & 10:40:26 &  10:39:12 &       -- &       -- &       -- &        -- \\
-eppex 1:n+1   & 09:29:50 &  09:28:40 &       -- &       -- &       -- &        -- \\
-eppex 2:n+2   & 09:18:18 &  09:13:48 &       -- &       -- &       -- &        -- \\
+eppex def.    & 12.2 & 12.2 & -- & -- & -- & -- \\
+eppex zero-n  & 10.7 & 10.7 & -- & -- & -- & -- \\
+eppex 1:n+1   & 9.5 & 9.5 & -- & -- & -- & -- \\
+eppex 2:n+2   & 9.3 & 9.2 & -- & -- & -- & -- \\
 \hline
 \end{tabular}
 \caption{\label{fr-en-time-benchmarks}
-Wallclock times and CPU usage values (in hh:mm:ss format) of the phrase table
+Wallclock times and CPU usage values (in hours) of the phrase table
 construction for various experiments of "Fr-En" setup.}
 \end{table}
 
@@ -329,10 +329,10 @@ and \eppex{} experiments.
 % Fr-En: virtual memory and disk usage peaks
 \begin{table}[ht]
 \centering
-\begin{tabular}{ | c | r l | c | }
+\begin{tabular}{ | c | r l | r | }
 \hline
  & \multicolumn{2}{|c|}{VM peak} & \\
-experiment & size & step & disk usage peak \\
+experiment & size & step & du peak \\
 \hline
 \hline
 opt-base       & 200.1~GB & extraction & 160.5~GB \\
@@ -346,7 +346,7 @@ eppex 2:n+2    &  45.6~GB &      eppex &   2.0~GB \\
 \hline
 \end{tabular}
 \caption{\label{fr-en-vm-and-disk-usage-peaks}
-Virtual memory peaks of the phrase table construction for various experiments of "Fr-En" setup.}
+Virtual memory and disk usage peaks of the phrase table construction for various experiments of "Fr-En" setup.}
 \end{table}
 
 ...
@@ -470,37 +470,37 @@ more memory for sorting) lowered time of phrase extraction to 40\% and of phrase
 to almost 50\% of respective default measures.
 
 The comparison between 2011 and current version of \eppex{} also displays a significant
-speed up: with harsh pruning the phrase table construction is done in 30~minutes (took
+speed up: with harsh pruning the phrase table construction is done in half an hour (took
 almost two hours in 2011) and without any pruning the full phrase table was built in
-less than 90~minutes, thus \eppex{} proves to be a viable alternative to
+less than hour and half, thus \eppex{} proves to be a viable alternative to
 \emph{phrase-extract} also in situations, when pruning is not an option (being twice as
 fast than the optimized baseline).
 
 \begin{table}[ht]
 \centering
-\begin{tabular}{ | c | c c | c c | c c | }
+\begin{tabular}{ | c | r r | r r | r r | }
 \hline
- & \multicolumn{2}{|c|}{total time} & \multicolumn{2}{|c|}{phrase extraction} & \multicolumn{2}{|c|}{phrase scoring} \\
+ & \multicolumn{2}{|c|}{total time} & \multicolumn{2}{|c|}{extraction} & \multicolumn{2}{|c|}{scoring} \\
 experiment & wall & CPU & wall & CPU & wall & CPU \\
 \hline
 \hline
-baseline*     & 08:49:44 & 07:03:48 & 02:05:56 & 01:00:09 & 06:43:48 & 06:03:39 \\
-def-base      & 05:36:33 & 04:45:12 & 02:29:04 & 01:31:17 & 03:07:29 & 03:13:55 \\
-multi-base    & 04:15:51 & 05:39:02 & 02:11:56 & 01:32:03 & 02:03:54 & 04:06:59 \\
-comp-base     & 03:20:29 & 07:03:40 & 01:03:20 & 02:30:16 & 02:17:09 & 04:33:23 \\
-opt-base      & 03:14:51 & 05:57:08 & 01:08:29 & 01:39:06 & 02:06:21 & 04:18:01 \\
-opt-c7-base   & 02:47:19 & 05:57:51 & 01:03:50 & 01:38:30 & 01:43:28 & 04:19:21 \\
-eppex zero    & 01:23:28 & 01:23:26 &       -- &       -- &       -- &       -- \\
+baseline*     & 8.8 & 7.1 & 2.1 & 1.0 & 6.7 & 6.1 \\
+def-base      & 5.6 & 4.8 & 2.5 & 1.5 & 3.1 & 3.2 \\
+multi-base    & 4.3 & 5.7 & 2.2 & 1.5 & 2.1 & 4.1 \\
+comp-base     & 3.3 & 7.1 & 1.1 & 2.5 & 2.3 & 4.6 \\
+opt-base      & 3.2 & 6.0 & 1.1 & 1.7 & 2.1 & 4.3 \\
+opt-c7-base   & 2.8 & 6.0 & 1.1 & 1.6 & 1.7 & 4.3 \\
+eppex zero    & 1.4 & 1.4 & -- & -- & -- & -- \\
 \hline
-eppex 1-in*   & 04:03:04 & 03:42:29 & 01:48:14 & 01:28:53 & 02:14:50 & 02:13:36 \\
-eppex 1-in    & 00:45:14 & 00:45:13 &       -- &       -- &       -- &       -- \\
+eppex 1-in*   & 4.1 & 3.7 & 1.8 & 1.5 & 2.2 & 2.2 \\
+eppex 1-in    & 0.8 & 0.8 & -- & -- & -- & -- \\
 \hline
-eppex 1-out*  & 01:50:03 & 01:36:19 & 01:35:38 & 01:21:57 & 00:14:25 & 00:14:22 \\
-eppex 1-out   & 00:30:29 & 00:30:28 &       -- &       -- &       -- &       -- \\
+eppex 1-out*  & 1.8 & 1.6 & 1.6 & 1.4 & 0.2 & 0.2 \\
+eppex 1-out   & 0.5 & 0.5 & -- & -- & -- & -- \\
 \hline
 \end{tabular}
 \caption{\label{cu-bojar-time-benchmarks}
-Wallclock times and CPU usage values (in hh:mm:ss format) of the phrase table
+Wallclock times and CPU usage values (in hours) of the phrase table
 construction for various experiments of "cu-bojar" setup.
 Asterisk denotes the particular measures from 2011 experiments.}
 \end{table}
@@ -508,14 +508,14 @@ Asterisk denotes the particular measures from 2011 experiments.}
 \Tref{cu-bojar-vm-and-du-peaks} presents memory and disk usage peaks of all the experiments
 (except for disk usage peaks that are not available for 2011 experiments).
 
-Memory demands of the baseline remain, the 0.1~GB difference between 2011 and now
+Memory demands of the baseline remain low, the 0.1~GB difference between 2011 and now
 stems from the fact that our benchmarking script includes the main process into the set of
 measured processes.
 An optimized baseline is the most memory demanding, but this is only because we assigned 12~GB
 of RAM to the sorting processes and both phrase table halves are sorted simultaneously after
 phrase extraction.
 
-Memory demands of current version of \eppex{} are significantly lower than of the 2011 version:
+Memory demands of the current version of \eppex{} are significantly lower than of the 2011 version:
 in 2011, the harsh pruning setup required as much memory as the current version run without
 any pruning at all.
 
@@ -527,9 +527,9 @@ attempt to give an explanation of this peculiar behavior.
 
 \begin{table}[ht]
 \centering
-\begin{tabular}{ | c | c | c | }
+\begin{tabular}{ | c | r | r | }
 \hline
-experiment & VM peak & disk usage peak \\
+experiment & VM peak & du peak \\
 \hline
 \hline
 baseline*     &  1.1~GB &      -- \\
