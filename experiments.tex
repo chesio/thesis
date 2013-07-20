@@ -291,8 +291,10 @@ at the end of the section) is 39,143,703 sentences with 1,173,485,756 French and
 English tokens.
 
 GIZA++ \citep{och:giza}, the recommended word-aligner for Moses,\footurl{http://www.statmt.org/moses/?n=FactoredTraining.RunGIZA}
-was used to establish the word alignments over the lowercased corpus.
-The lowercased form of tokens was also the single factor for both sides of
+was used to establish the word alignments over lowercased form of each
+of the Fr-En parallel corpora, the particular alignments were then merged to
+obtain a single word-alignment for the whole training data.
+The lowercased form of the training data was also used as the only factor on both sides of
 the translation model.
 To built the language model, only the target side of parallel corpora was used.
 As in the "Cs-En" setup, no lexicalized reordering model was built and reordering was
