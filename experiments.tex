@@ -2,7 +2,7 @@
 \label{chap:experiments}
 
 \setlength{\epigraphwidth}{1.0\textwidth}
-\epigraph{Hang on. I'm trying to see how long it takes a 500-kilowatt oxygen iodine laser to heat up my Cup o' Noodles.}{--- Leslie Winkle, The Big Bang Theory TV series}
+\epigraph{Hang on. I'm trying to see how long it takes a 500-kilowatt oxygen iodine laser to heat up my Cup o' Noodles.}{--- Leslie Winkle, "The Big Bang Theory" TV series}
 
 We conducted a series of experimental phrase table extractions in order to
 assess \eppex{} memory demands, determine the ratio of speed up of the whole
@@ -77,7 +77,7 @@ Also, by exploring the impact of available optimization options we aim to establ
 as challenging baseline as possible given the computation resources of the machines
 at our disposal.
 
-% On number of cores...
+% On number of cores.
 In the non-default baselines, we favored to turn on parallel processing using \verb|--cores|
 option as this setting applies to both steps of phrase table construction, whereas
 \verb|--parallel| is applicable only to scoring step.
@@ -89,7 +89,7 @@ All the time, however, we intentionally left at least one core idle to make sure
 benchmarking script or any administrative process of software managing the computational
 cluster will not interfere with the benchmarking.
 
-% On sort options...
+% On sort options.
 Regarding the optimization parameters for \emph{sort}, we use \emph{gzip} as compressing
 program and set sort buffer size to either use the whole memory available on machine
 (with some reasonable reserve for the remaining processes) or use approximately the same
