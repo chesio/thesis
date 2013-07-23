@@ -91,9 +91,12 @@ language model here), we get the mathematical definition of
 
 The process of searching for the best translation $e_{best}$ according to the definition of
 the translation model above is formally called \emph{decoding} and is a hard problem,
-since there is an exponential number of choices given a particular input sentence.
-The phrase-based decoders therefore usually employ some strategies to limit the search space
-in order to speed up the decoding process.
+because there is an exponential number of choices given a particular input sentence.
+The software that implements decoding, simply called \emph{decoder}, therefore has to employ
+some strategies to limit the search space in order to speed up the decoding process.
+One of such strategies is, when a particular source phrase $\bar{f}_i$ is examined,
+to limit the search to only $K$ target phrases $\bar{e}_i$ that rank best
+with respect to the values of $\phi(\bar{f}_i|\bar{e}_i)$.
 
 Putting mathematical definitions aside, the role of all three components in search of
 the best translation (decoding) can be explained in more intuitive way:
@@ -366,6 +369,12 @@ This helps to lessen the total disk usage and also reduces disk I/O in exchange 
 increased CPU load, which in typical case is a worthy deal as parallel reads/writes
 to disk tends to slow down the overall process much more than additional
 CPU processing required to perform compression and decompression.
+
+Also, we should mention that Moses allows to train SMT model with multiple input
+factors, a so-called \emph{factored model}.\footurl{http://www.statmt.org/moses/?n=FactoredTraining.FactoredTraining}
+However, from the perspective of phrase table extraction and scoring algorithm,
+the factorized input data are handled transparently and no change to the algorithm
+is required.
 
 \section{Phrase table pruning}
 \label{sec:phrase-table-pruning}
