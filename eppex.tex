@@ -9,7 +9,7 @@
 \label{chap:eppex}
 
 \setlength{\epigraphwidth}{1.0\textwidth}
-\epigraph{Your program can always have a twice as much time to run, but not always have a~twice as much memory.}{--- Rudolf Kryl, Introduction to Programming course}
+\epigraph{Your program can always have a twice as much time to run, but not always have a~twice as much memory.}{--- RNDr. Rudolf Kryl, "Programming II" course}
 
 \Eppex{} is phrase pairs extraction and scoring tool capable of obtaining approximate
 frequency counts of extracted phrase pairs by using Lossy Counting algorithm
@@ -162,9 +162,9 @@ For example, when counting $n$-grams in a text corpus, instead of keeping $n$ st
 within each $n$-gram object, it might be more efficient to just keep $n$ references to
 unique, separately stored copies of such strings.\footnote{An observant reader may realize
 that the task of items counting itself implicitly requires objects unification. In fact,
-the example was deliberately picked to demonstrate that there are two aspects to object
-unification: it is inherent in case of some tasks, such as items counting, but also more
-generally applicable as a technique to achieve some memory savings.}
+the example was deliberately picked to demonstrate that there are two aspects to objects
+unification: it is a procedure inherent to some tasks, such as items counting, but also
+a technique to achieve some memory savings in general.}
 Obviously, this technique of \emph{objects unification} is not applicable universally and,
 in general, its efficiency depends on the following factors:
 \begin{enumerate}
@@ -217,6 +217,7 @@ additional processing overhead: especially insertion of new object is more time-
 as every new object have to be first checked for an existing copy.
 
 \subsection{Simple segregated storage}
+\label{sec:simple-segregated-storage}
 
 Almost every non-trivial computer program uses dynamic memory allocation.
 C++ provides two interfaces to ask for a new memory during program runtime:
@@ -238,7 +239,7 @@ This technique is generally called \emph{memory pooling}, but when details of
 memory pool allocation and deallocation matters, usually more specific names are used to
 distinguish between various implementations --  a \emph{simple segregated storage} from Boost
 library is an example of one such specific
-implementation.\footurl{http://www.boost.org/doc/libs/1_53_0/libs/pool/doc/html/boost_pool/pool/pooling.html}
+implementation.\footurl{http://www.boost.org/doc/libs/1_54_0/libs/pool/doc/html/boost_pool/pool/pooling.html}
 
 % Unions - in current version of Eppex they don't play significant role.
 
@@ -311,103 +312,186 @@ a few epochs leads to pruning that already hurts too much.\footnote{As results i
 demonstrate, with more data it is possible to prune more (with more epochs) with no significant
 loss of quality, but still the 0-255 range displays a tremendous reserve.}
 
-\subsection{Words, phrases, alignments}
+\subsection{The phrase pair}
 
 % Types of objects stored:
 % - words, phrases, alignments
 
-In contrast to counters, a phrase pair is quite a complex structure: it consist of source phrase,
-target phrase and also the information about alignment between particular words of both phrases.
+In contrast to counters, a phrase pair is quite a complex structure: it consist of the source phrase,
+the target phrase and also the information about alignment between particular words of both phrases.
 Both source and target phrases can be further decomposed into sequence of words, while alignment
 information can be further decomposed into sequence of pairs of alignment points.
+What makes the design of effective in-memory representation of such a structure even more complicated,
+is the necessity to account for the flexible lengths of these components: they not only differ between
+distinct phrase pairs, but even a particular phrase pair can have the source phrase of length $S$,
+the target phrase of length $T$ and the alignment information of length $L$, such that $S \neq T \neq L$.
+On the other hand, there is a natural limit to these lengths incurred by the maximum sentence length and,
+in practice, even a more restrictive limits are usually enforced to secure the feasibility of the
+extracted translation model.
 
-Let us try to sketch a possible implementation of phrase pair structure.
-Given the description above and being familiar with the containers from standard
-template library, we might come up with the following declaration:
-\begin{verbatim}
-struct PhrasePair {
-  std::vector<std::string> source; // Sequence of source words.
-  std::vector<std::string> target; // Sequence of target words.
-  std::vector<size_t> alignment; // Sequence of alignment points.
-};
-\end{verbatim}
-
-Obviously, this is very simple and very naive solution.
-The flexibility of STL containers comes at a cost: each container has to keep track of its
-current size, the memory it has reserved etc.
-In case of our \texttt{PhrasePair} structure, the overhead of 3 instances of STL \texttt{vector}
-container requires 72 bytes of memory.\footnote{With GCC on 64-bit machine, on 32-bit machine
-this value will be usually half as big.}
-Assuming a parallel corpus with hundred of millions of phrase pairs, only to account for
-this overhead, several gigabytes of memory would be required.
-
-The main point of the hypothetical example above was therefore to stress the importance of
-a careful analysis of the problem and a proper usage of optimization options and techniques
-of C++ that were described in previous section.
-
-So, let us now describe the actual implementation of phrase pairs handling within \eppex{}.
-As mentioned, the main building blocks of phrase pair are words, phrases and alignments.
+From the perspective of effective implementation, it is useful to consider the phrase pair structure as
+the composition of three different components: words, phrases and alignments.
+In the following text, we are first going to analyze the properties of each of these components and
+then conclude with the description of how to put them all together to represent the phrase pair.
 
 \subsubsection*{Words}
 
-In \Sref{sec:strings} we have already discussed the advantage of C-strings over STL strings
-when it comes to memory requirements of both.
+Words, or more generally translation model input factors, are technically a string types.
+In \Sref{sec:strings}, we discussed the advantage of C-strings over STL strings when it comes 
+to memory requirements of both.
 Later, in \Sref{sec:objects-unification} we presented a technique of lowering program memory
 footprint by keeping all unique copies of some type of objects in a single place and keeping
-only a lightweight references to such copies in data structures that have to access them.
+only lightweight references to such copies in data structures that have to access them.
 With both these options in mind, it is easy to come up with an idea to store all words as
-C-strings in a separate storage and keep only pointers to them in phrase pair structure.
+C-strings in a separate storage and keep only pointers to them in each phrase pair structure.
 The only problem with this idea is that a pointer type in 64-bits environments occupies
-8~bytes, what is simply excessive for representation of a single word (many of words could
+8~bytes, what is simply excessive for representation of a single word (a lot of words could
 be fit in 8 bytes directly).
 
 Instead, as already suggested in \Sref{sec:objects-unification}, it is more effective to
 use numeric index as a reference.
-Although such solution incurs an additional overhead, because pointers to C-strings have to
-be maintained in some index-like structure anyway, the nature of phrase pairs extraction
-process suggests that each word occurrence in the input corpus will be referenced from within
-several phrase pairs.\footnote{Recall that the phrase extraction algorithm may, in theory,
-extract as many as $N^2$ phrases from a sentence of $N$ words.}
-The data type of numeric index has to be capable of representing the whole domain of input
-factor forms, therefore we picked up \texttt{boost::uint32_t} data type from Boost.Integer
-library for this purpose with a reasonable assumption that no model will have factor with
-more than 4.2~billions of distinct forms.
+A data type of such numeric index has to be capable of representing the whole domain of
+input factor and arguably the natural language words themselves present the input factor with
+the largest possible variability.
+Despite that it is impossible to count the number of words in any language, a reasonable estimate
+for English mentions the order of hundreds of thousands.\footurl{http://en.wikipedia.org/wiki/Number_of_words_in_English}
+This said, the \texttt{boost::uint32_t} data type from Boost.Integer library, capable of representing
+more than 4.2~billions of distinct values, should be enough for any reasonable input factor.
+
+During the lossy counted extraction, the end-of-epoch pruning can remove all the phrase pairs that
+reference a certain word, and in such a case the unique copy of this word could be deleted from memory.
+However, we decided to not implement this functionality, because even with a million of words stored,
+their memory footprint will be still orders of magnitude below the memory footprint of hundreds of
+millions of the phrase pairs and, intuitively, it seems more viable to spare the processing time
+overhead necessary for detection and removal of such words than try to save a rather insignificant
+amount of the memory.
 
 \subsubsection*{Phrases}
 
 With the words represented as numeric indexes, it is straight-forward to represent phrase as
 a sequence of such indexes and this is in fact the solution we sticked to.
 
-An alternative implementation could also make use of objects unification, but the positive
-effect of this technique is doubtful on this level, because there are far more distinct
-phrase forms than there are word forms.
-Also, because a lot of phrase pairs will be pruned out during a typical \eppex{} run,
-with object unification it would be impossible to wipe out their data without some reference
-counting scheme, but such scheme would bring in an additional overhead, further diminishing
-the already uncertain efficiency of such solution.\footnote{Although the same reasoning applies
-for words, the scale of the problem is less prominent in this case as there are fewer word forms.
-Consequently, we do not attempt to detect and remove words that are no more referenced by
-a phrase pair (as a result of pruning).}
+An alternative implementation could employ objects unification, but the positive effect
+of this technique is doubtful on this level, because there are far more distinct phrase forms
+than there are word forms.
+As mentioned in \Sref{sec:significance-pruning}, a typical phrase table contains a lot of
+1-1-1 phrase pairs.\footnote{In our experiments, the amount of 1-1-1 phrase pairs account for
+27\% and 40\% of the phrase tables, see \Cref{chap:results}.}
+The source and target phrases in such phrase pairs are not only diminishing the efficiency of
+objects unification, as they occur only once, but the phrase pair as such is a very likely
+candidate for pruning.
+In contrast to the pruning of words data as discussed earlier, the pruning of phrase data can
+have a very significant impact on the program memory footprint: if these data were stored as
+a unique copies only, either some reference counting scheme (additional memory overhead) or
+a full scan over the copies and the references (additional processing overhead) would be required.
 
 \subsubsection*{Alignments}
 
 % Properties of phrase pair alignment.
 The phrase pair alignment marks words from source and target side that were aligned to
-each other in word alignment of sentence from which the phrase pair was extracted.
+each other in the word alignment of the sentence from which the phrase pair was extracted.
 The phrase extraction algorithm ensures that each extracted phrase pair is based on
-at least one alignment pair, ...
+at least one alignment pair.
+However, because there is no dependency between word-alignments of sentences,
+a particular phrase pair can be encountered with multiple distinct alignments and only
+the most frequent one should be included in the phrase table.\footnote{This is what Moses \emph{phrase-extract} toolkit does.}
+Consequently, during the extraction of phrase pairs, it is necessary not only to track all
+distinct alignments for each phrase pair, but also the number of times they occurred with
+that particular pair.
 
-% TODO: Don't forget to mention how the alignment length is stored.
+For the purpose of in-memory representation, we decided to think of phrase pair alignments
+as of words and to use the same strategy to store them (i.e. keep unique copies in a single,
+separate storage referenced by a numeric indexes).
+
+The main motivation for such decision was the finding that phrase pair alignments tend to
+have a Zipfian-like frequency distribution, as \Fref{fig:alignment-dist} presents.
+To obtain the plot, we extracted all (41.3~M) of phrase pairs of length up to~7 from the Czech-English
+part of Europarl v6 parallel corpus and for each alignment counted the number of phrase pairs
+it occurred in.
+The extracted data contained more than 506~K unique alignments and the most frequent alignment
+"\texttt{0-0 1-1}" belonged to more than 1.5~M phrase pairs.
+The number of unique phrase pairs suggests that we should use at least 3 bytes
+for the numeric index, because 2~bytes provide space for 65536 indexes only.
+Interestingly, the phrase pair with the most alignments had only 9 of them.
+
+\begin{figure}[ht]
+  \input{alignments-distribution}
+  \caption{
+    A plot of phrase pair alignment frequency in a set of 41.3~M phrase pairs with
+    506~K unique alignments extracted from the Czech-English part of Europarl v6 corpus.
+    On the x axis is the rank of alignment based on the frequency, on y axis is the frequency.
+  }
+  \label{fig:alignment-dist}
+\end{figure}
 
 \subsubsection*{Phrase pairs}
 
-Now it is time to put all the phrase pairs building blocks together: ...
+The use of references to phrase pair alignments has one more advantage: all the main
+components of a phrase pair can be stacked in a single array of 4-bytes-wide fields.
+The source and target phrases are just sequences of 4-byte-wide word indexes and
+we empirically estimated that 3~bytes are enough for a numeric reference in the case
+of alignments.
 
-\subsection{Persistence of objects}
+The alignment frequency counter can also be represented with a 4~bytes unsigned integer,
+because we demonstrated the same type to be capable of holding the estimated frequency
+counts of phrase pairs in the Lossy Counter implementation.
+In fact, a smaller data type will not suffice, as there might be a phrase pair with only
+a single alignment.
 
-... % TODO!
+Besides the components data, we also have to keep their dimensions,
+to be able to tell where each component data starts and where it ends.
+We already gave reasons why to safely expect these values to be rather small and,
+with a bit of static type casting, we can put this information in the first field
+of the array, so its layout will be as follows:
+\begin{itemize}
+  \item the first field contains a header-like structure with the count
+    of distinct alignments $A$ (2~bytes),
+    the source phrase length $S$ (1~byte) and the target phrase length $T$ (1~byte)
+  \item the next $S$ fields contain word indexes of the source phrase
+  \item the next $T$ fields contain word indexes of the target phrase
+  \item the last $2 \times A$ fields contains a sequence of $A$ pairs with
+    the alignment index and related frequency counter
+\end{itemize}
 
-% Indexed strings storage (and memory pools)
+We experimented with an implementation that used memory pools to allocate the memory
+for the array, but it had run terribly slow, presumably because of the frequent deallocation
+of the phrase pair data.\footnote{A phrase pair data are deallocated not only when a particular
+phrase pair is pruned, but also when a new alignment is encountered and to accommodate it,
+the data has to be moved to a bigger array.}
+Quite possible, we did not employ the best memory pool implementation for such a purpose,
+nevertheless, the current implementation of \eppex{} allocates the memory via the operator
+\texttt{new}.
+
+\subsection{Indexed storage}
+% Indexed storage with memory pool
+
+In the previous text, we just briefly mentioned that words and alignments are represented
+by a numeric indexes that references the unique copy of a particular word or alignment,
+without any further details. Let us now describe this \emph{indexed storage}.
+
+The implementation of \emph{indexed storage} internally employs three container types to perform its function.
+
+The actual string or sequence of alignment points is stored in a memory pool managed by
+\texttt{boost::pool} class from the Boost Pool Library.\footurl{http://www.boost.org/doc/libs/1_54_0/libs/pool/doc/html/index.html}
+
+The pointer to the stored data is kept in a \texttt{vector} container: the position of
+the pointer within the container defines the numeric index used as a (word/alignment) reference
+and the container itself serves as a lookup table.
+
+To be able to determine, whether a particular string or alignment is present in the storage,
+without performing a full-scan search over the lookup table, an additional index-like
+structure over the numeric indexes is maintained.
+This index is implemented with an \texttt{unordered_set} container and a hash function computed
+over the data of an object, therefore the existence of an already stored copy of an object can be
+determined in (amortized) constant time.\footnote{The default compilation
+option is to use std::set instead of std::unordered_set, because of the latter recency.}
+
+... % TODO: Indexed storage is write-only (no deletes)
+
+\subsection{Lossy Counter}
+
+% TODO: Finish.
+The Lossy Counter algorithm is implemented by a template class ...
 
 \subsection{Compressed I/O}
 
@@ -421,5 +505,3 @@ the case), compression may even speed up the whole I/O process.
 
 Our implementation simply reuses the respective library shipped with Moses source code,
 as it is cleanly designed and easy to include.
-
-% "Copying" phrases between extraction and scoring
