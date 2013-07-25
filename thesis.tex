@@ -31,6 +31,10 @@
 % http://tex.stackexchange.com/questions/31672/column-padding-in-tables
 \usepackage{booktabs}
 
+% To keep floats in their place.
+% http://en.wikibooks.org/wiki/LaTeX/Floats,_Figures_and_Captions#Keeping_floats_in_their_place
+\usepackage[section]{placeins}
+
 % Why use T1 for fontenc package:
 % http://tex.stackexchange.com/questions/664/
 \usepackage[T1]{fontenc}
@@ -311,10 +315,15 @@ Keywords:
 % Conclusions
 \include{conclusions}
 
+% Ensure proper page numbering of bibliography in both TOC and PDF file index
+% http://tex.stackexchange.com/a/23503
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Bibliography}
+
 %%% Seznam použité literatury
 \bibliographystyle{chicago}
 \bibliography{biblio}
-\addcontentsline{toc}{chapter}{Bibliography}
 
 %%% Tabulky v diplomové práci, existují-li.
 %\chapwithtoc{List of tables}
@@ -328,6 +337,7 @@ Keywords:
 \appendix
 \include{installation}
 \include{usage}
+\include{memory-demands}
 
 \openright
 \end{document}

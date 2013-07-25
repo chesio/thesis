@@ -369,12 +369,20 @@ we did not attempt the quality benchmarking with this dataset.
 Also, we omit the significance filtering scenario, as \emph{sigfilter} did not change
 since the version tested in 2011.
 
-\section{Runtime benchmarking}
+\section{Benchmarking}
+
+In computing, the act of running a computer program or a set of programs, to assess their relative
+performance, is called \emph{benchmarking}.
+Because the ultimate goal of this work was to implement a software tool that is an alternative
+to an existing programs, the core part of the evaluation is also the benchmarking of both the
+\eppex{} and the existing tools.
+
+\subsection{Runtime}
+\label{sec:runtime-benchmarking}
 
 % What has been benchmarked?
 We benchmarked phrase table construction by measuring CPU time, wall clock time,
-virtual memory usage peak and disk usage peak both of \eppex{} and standard Moses
-pipeline.
+virtual memory usage peak and disk usage peak.
 
 % Environment.
 For all experiments we used servers that are part of Grid Engine (GE) cluster.\footnote{Formerly
@@ -442,3 +450,23 @@ a~period of 1 second and updated relevant log file with the full output of
 In case of \eppex{} experiments the peak disk usage is always equal to the
 size of phrase table file as there are no temporary files produced and we
 ignored the disk usage incurred by input files.
+
+\subsection{Memory demands}
+\label{sec:memory-benchmarking}
+
+We performed an additional series of experimental phrase table extractions with
+the Cs-En and Fr-En datasets to get an insight on the impact of training data size and
+values of pruning limits on memory demands of \eppex{} and the amount of phrase pairs
+extracted.
+
+For both datasets we created a list of batch sizes and with each batch of size $K$ we did the following:
+\begin{enumerate}
+  \item From the first $K$ sentences of the whole dataset and their word alignments, we
+    created a temporary training dataset.
+  \item Using Moses \texttt{train-model.perl} script, we constructed lexical scores tables
+    from the temporary training data.\footurl{http://www.statmt.org/moses/?n=FactoredTraining.GetLexicalTranslationTable}
+  \item Finally, we used the temporary training data and lexical scores tables to perform several epochal
+    extractions with some of the configurations mentioned in
+    \Sref{sec:cs-en-results} (for Cs-En batches) and \Sref{sec:fr-en-results} (for Fr-En batches).
+    In each extraction, we measured the virtual memory peak and recorded phrase table size.
+\end{enumerate}
