@@ -258,8 +258,10 @@ wallclock time, CPU usage value and virtual memory peak with the step, in which 
 \section{Fr-En dataset}
 \label{sec:fr-en-results}
 
-\Tref{fr-en-80-scenarios} presents the list of all the experimental phrase table extraction
+\Tref{fr-en-80-scenarios} presents the list of the basic experimental phrase table extraction
 performed on the Fr-En dataset.
+On top of some of these basic experiments, we run discounting variants with either
+\emph{Good-Turing} or \emph{Kneser-Ney} discounting, the full list is shown in \Tref{fr-en-80-smoothed-scenarios}.
 
 % Fr-En: description and parameters of experiments
 \begin{table}[ht]
@@ -272,14 +274,15 @@ opt-base      & Standard Moses pipeline with \verb|--sort-buffer 100G|, \verb|--
 opt-c8-base   & Standard Moses pipeline with \verb|--sort-buffer 100G|, \verb|--sort-compress gzip| and \verb|--cores 8| \\
 eppex zero    & \eppex{} set to no pruning and \verb|--GZOutput| option \\
 eppex def.    & \eppex{} with \verb|--limits| set to \verb|1-3:0:1,4-5:1:4,6-7:4:8| and \verb|--GZOutput| option \\
-eppex zero-n  & \eppex{} with \verb|--limits| set to \verb|1:0:1,2:0:2,...,7:0:7| and \verb|--GZOutput| option \\
+eppex 0:n     & \eppex{} with \verb|--limits| set to \verb|1:0:1,2:0:2,...,7:0:7| and \verb|--GZOutput| option \\
 eppex 1:n+1   & \eppex{} with \verb|--limits| set to \verb|1:1:2,2:1:3,...,7:1:8| and \verb|--GZOutput| option \\
+eppex 1:n+2   & \eppex{} with \verb|--limits| set to \verb|1:1:3,2:1:4,...,7:1:9| and \verb|--GZOutput| option \\
 eppex 2:n+2   & \eppex{} with \verb|--limits| set to \verb|1:2:3,2:2:4,...,7:2:9| and \verb|--GZOutput| option \\
 \hline
 \hline
 \end{tabular}
 \caption{\label{fr-en-80-scenarios}
-List of various experiments and their settings for "Fr-En" setup.}
+List of the basic experiments and their settings for Fr-En setup.}
 \end{table}
 
 In the case of baseline experiments, we had attempted all the configurations mentioned
@@ -288,15 +291,38 @@ The non-optimized attempts usually died in the middle of sorting with \texttt{so
 about missing temporary files.
 We did not investigate the exact reason, but our raw guess is that the number of temporary
 files reached some system-imposed limit, as there were thousands of temporary files left in
-the working directory after the process died.
+the working directory after the sorting process died.
 
 The evaluated \eppex{} configurations are basically the same as in the case of Cs-En setup,
-we only included an additional, harsher configuration \emph{eppex 2:n+2}.
+we only included an additional, harsher configuration \emph{eppex 2:n+2}, in which all phrase
+pairs with true frequency count below~3 were pruned.
+
+% Fr-En: smoothed experiments
+\begin{table}[ht]
+\centering
+\begin{tabular}{ r p{10cm} }
+name & description and parameters \\
+\hline
+\hline
+eppex zero GT & \emph{eppex zero} with \verb|--GoodTuring| option \\
+eppex zero KN & \emph{eppex zero} with \verb|--KneserNey| option \\
+eppex def. GT & \emph{eppex defensive} with \verb|--GoodTuring| option \\
+eppex def. KN & \emph{eppex defensive} with \verb|--KneserNey| option \\
+eppex 0:n GT  & \emph{eppex 0:n} with \verb|--GoodTuring| option \\
+eppex 0:n KN  & \emph{eppex 0:n} with \verb|--KneserNey| option \\
+eppex 1:n+1 GT & \emph{eppex 1:n+1} with \verb|--GoodTuring| option \\
+eppex 1:n+1 KN & \emph{eppex 1:n+1} with \verb|--KneserNey| option \\
+\hline
+\hline
+\end{tabular}
+\caption{\label{fr-en-80-smoothed-scenarios}
+List of the Fr-En experiments run with discounting.}
+\end{table}
 
 \subsection{Translation phrase table size and quality}
 
 \Tref{fr-en-pt-size-and-bleu} presents phrase table sizes and BLEU scores for all
-distinct phrase tables created in our experiments.
+distinct phrase tables created in the basic experiments.
 
 % Fr-En: phrase tables sizes and BLEU scores
 \begin{table}[ht]
@@ -312,22 +338,47 @@ sigfilter 30      & 1470.8~M & 35.9~GB & 0.2849 & 0.2964 \\
 sigfilter a-e     &  811.4~M & 21.0~GB & 0.2845 & 0.2953 \\
 eppex def.        &  463.4~M & 10.6~GB & \textbf{0.2867} & 0.2950 \\
 sigfilter a+e     &  329.5~M &  8.4~GB & 0.2866 & \textbf{0.2977} \\
-eppex zero-n      &  283.2~M &  7.0~GB & 0.2841 & 0.2950 \\
+eppex 0:n         &  283.2~M &  7.0~GB & 0.2841 & 0.2950 \\
 sigfilter 30 a+e  &  270.0~M &  7.0~GB & 0.2857 & 0.2976 \\
 eppex 1:n+1       &  127.9~M &  3.2~GB & 0.2859 & 0.2953 \\
+eppex 1:n+2       &  105.8~M &  2.7~GB & 0.2856 & 0.2940 \\
 eppex 2:n+2       &   77.0~M &  2.0~GB & 0.2839 & 0.2943 \\
 \hline
 \end{tabular}
 \caption{\label{fr-en-pt-size-and-bleu}
-Phrase table sizes and BLEU scores for various experiments of "Fr-En" setup.}
+Phrase table sizes and BLEU scores for the basic experiments on Fr-En setup.
+The \emph{eppex zero} configuration is not included, because the produced phrase table
+was the same as of the \emph{baseline}.
+}
 \end{table}
 
-...
+% Fr-En: BLEU scores of smoothed experiments
+\begin{table}[ht]
+\centering
+\begin{tabular}{ | c | c c c | c c c | }
+\hline
+ & \multicolumn{3}{|c|}{wmt12} & \multicolumn{3}{|c|}{wmt13} \\
+experiment & none & GT & KN & none & GT & KN \\
+\hline
+\hline
+eppex zero    & 0.2860 & 0.2867 & ?.???? & 0.2958 & 0.2973 & ?.???? \\ % TODO.
+eppex def.    & 0.2867 & 0.2871 & \textbf{0.2885} & 0.2950 & \textbf{0.2987} & 0.2967 \\
+eppex 0:n     & 0.2841 & 0.2871 & 0.2863 & 0.2950 & 0.2955 & 0.2954 \\
+eppex 1:n+1   & 0.2859 & 0.2865 & 0.2853 & 0.2953 & 0.2956 & 0.2978 \\
+\hline
+\end{tabular}
+\caption{\label{fr-en-smoothed-bleu}
+BLEU scores for the discounting experiments on Fr-En setup.
+The "none" columns shows the scores for runs without discounting, "GT" and "KN" columns
+present scores obtained with Good-Turing and Kneser-Ney discounting respectively.}
+\end{table}
 
 \subsection{Memory and time requirements}
 
 \Tref{fr-en-time-benchmarks} presents the amount of time necessary to finish
 phrase table extraction with various systems and their configurations.
+The experiments with discounting were intended for comparison of translation quality
+only, so there are no benchmarking figures reported for them.
 
 % Fr-En: baseline and eppex wall clock and CPU time values
 \begin{table}[ht]
@@ -343,14 +394,16 @@ opt-c8-base   & 45.1 & 149.8 & 12.7 & 39.7 & 32.4 & 110.1 \\
 eppex zero    & 25.5 &  25.4 & -- & -- & -- & -- \\
 \hline
 eppex def.    & 12.2 & 12.2 & -- & -- & -- & -- \\
-eppex zero-n  & 10.7 & 10.7 & -- & -- & -- & -- \\
+eppex 0:n     & 10.7 & 10.7 & -- & -- & -- & -- \\
 eppex 1:n+1   & 9.5 & 9.5 & -- & -- & -- & -- \\
+eppex 1:n+2   & n/a & n/a & -- & -- & -- & -- \\
 eppex 2:n+2   & 9.3 & 9.2 & -- & -- & -- & -- \\
 \hline
 \end{tabular}
 \caption{\label{fr-en-time-benchmarks}
 Wallclock times and CPU usage values (in hours) of the phrase table
-construction for various experiments of "Fr-En" setup.}
+construction for various experiments of Fr-En setup.
+The values of \emph{eppex 1:n+2} experiment were not properly measured.}
 \end{table}
 
 ...
@@ -372,13 +425,14 @@ opt-c8-base    & 200.1~GB & extraction & 160.5~GB \\
 eppex zero     & 203.0~GB &      eppex &  48.0~GB \\
 \hline
 eppex def.     &  89.9~GB &      eppex &  16.0~GB \\
-eppex zero-n   &  48.7~GB &      eppex &   8.0~GB \\
+eppex 0:n      &  48.7~GB &      eppex &   8.0~GB \\
 eppex 1:n+1    &  46.4~GB &      eppex &   4.0~GB \\
+eppex 1:n+2    &  37.7~GB &      eppex &   4.0~GB \\
 eppex 2:n+2    &  45.6~GB &      eppex &   2.0~GB \\
 \hline
 \end{tabular}
 \caption{\label{fr-en-vm-and-disk-usage-peaks}
-Virtual memory and disk usage peaks of the phrase table construction for various experiments of "Fr-En" setup.}
+Virtual memory and disk usage peaks of the phrase table construction for various experiments of Fr-En setup.}
 \end{table}
 
 ...
@@ -407,7 +461,7 @@ sigfilter 30      & 10.3~h & 13.8~h & 11.5~GB & indexing \\
 \end{tabular}
 \caption{\label{fr-en-sigfilter-runtime-benchmarks}
 Wallclock times and CPU usage values, virtual memory peak value and the step,
-in which it occurred, of significance filtering for various settings of \emph{sigfilter} in "Fr-En" setup.}
+in which it occurred, of significance filtering for various settings of \emph{sigfilter} in Fr-En setup.}
 \end{table}
 
 \section{Comparison to 2011 version}
