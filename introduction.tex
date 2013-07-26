@@ -117,7 +117,7 @@ criterion:
 \end{itemize}
 
 These desiderata also served as a motivation for a proposal of a novel pruning method introduced
-in their work: \emph{relative entropy pruning} reportedly outperforms all the existing methods and 
+in their work: \emph{relative entropy pruning} reportedly outperforms all the existing methods and
 achieves consistently high savings between 85\% and 95\% of phrase pairs removed from the phrase
 table with only a negligible losses in automatic measure of translation quality, the so-called
 BLEU score \citep{papineni:bleu}.
@@ -160,24 +160,26 @@ carefully describe the process of phrase translation table construction
 and mention some of the existing pruning methods and their available
 implementations.
 
-In Chapter 3 we introduce the algorithm that is the basis of our implementation
+In \Cref{chap:lossy-counting} we introduce the algorithm that is the basis of our implementation
 of on-the-fly filtration and show the properties of the output produced
 by the algorithm that make it particularly applicable for phrase table pruning.
 
-Chapter 4 is devoted to an in-depth description of implementation details of our
+\Cref{chap:eppex} is devoted to an in-depth description of implementation details of our
 phrase table extraction tool, \emph{epochal extractor} (or shortly \eppex{}).
 Notably, various memory-management optimizations are mentioned.
 
 To assess \eppex{} usability in real world applications, we carried out a set
 of carefully crafted experiments aiming at comparison of resources usage as well as
 the ultimate translation quality of \eppex{} and some of the methods described
-in Chapter 2.
-The detailed design of experiments is the subject of Chapter 5,
-while the results are discussed in Chapter 6.
+in \Cref{chap:phrase-based}.
+The detailed design of experiments is the subject of \Cref{chap:experiments},
+while the results are discussed in \Cref{chap:results}.
 
 In the final chapter, we comment on our results and provide a conclusion of
 what has been done and what can be done in the future work on this topic.
 
-In Appendix A, we give the instructions on how to get \eppex{} working on Linux machines.
+In \Aref{chap:installation}, we give the instructions on how to get \eppex{} working on Linux machines.
 
-In Appendix B, all the program options of \eppex{} are explained with examples of their usage.
+In \Aref{chap:usage}, all the program options of \eppex{} are explained with examples of their usage.
+
+In \Aref{chap:benchmarking-tables}, tables with the complete benchmarking results are presented.
