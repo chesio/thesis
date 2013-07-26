@@ -156,15 +156,15 @@ apparently, in our environment forcing \texttt{sort} to gzip its temporary data 
 slower when there are no other processes accessing the disk (as in the scoring step), but reducing
 the disk access by the same means when two similar sort tasks run simultaneously can benefit
 in both of them finishing faster (as in the phrase extraction step).
-This explanation might be further supported by the fact that a lot of \texttt{sort} temporary
-data gzipping took place in \emph{comp-base} experiment, because the striking increase of CPU time
-consumption can only be attributed to this extra gzipping: % TODO: Reformulate, unreadable.
+The striking increase of CPU consumption in the \emph{comp-base} experiment, that can only be
+attributed to the extra gzipping, suggests that the sorting processes had to gzip a lot of
+temporary data:
 phrase extraction required almost 4.5 CPU hours more, scoring required almost 1.5 CPU hours
 more.\footnote{Given that there are two and one sorting processes, one could expect the ratio
 4.5:1.5 of additional CPU time to be closer to 2:1, but after phrase extraction phrase table halves
 contain every phrase pair occurrence, whereas after scoring they contain only unique phrase pairs,
 so the size of data to sort is rather close to 3:1 than 2:1 ratio.}
-The similar conclusions might be made also by examination of partial wall clock times of \emph{multi-base}
+A similar conclusion might be made also by examination of partial wall clock times of \emph{multi-base}
 and \emph{opt-base} experiments: while the phrase extraction time fell down from 4.9~hours to 2.6~hours
 (i.e. almost to $1/2$), the scoring time jumped up a bit from 5.5~hours to 5.6~hours.
 Thus, even the significantly increased sorting buffer managed only to neutralize the negative impact of
