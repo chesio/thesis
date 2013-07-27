@@ -74,15 +74,15 @@ and 0.61~point in the case of \emph{news-test2013} test data.
 experiment & phrase pairs & .gz file size & wmt-12 & wmt-13 \\
 \hline
 \hline
-baseline          & 336.0~M & 8.8~GB & 0.2327 & 0.2583 \\
-sigfilter 30      & 301.9~M & 8.2~GB & 0.2312 & 0.2562 \\
-sigfilter a-e     & 203.1~M & 5.9~GB & 0.2301 & 0.2560 \\
-eppex def.        & 109.8~M & 2.7~GB & \textbf{0.2338} & \textbf{0.2598} \\
-eppex 0:n         &  86.2~M & 2.3~GB & 0.2324 & 0.2586 \\
-sigfilter a+e     &  70.0~M & 1.9~GB & 0.2321 & 0.2559 \\
-eppex 0:n+1       &  67.9~M & 1.8~GB & 0.2304 & 0.2561 \\
-sigfilter 30 a+e  &  60.2~M & 1.7~GB & 0.2305 & 0.2563 \\
-eppex 1:n+1       &  25.7~M & 0.7~GB & 0.2272 & 0.2537 \\
+baseline          & 336.0~M & 8.8~GB & 23.27 & 25.83 \\
+sigfilter 30      & 301.9~M & 8.2~GB & 23.12 & 25.62 \\
+sigfilter a-e     & 203.1~M & 5.9~GB & 23.01 & 25.60 \\
+eppex def.        & 109.8~M & 2.7~GB & \textbf{23.38} & \textbf{25.98} \\
+eppex 0:n         &  86.2~M & 2.3~GB & 23.24 & 25.86 \\
+sigfilter a+e     &  70.0~M & 1.9~GB & 23.21 & 25.59 \\
+eppex 0:n+1       &  67.9~M & 1.8~GB & 23.04 & 25.61 \\
+sigfilter 30 a+e  &  60.2~M & 1.7~GB & 23.05 & 25.63 \\
+eppex 1:n+1       &  25.7~M & 0.7~GB & 22.72 & 25.37 \\
 \hline
 \end{tabular}
 \caption{\label{cs-en-wmt13-pt-size-and-bleu}
@@ -91,10 +91,10 @@ Phrase table sizes and BLEU scores for the various experiments of Cs-En setup.}
 
 The \emph{eppex defensive} experiment again proved to be very competitive:
 the phrase table has only $1/3$ of size of the baseline,
-but the BLEU score is actually better for the both test sets (although not significantly).
-On the other hand, pruning of all single occurring phrase pairs in the \emph{eppex 1:n+1}
-experiment resulted in the worst score on both sets, and seems to be already
-too harsh for the Cs-En setup.
+but the obtained BLEU score was higher for the both test sets (although not significantly).
+On the other hand, pruning of all singletons in the \emph{eppex 1:n+1} experiment
+resulted in the worst scores on both sets, and seems to be already too harsh for
+the Cs-En setup.
 
 Interestingly, there is no clear differentiation of what was the best \emph{sigfilter}
 configuration: especially, in the case of \emph{wmt-13} test data all the scores
@@ -226,7 +226,7 @@ As noted before, \eppex{} produces no temporary data, therefore in all experimen
 disk usage peaks strictly copied the size of the produced phrase tables.
 
 Finally, \Tref{cs-en-wmt13-sigfilter-runtime-benchmarks} presents the runtime benchmarking
-values for different runs of significance filtering.
+values for all the configurations of \texttt{sigfilter} tool.
 Even the simple histogram pruning required more time than any \eppex{} run with nonzero
 pruning limits.\footnote{This is partially due a design flaw in the \texttt{sigfilter} tool:
 the SALM-indexed corpus is always required to proceed, even though it is not necessary in
@@ -254,6 +254,10 @@ sigfilter 30      & 2.5~h & 3.4~h & 2.7~GB & indexing \\
 The complete benchmarking figures for various settings of \emph{sigfilter} in Cs-En setup:
 wallclock time, CPU usage value and virtual memory peak with the step, in which it occurred.}
 \end{table}
+
+Also an interesting observation is that the optimized baseline phrase table construction
+(\emph{opt-c8-base}) took one hour less then the fastest significance filtering
+(\emph{sigfilter 30 a+e}).
 
 \section{Fr-En dataset}
 \label{sec:fr-en-results}
@@ -286,7 +290,8 @@ List of the basic experiments and their settings for Fr-En setup.}
 \end{table}
 
 In the case of baseline experiments, we had attempted all the configurations mentioned
-in \Sref{sec:baseline-experiments}, but managed to only finish the optimized ones.
+in \Sref{sec:baseline-experiments}, but managed to only finish the optimized ones
+that allowed \texttt{sort} to use 100~G of memory.
 The non-optimized attempts usually died in the middle of sorting with \texttt{sort} complaining
 about missing temporary files.
 We did not investigate the exact reason, but our raw guess is that the number of temporary
@@ -323,6 +328,17 @@ List of the Fr-En experiments run with discounting.}
 
 \Tref{fr-en-pt-size-and-bleu} presents phrase table sizes and BLEU scores for all
 distinct phrase tables created in the basic experiments.
+The baseline phrase table contained incredible 1.7~billions of phrase pairs,
+while the smallest phrase table produced by the harshest \eppex{} configuration
+was less than 5\% of that size.
+Despite this huge contrast in the phrase table sizes, the obtained BLEU scores
+were even more tight than in the case of Cs-En setup;
+the differences between the best and the worst experiments were only 0.28~points
+and 0.37~points in case of the \emph{news-test2012} and \emph{news-test2013} sets
+respectively.
+In fact, such small differences could be also attributed to the randomness of
+MERT.\footnote{We did not invest the computing resources necessary to estimate
+the confidence bounds covering optimizer instability \citep{clark:optimizerinstability}.}
 
 % Fr-En: phrase tables sizes and BLEU scores
 \begin{table}[ht]
@@ -333,16 +349,16 @@ distinct phrase tables created in the basic experiments.
 experiment & phrase pairs & .gz file size & wmt-12 & wmt-13 \\
 \hline
 \hline
-baseline          & 1782.0~M & 42.5~GB & 0.2860 & 0.2958 \\
-sigfilter 30      & 1470.8~M & 35.9~GB & 0.2849 & 0.2964 \\
-sigfilter a-e     &  811.4~M & 21.0~GB & 0.2845 & 0.2953 \\
-eppex def.        &  463.4~M & 10.6~GB & \textbf{0.2867} & 0.2950 \\
-sigfilter a+e     &  329.5~M &  8.4~GB & 0.2866 & \textbf{0.2977} \\
-eppex 0:n         &  283.2~M &  7.0~GB & 0.2841 & 0.2950 \\
-sigfilter 30 a+e  &  270.0~M &  7.0~GB & 0.2857 & 0.2976 \\
-eppex 1:n+1       &  127.9~M &  3.2~GB & 0.2859 & 0.2953 \\
-eppex 1:n+2       &  105.8~M &  2.7~GB & 0.2856 & 0.2940 \\
-eppex 2:n+2       &   77.0~M &  2.0~GB & 0.2839 & 0.2943 \\
+baseline          & 1782.0~M & 42.5~GB & 28.60 & 29.58 \\
+sigfilter 30      & 1470.8~M & 35.9~GB & 28.49 & 29.64 \\
+sigfilter a-e     &  811.4~M & 21.0~GB & 28.45 & 29.53 \\
+eppex def.        &  463.4~M & 10.6~GB & \textbf{28.67} & 29.50 \\
+sigfilter a+e     &  329.5~M &  8.4~GB & 28.66 & \textbf{29.77} \\
+eppex 0:n         &  283.2~M &  7.0~GB & 28.41 & 29.50 \\
+sigfilter 30 a+e  &  270.0~M &  7.0~GB & 28.57 & 29.76 \\
+eppex 1:n+1       &  127.9~M &  3.2~GB & 28.59 & 29.53 \\
+eppex 1:n+2       &  105.8~M &  2.7~GB & 28.56 & 29.40 \\
+eppex 2:n+2       &   77.0~M &  2.0~GB & 28.39 & 29.43 \\
 \hline
 \end{tabular}
 \caption{\label{fr-en-pt-size-and-bleu}
@@ -351,6 +367,22 @@ The \emph{eppex zero} configuration is not included, because the produced phrase
 was the same as of the \emph{baseline}.
 }
 \end{table}
+
+The \emph{eppex defensive} configuration scored best on the \emph{news-test2012} set,
+but was closely followed by the \emph{sigfilter a+e} configuration that scored best on
+the \emph{news-test2013} set.
+The slightly harsher variation \emph{sigfilter 30 a+e}, that not only pruned out
+all of the 1-1-1 phrase pairs, but also performed histogram pruning prior to
+the significance testing, performed nearly as well, indicating that the removal of
+1-1-1 phrase pairs did not hurt the quality of the baseline Fr-En translation model.
+This observation is further supported by the fact, that amongst the \eppex{} configurations,
+the \emph{1:n+1} configuration ranked as good as \emph{defensive}, although it produced more
+than 3~times smaller phrase table and removed all the single-occurring phrase pairs.
+
+The BLEU scores obtained with translation models that had phrase translation probabilities
+adjusted by either Good-Turing or Kneser-Ney discounting are shown in \Tref{fr-en-smoothed-bleu}.
+The phrase tables created with the \emph{eppex zero} configuration are basically the
+baseline ones.
 
 % Fr-En: BLEU scores of smoothed experiments
 \begin{table}[ht]
@@ -361,10 +393,10 @@ was the same as of the \emph{baseline}.
 experiment & none & GT & KN & none & GT & KN \\
 \hline
 \hline
-eppex zero    & 0.2860 & 0.2867 & ?.???? & 0.2958 & 0.2973 & ?.???? \\ % TODO.
-eppex def.    & 0.2867 & 0.2871 & \textbf{0.2885} & 0.2950 & \textbf{0.2987} & 0.2967 \\
-eppex 0:n     & 0.2841 & 0.2871 & 0.2863 & 0.2950 & 0.2955 & 0.2954 \\
-eppex 1:n+1   & 0.2859 & 0.2865 & 0.2853 & 0.2953 & 0.2956 & 0.2978 \\
+eppex zero    & 28.60 & 28.67 & \textbf{28.85} & 29.58 & 29.73 & \textbf{29.95} \\
+eppex def.    & 28.67 & 28.71 & \textbf{28.85} & 29.50 & 29.87 & 29.67 \\
+eppex 0:n     & 28.41 & 28.71 & 28.63 & 0.2950 & 29.55 & 0.2954 \\
+eppex 1:n+1   & 28.59 & 28.65 & \emph{28.53} & 29.53 & 29.56 & 29.78 \\
 \hline
 \end{tabular}
 \caption{\label{fr-en-smoothed-bleu}
@@ -373,12 +405,19 @@ The "none" columns shows the scores for runs without discounting, "GT" and "KN" 
 present scores obtained with Good-Turing and Kneser-Ney discounting respectively.}
 \end{table}
 
+The discounting clearly improved the performance of the translation models,
+higher BLEU scores were observed in all the evaluations except the \emph{eppex 1:n+1 KN}
+configuration with the \emph{news-test2012} set.
+The highest improvement rates were observed in the baseline experiments (i.e. with unfiltered
+phrase tables), in a way confirming observations of \citet{johnson:sigfilter}:
+they had noticed that significance filtering of phrase tables can sometimes actually raise
+the BLEU score, but the effect is less prominent, if discounting is employed.
+The obtained results suggests that this observation holds for lossy-counted pruning as well.
+
 \subsection{Memory and time requirements}
 
-\Tref{fr-en-time-benchmarks} presents the amount of time necessary to finish
-phrase table extraction with various systems and their configurations.
-The experiments with discounting were intended for comparison of translation quality
-only, so there are no benchmarking figures reported for them.
+The wall clock times and CPU consumption of all the basic experiments are shown
+in \Tref{fr-en-time-benchmarks}.
 
 % Fr-En: baseline and eppex wall clock and CPU time values
 \begin{table}[ht]
@@ -406,12 +445,23 @@ construction for various experiments of Fr-En setup.
 The values of \emph{eppex 1:n+2} experiment were not properly measured.}
 \end{table}
 
-...
+Again, \eppex{} was able to build the unpruned phrase table in almost twice as short
+time than the optimized baseline that run in parallel on 8~cores.
 
-\Tref{fr-en-vm-and-disk-usage-peaks} illustrates both memory and disk space demands of baseline
-and \eppex{} experiments.
+\Tref{fr-en-vm-and-disk-usage-peaks} illustrates both memory and disk space demands
+of the baseline and \eppex{} experiments.
 
-% Fr-En: virtual memory and disk usage peaks
+Since we only managed to accomplish the baseline extraction with the optimized
+configuration, the virtual memory peaks of baseline experiments were dominated by
+the size of temporary memory dedicated to the \texttt{sort} program.
+The epochal extraction without pruning consumed more than 200~GB of the memory,
+what was less than a half of RAM available on the exploited machine,
+but is a very considerable amount otherwise.
+However, even the mild \emph{defensive} pruning cut this demands to only $1/4$.
+
+% TODO: Comment on du peaks?
+
+% Fr-En: virtual memory and disk usage peaks.
 \begin{table}[ht]
 \centering
 \begin{tabular}{ | c | r l | r | }
@@ -435,14 +485,15 @@ eppex 2:n+2    &  45.6~GB &      eppex &   2.0~GB \\
 Virtual memory and disk usage peaks of the phrase table construction for various experiments of Fr-En setup.}
 \end{table}
 
-...
-
 Finally, \Tref{fr-en-sigfilter-runtime-benchmarks} presents the runtime benchmarking
-values for different runs of significance filtering.\footnote{Due a tight experiments
-schedule we run the significance filtering experiments on Fr-En setup on the set of
+values for different configurations of \texttt{sigfilter} tool.\footnote{Due a tight
+experiments schedule we run the \emph{sigfilter} experiments on Fr-En setup on the set of
 machines designated for Cs-En setup.}
 
-% TODO: Any comment?
+The observations are very similar to the corresponding ones in the Cs-En setup.
+Again, no significance filtering took less time than the optimized baseline phrase table
+construction (\emph{opt-c8-base}) and despite that the memory demands increased
+significantly, they were again below any of those of \eppex{}.
 
 % Fr-En: sigfilter runtime requirements
 \begin{table}[ht]
@@ -760,7 +811,7 @@ peaks, because of the harsher pruning.
 Despite that \emph{eppex 0:n} and \emph{eppex 1:n+1} have a similar memory demands, their outputs
 differ significantly, as \Fref{fig:fr-en-phrase-table-sizes} presents (the complete figures are part
 of \Tref{fr-en-output-size-benchmarking}).
-The \emph{eppex 1:n+1} configuration pruned off all single occurring phrase pairs, so it consistently
+The \emph{eppex 1:n+1} configuration pruned off all the singletons, so it consistently
 produced phrase tables substantially smaller than the \emph{eppex 0:n} configuration.
 In fact, the degree of pruning of \emph{eppex 1:n+1} is very close to the \emph{eppex 1:n+2} configuration,
 because in both cases it is determined by the common negative limit.
