@@ -1,6 +1,132 @@
 \chapter{Conclusions}
 \label{chap:conclusions}
 
-% TODO: Comment on Lossy Counting from the perspective of desiderata mentioned in Introduction.
+\setlength{\epigraphwidth}{1.0\textwidth}
+\epigraph{No one involved in computers would ever say that a certain amount of memory is enough for all time.}{--- Bill Gates, commenting on the perhaps most famous remark attributed to him}
 
-% TODO: (OBO): Do zaveru pak doporucuji nejaky sloupcovy graf (CPU and wall clock time) s nejdulezitejsimi vysledky.
+In this work we examined applicability of the Lossy Counting algorithm,
+that was designed to deliver approximate frequency counts over stream of
+input items, to perform on-the-fly filtration of phrase pairs extracted in
+the process of phrase table creation in Statistical Machine Translation systems.
+
+To tackle this task, we implemented a software tool that builds a complete phrase
+translation table with the maximum likelihood scores derived from the frequency
+counts as approximated by the lossy counting of phrase pairs extracted from
+parallel corpora during the process of translation model training.
+Because internally the Lossy Counting algorithm splits the input stream into
+epochs, we dubbed our tool \emph{eppex}, an acronym for \emph{epochal phrase
+pairs extractor}.
+
+On top of the standard instantiation of the Lossy Counting algorithm with
+\emph{support} and \emph{error} thresholds, we devised a more intuitive interface
+to invoke \eppex{}: the \emph{positive} and \emph{negative} limits that
+directly relate to the true frequencies of the extracted phrase pairs.
+We show the relation of the phrase table pruning activated with these limits
+to the existing criterion of \emph{count-based pruning}.
+We also discussed the impact of various settings of these limits on the memory
+demands and output size of the epochal extraction: especially, we stressed out
+that there is no direct relation between the degree of pruning and the amount
+of memory consumed by the program.
+
+We performed a series of the experimental phrase table extractions and carefully
+benchmarked the performance of \eppex{} and of a baseline system for phrase
+table construction, for which we chose the \emph{phrase-extract} toolkit from
+an open-source SMT system Moses.
+Moreover, in our experiments, we included also a popular tool for phrase table
+pruning that is shipped with Moses, the significance filter or \emph{sigfilter}
+in short.
+
+The results we had obtained, showed, that \eppex{} was capable to prune off
+substantial amounts of phrase pairs (up to 95\% of the phrase table) without
+a significant loss of the ultimate translation quality as confirmed by the
+automatic evaluation measure BLEU.
+The differences between the baseline and \eppex{} scores were always below
+0.6~points of BLEU.
+In fact, \eppex{} often performed slightly better than the baseline,
+although we observed that, when the phrase tables were treated with a
+state-of-the-art discounting techniques, the baseline scored better.
+
+The \emph{sigfilter} tool seemed to perform slightly better than \eppex{}
+in the case of French-English translation model based on a massive training
+data with only a single input factor and a language model that was simply
+derived from the target side of parallel corpus.
+By contrast, in the case of two-factored, Czech-English translation model with
+the proper language models, a slightly better scores were obtained by \eppex{}.
+
+Definitely the biggest advantage of \eppex{}, when compared to the baseline
+system, is its runtime performance.
+As \Fref{fig:conclusions-cs-en} illustrates, \eppex{} was be capable of building
+the complete phrase table twice as fast as the most competitive baseline
+configuration and with several times less CPU consumption.
+On the other hand, \eppex{} requires a considerable amount of RAM to proceed,
+while the baseline in its default configuration aims at utilizing as little RAM
+as possible.
+Therefore, we consider \eppex{} to be a viable alternative to the \emph{phrase-extract}
+toolkit rather than a definitive replacement.
+
+\begin{figure}[!htb]
+  \centering
+  \input{conclusions-cs-en}
+  \caption{
+    Summary of the runtime benchmarking figures for the most relevant experiments
+    with the Czech-English dataset (from left to right): baseline with the default
+    parameters, baseline using multiple cores and large memory buffer, \eppex{}
+    with no pruning and \eppex{} with pruning configuration that achieved the best
+    BLEU score from all experiments (labeled \emph{eppex defensive}).
+  }
+  \label{fig:conclusions-cs-en}
+\end{figure}
+
+\section{Future work}
+
+We are aware, that in its current state, \eppex{} is a usable tool,
+but a potential user of \eppex{} can be discouraged by the lack of more
+finer control over its memory demands incurred during
+runtime.\footnote{Without neglecting the importance of a good program design,
+we cannot disregard the empirically determined principle that often the easiest
+and also cheapest solution to the performance limitations imposed by hardware
+is to buy a better hardware. After all, no certain amount of memory is enough
+for all time.}
+
+Addressing this possible concern, we see two possible ways of improvement:
+\begin{enumerate}
+  \item Provide the user with a method to safely determine the maximum amount
+    of memory that \eppex{} would require to process a certain training data.
+  \item Provide the user with an option to set the limit on the maximum amount
+    of memory utilized by the program.
+\end{enumerate}
+
+% VM peak estimation
+In \Sref{sec:eppex-memory-demands} we already sketch a possible approach of how to determine
+the memory peak of epochal extraction with given pruning configuration and input data.
+However, it is hard to presume whether this approach could be enhanced to offer
+more precise estimation than the 20\% overestimate based on the 25\% of training
+data that we achieved in our initial experiments, and how consistent this estimation
+could be made.
+
+% Iterative deepening.
+The second point has two possible approaches.
+The first approach is to make the program aware of its memory consumption and implement
+some means of resolving the situation when all available memory is exhausted.
+The second approach is to control the program memory consumption from outside:
+as soon as its memory consumption exceeds predefined limit, it can be simply terminated, 
+and run again with more harsh pruning (e.g. by raising the positive limit).
+Obviously, the second approach does not require any changes to the existing version of
+program, just a bit of scripting.
+
+% Incremental training.
+Besides the finer control over memory consumption, a yet another problem that could
+be addressed in the future work on \eppex{}, is the support for \emph{incremental
+training}.
+With new parallel data being available every year, more and more researchers seek
+the means of how to retrain their translation models without running the whole
+training process from scratch.
+
+In a way, \eppex{} already helps to work around this problem: by making the training
+process much faster, the need to avoid the rerun of training process is somehow
+lowered.
+However, a more straight-forward solution should be also possible.
+Given that phrase tables usually contain the frequency counts of phrase pairs,
+these frequencies could be used to initialize the internal Lossy Counting data
+memory and the epochal extraction could then proceed by processing only the new
+training data.
