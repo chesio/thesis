@@ -752,16 +752,18 @@ three cases.
 \end{figure}
 
 This observation inspired us to take a look onto the possibility of predicting the memory
-demands of the epochal extraction from only a partial run, i.e. we were curious,
-whether a quickly determined virtual memory peak of run over small subset of the training data
-may be used for prediction of the amount of memory required to process the whole data.
+demands of the epochal extraction.
+Specifically, we were curious, if a virtual memory peak quickly determined by running
+\eppex{} on some subset of the training data make it possible to predict the amount of
+memory required to process the whole data.
 
 For each batch of size $K$ with the virtual memory peak $vm_{K}$ we evaluated the predicted virtual
 memory peak as: $pred_{K} = vm_{K} / K \times N$, where $N$ is the size of the whole
 data.\footnote{Assuming the linear correlation, the ratio $vm_{K} / K$ is an estimation of the linear coefficient.}
 We then calculated the error of prediction $pred_{K}$ as the normalized difference between
 the prediction and true virtual memory peak $vm_{real}$: $err_{K} = (pred_{K} - vm_{real}) / vm_{real}$.
-\Fref{fig:cs-en-vm-peak-prediction} presents the error values expressed as percentages.
+\Fref{fig:cs-en-vm-peak-prediction} presents the error values for subsets of increasing size
+expressed as percentages.
 
 \begin{figure}[!htb]
   \centering
@@ -773,19 +775,20 @@ the prediction and true virtual memory peak $vm_{real}$: $err_{K} = (pred_{K} - 
   \label{fig:cs-en-vm-peak-prediction}
 \end{figure}
 
-The prediction errors of all three configurations have a very similar course: predictions on a small
-subsets are strongly overestimated, but continually decline with increasing input data size.
-A decent predictions (overestimating by no more than 20\%) are possible based on at least $1/4$ of
-the training data.
+With all three configurations, the prediction errors had a very similar course: predictions on small
+subsets were strongly overestimated, but the error continually declined with the increasing ratio
+of the training data used.
+A decent prediction, overestimating the total VM peak by no more than 20\%, was possible based on $1/4$
+of the training data.
 
 \subsection{Fr-En dataset}
 
-The French-English training data contained only a single factor: lowercased token.
-There were on average 30 French and 25.5 English tokens per sentence in the whole data,
-but in most of the batches the averages were below these values (down to 25.5 tokens
-per sentence in the case of French and 24 tokens per sentence in the case of English).
+The French-English training data contained only a single factor: input token in lowercase.
+There were on average 30~French and 25.5~English tokens per sentence in the whole data,
+but in most of the batches the averages were below these values (down to 25.5~tokens
+per sentence in the case of French and 24~tokens per sentence in the case of English).
 Compared to the Cs-En dataset, the sentences were on average almost twice as long and
-likewise the phrase-pairs-per-sentence ratio was twice as large, almost 46 in the case of
+likewise the phrase-pairs-per-sentence ratio was twice as large, almost~46 in the case of
 unpruned phrase table.
 
 In the case of Fr-En data, we decided to point out the differences between the memory demands
