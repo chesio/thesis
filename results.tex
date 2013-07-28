@@ -445,21 +445,17 @@ construction for various experiments of Fr-En setup.
 The values of \emph{eppex 1:n+2} experiment were not properly measured.}
 \end{table}
 
-Again, \eppex{} was able to build the unpruned phrase table in almost twice as short
-time than the optimized baseline that run in parallel on 8~cores.
-
-\Tref{fr-en-vm-and-disk-usage-peaks} illustrates both memory and disk space demands
-of the baseline and \eppex{} experiments.
+Again, \eppex{} was able to build the unpruned phrase table in almost twice
+as short time than the optimized baseline that run in parallel on 8~cores
+and use approximately the same amount of memory, as shown in \Tref{fr-en-vm-and-disk-usage-peaks}.
 
 Since we only managed to accomplish the baseline extraction with the optimized
 configuration, the virtual memory peaks of baseline experiments were dominated by
-the size of temporary memory dedicated to the \texttt{sort} program.
+the size of memory buffer dedicated to the \texttt{sort} program.
 The epochal extraction without pruning consumed more than 200~GB of the memory,
 what was less than a half of RAM available on the exploited machine,
 but is a very considerable amount otherwise.
 However, even the mild \emph{defensive} pruning cut this demands to only $1/4$.
-
-% TODO: Comment on du peaks?
 
 % Fr-En: virtual memory and disk usage peaks.
 \begin{table}[ht]
@@ -485,11 +481,17 @@ eppex 2:n+2    &  45.6~GB &      eppex &   2.0~GB \\
 Virtual memory and disk usage peaks of the phrase table construction for various experiments of Fr-En setup.}
 \end{table}
 
+The monitored disk usage peaks of \eppex{} experiments were rounded up
+to multiples of two for some unknown reason, but this does not affected
+the overall picture.
+Despite being given a substantial memory buffer, the baseline still
+required a considerable temporary disk space, almost four times the
+actual phrase table size (42.5~GB).
+
 Finally, \Tref{fr-en-sigfilter-runtime-benchmarks} presents the runtime benchmarking
 values for different configurations of \texttt{sigfilter} tool.\footnote{Due a tight
 experiments schedule we run the \emph{sigfilter} experiments on Fr-En setup on the set of
 machines designated for Cs-En setup.}
-
 The observations are very similar to the corresponding ones in the Cs-En setup.
 Again, no significance filtering took less time than the optimized baseline phrase table
 construction (\emph{opt-c8-base}) and despite that the memory demands increased
