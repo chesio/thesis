@@ -6,16 +6,16 @@
 
 % TODO: A short intro?
 
-\section{Cs-En dataset}
+\section{The Cs-En dataset}
 \label{sec:cs-en-results}
 
-We performed 14 experimental phrase table extractions for Cs-En dataset,
+We performed 14 experimental phrase table extractions for the Cs-En dataset,
 the comprehensive list is presented by \Tref{cs-en-wmt13-scenarios}.
 We included one more optimized baseline with 8 cores, because the difference in
 wall clock time necessary to construct the phrase table between runs with 4 and 8 cores
 was considerable.
 Sorting processes in both optimized baselines were given 18~GB of memory, so the virtual
-peak of entire pipeline reached approximately the same value as in case of \eppex{}
+peak of the entire pipeline reached approximately the same value as in the case of the \eppex{}
 run with no pruning.
 
 % Cs-En: description and parameters of experiments
@@ -60,7 +60,7 @@ to a phrase length to allow for a bigger estimation errors in the case of longer
 
 \Tref{cs-en-wmt13-pt-size-and-bleu} presents the phrase table sizes and BLEU scores for all
 distinct phrase tables created in our experiments.
-Despite that the phrase table sizes are very different, with the most pruned phrase table being
+Despite the fact that the phrase table sizes are very different, with the most pruned phrase table being
 only $1/13$ size of the baseline, the achieved BLEU scores are very tight and the difference
 between the best and the worst score is only 0.66~point in the case of \emph{news-test2012} test data
 and 0.61~point in the case of \emph{news-test2013} test data.
@@ -86,16 +86,17 @@ eppex 1:n+1       &  25.7~M & 0.7~GB & 22.72 & 25.37 \\
 \hline
 \end{tabular}
 \caption{\label{cs-en-wmt13-pt-size-and-bleu}
-Phrase table sizes and BLEU scores for the various experiments of Cs-En setup.}
+Phrase table sizes and BLEU scores for the various experiments of the Cs-En setup.}
 \end{table}
 
 The \emph{eppex defensive} experiment again proved to be very competitive:
-the phrase table has only $1/3$ of size of the baseline,
-but the obtained BLEU score was higher for the both test sets (although not significantly).
-On the other hand, pruning of all singletons in the \emph{eppex 1:n+1} experiment
-resulted in the worst scores on both sets, and seems to be already too harsh for
+the phrase table has only $1/3$ size of the baseline,
+but the obtained BLEU score was higher for both the test sets (although not significantly).
+On the other hand, the pruning of all singletons in the \emph{eppex 1:n+1} experiment
+resulted in the worst scores on both sets and therefore seems already too harsh for
 the Cs-En setup.
 
+% TODO: Proof-read the paragraph:
 Interestingly, there is no clear differentiation of what was the best \emph{sigfilter}
 configuration: especially, in the case of \emph{wmt-13} test data all the scores
 happen to occur within a tiny range of $[0.2559, 0.2563]$, despite the phrase table sizes
@@ -129,8 +130,8 @@ eppex 1:n+1   & 1.2 & 1.2 & -- & -- & -- & -- \\
 \hline
 \end{tabular}
 \caption{\label{cs-en-wmt13-time-benchmarks}
-Wallclock times and CPU usage values (in hours) of the phrase table
-construction for the various experiments of Cs-En setup.}
+Wallclock times and CPU usage values (in hours) of phrase table
+construction for the various experiments of the Cs-En setup.}
 \end{table}
 
 Even with no pruning \eppex{} is capable of doing the phrase table construction more
@@ -139,40 +140,41 @@ When compared to the default baseline the difference is even more pronounced wit
 being 5~times as fast.
 
 From the comparison of the default and multi-core baseline it seems clear that whenever there
-is a possibility to employ multiple cores it should be taken: just by running with 4 cores
+is a possibility of employing multiple cores it should be taken: just by running with 4 cores
 the baseline execution time has been cut to $2/3$.
-Doubling number of cores from 4 to 8 in optimized experiments resulted in further reduction
+Doubling the number of cores from 4 to 8 in optimized experiments resulted in a further reduction
 of execution time, although not as significant (by 15\%).
 
-An important observation is that adding only the option to make \texttt{sort} program gzip
-its temporary data, did not help to decrease the total execution time.
-More precisely, it did help in phrase extraction step (ca. $-0.8~h$), but did the very opposite
-in scoring step (ca. $+0.9~h$), so the overall impact on the total wall clock time was eventually
-a bit negative (ca. $+0.2~h$).
-A reasonable explanation for such, perhaps unexpected, behavior stems from the fact that in phrase
-extraction step both phrase table halves are sorted simultaneously, whereas in scoring step
-only indirect half is sorted:
-apparently, in our environment forcing \texttt{sort} to gzip its temporary data makes it run
-slower when there are no other processes accessing the disk (as in the scoring step), but reducing
-the disk access by the same means when two similar sort tasks run simultaneously can benefit
-in both of them finishing faster (as in the phrase extraction step).
+An important observation is that adding only the option to make the \texttt{sort} program gzip
+its temporary data, did not help decrease the total execution time.
+More precisely, it did help in the phrase extraction phase (ca. $-0.8~h$), but did the very opposite
+in the scoring phase (ca. $+0.9~h$), so the overall impact on the total wall clock time was eventually
+marginally negative (ca. $+0.2~h$).
+A reasonable explanation for such, perhaps unexpected, behavior stems from the fact that in the phrase
+extraction phase both phrase table halves are sorted simultaneously, whereas in the scoring phase
+only the indirect half is sorted.
+Apparently, in our environment forcing \texttt{sort} to gzip its temporary data makes it run
+slower when there are no other processes accessing the disk (as in the scoring phase), but reducing
+disk access by the same means when two similar sort tasks run simultaneously can benefit
+in both of them finishing faster (as in the phrase extraction phase).
 The striking increase of CPU consumption in the \emph{comp-base} experiment, that can only be
 attributed to the extra gzipping, suggests that the sorting processes had to gzip a lot of
 temporary data:
 phrase extraction required almost 4.5 CPU hours more, scoring required almost 1.5 CPU hours
-more.\footnote{Given that there are two and one sorting processes, one could expect the ratio
-4.5:1.5 of additional CPU time to be closer to 2:1, but after phrase extraction phrase table halves
+more.\footnote{Given that there are two sorting processes in the phrase extraction phase and
+only one in the phrase scoring phase, one could expect the ratio
+4.5:1.5 of additional CPU time to be closer to 2:1, but after phrase extraction, phrase table halves
 contain every phrase pair occurrence, whereas after scoring they contain only unique phrase pairs,
-so the size of data to sort is rather close to 3:1 than 2:1 ratio.}
-A similar conclusion might be made also by examination of partial wall clock times of \emph{multi-base}
-and \emph{opt-base} experiments: while the phrase extraction time fell down from 4.9~hours to 2.6~hours
-(i.e. almost to $1/2$), the scoring time jumped up a bit from 5.5~hours to 5.6~hours.
+so the size of data to sort is rather closer to 3:1 than 2:1 ratio.}
+Similar conclusion might be made also by an examination of partial wall clock times of the \emph{multi-base}
+and \emph{opt-base} experiments: while the phrase extraction time fell from 4.9~hours to 2.6~hours
+(i.e. almost to $1/2$), the scoring time jumped up a marginally from 5.5~hours to 5.6~hours.
 Thus, even the significantly increased sorting buffer managed only to neutralize the negative impact of
-temporary data compression on wall clock time of scoring step, but in the same time it further pronounced
-the positive impact of the same settings on phrase extraction step.
+temporary data compression on the wall clock time of the scoring phase, but pronounced even more
+the positive impact of the same settings on the phrase extraction phase.
 
 However, to put things in a wider perspective, we believe that the option to compress temporary data of
-\texttt{sort} routine has been introduced in order to limit the peak usage of disk space, which may
+the \texttt{sort} routine was introduced in order to limit the peak usage of disk space, which may
 otherwise pose a limiting factor in some environments, as the figures presented in the following text
 demonstrate.
 
@@ -205,11 +207,11 @@ eppex 1:n+1    &  9.6~GB &      eppex &   0.7~GB \\
 Virtual memory and disk usage peaks of the phrase table construction for various experiments of "Cs-En" setup.}
 \end{table}
 
-The default baseline experiment had the lowest memory demands from all experiments, it needed only 2~GB
+The default baseline experiment had the lowest memory demand of all experiments, it needed only 2~GB
 of memory to finish.
 With non-default settings the memory consumption tripled when multiple cores were utilized (in \emph{multi-base}
 and \emph{comp-base} experiments), except for cases when it was dominated by the size of buffer dedicated
-to \texttt{sort} routine (in optimized experiments).
+to the \texttt{sort} routine (in optimized experiments).
 
 \Eppex{} memory demands are largely dependent on the amount of pruning requested: with \emph{zero}
 pruning almost 37~GB of memory was consumed, mild \emph{defensive} pruning required only half as much
@@ -220,20 +222,20 @@ because of the harsher limits, \emph{eppex 1:n+1} produced a half as big phrase 
 but since it had a smaller estimation error, it required 15\% more memory.
 
 The disk usage peak exceeded 200~GB in the baseline experiments without compression of
-\texttt{sort} temporary data, with the compression it lowered to approximately 40~GB
+\texttt{sort} temporary data, with compression it fell to approximately 40~GB
 (notably still above the memory peak of \eppex{} with no pruning).
 As noted before, \eppex{} produces no temporary data, therefore in all experiments the
 disk usage peaks strictly copied the size of the produced phrase tables.
 
-Finally, \Tref{cs-en-wmt13-sigfilter-runtime-benchmarks} presents the runtime benchmarking
-values for all the configurations of \texttt{sigfilter} tool.
-Even the simple histogram pruning required more time than any \eppex{} run with nonzero
-pruning limits.\footnote{This is partially due a design flaw in the \texttt{sigfilter} tool:
-the SALM-indexed corpus is always required to proceed, even though it is not necessary in
+Finally, \Tref{cs-en-wmt13-sigfilter-runtime-benchmarks} presents runtime benchmarking
+figures for all configurations of the \texttt{sigfilter} tool.
+Even a simple histogram pruning required more time than any pruning with the
+\eppex{}.\footnote{This is partially due a design flaw in the \texttt{sigfilter} tool:
+a SALM-indexed corpus is always required to proceed, even though it is not necessary in
 the case of histogram pruning. The unnecessary SALM indexing accounts for a large part
 of the reported wall clock time.}
-On the other hand, the memory demands of \emph{sigfilter}, although considerable, were
-always below those of \eppex{}.
+On the other hand, the significance pruning consumed considerably less memory than any
+of the epochal extractions performed.
 
 % Cs-En: sigfilter runtime requirements
 \begin{table}[ht]
@@ -251,20 +253,20 @@ sigfilter 30      & 2.5~h & 3.4~h & 2.7~GB & indexing \\
 \hline
 \end{tabular}
 \caption{\label{cs-en-wmt13-sigfilter-runtime-benchmarks}
-The complete benchmarking figures for various settings of \emph{sigfilter} in Cs-En setup:
-wallclock time, CPU usage value and virtual memory peak with the step, in which it occurred.}
+Benchmarking figures for various settings of \emph{sigfilter} in the Cs-En setup:
+wallclock time, CPU usage value and virtual memory peak with the phase in which it occurred.}
 \end{table}
 
 Also an interesting observation is that the optimized baseline phrase table construction
 (\emph{opt-c8-base}) took one hour less then the fastest significance filtering
 (\emph{sigfilter 30 a+e}).
 
-\section{Fr-En dataset}
+\section{The Fr-En dataset}
 \label{sec:fr-en-results}
 
-\Tref{fr-en-80-scenarios} presents the list of the basic experimental phrase table extraction
+\Tref{fr-en-80-scenarios} presents the list of the basic experimental phrase table extractions
 performed on the Fr-En dataset.
-On top of some of these basic experiments, we run discounting variants with either
+In addition to these basic experiments, we ran discounting variants with either
 \emph{Good-Turing} or \emph{Kneser-Ney} discounting, the full list is shown in \Tref{fr-en-80-smoothed-scenarios}.
 
 % Fr-En: description and parameters of experiments
@@ -286,7 +288,7 @@ eppex 2:n+2   & \eppex{} with \verb|--limits| set to \verb|1:2:3,2:2:4,...,7:2:9
 \hline
 \end{tabular}
 \caption{\label{fr-en-80-scenarios}
-List of the basic experiments and their settings for Fr-En setup.}
+List of the basic experiments and their settings for the Fr-En setup.}
 \end{table}
 
 In the case of baseline experiments, we had attempted all the configurations mentioned
@@ -298,8 +300,8 @@ We did not investigate the exact reason, but our raw guess is that the number of
 files reached some system-imposed limit, as there were thousands of temporary files left in
 the working directory after the sorting process died.
 
-The evaluated \eppex{} configurations are basically the same as in the case of Cs-En setup,
-we only included an additional, harsher configuration \emph{eppex 2:n+2}, in which all phrase
+The evaluated \eppex{} configurations are basically the same as in the case of the Cs-En setup,
+only that we included an additional, harsher configuration \emph{eppex 2:n+2}, in which all phrase
 pairs with true frequency count below~3 were pruned.
 
 % Fr-En: smoothed experiments
@@ -328,13 +330,13 @@ List of the Fr-En experiments run with discounting.}
 
 \Tref{fr-en-pt-size-and-bleu} presents phrase table sizes and BLEU scores for all
 distinct phrase tables created in the basic experiments.
-The baseline phrase table contained incredible 1.7~billions of phrase pairs,
+The baseline phrase table contained an incredible 1.7~billion phrase pairs,
 while the smallest phrase table produced by the harshest \eppex{} configuration
 was less than 5\% of that size.
-Despite this huge contrast in the phrase table sizes, the obtained BLEU scores
-were even more tight than in the case of Cs-En setup;
+Despite this huge contrast in phrase table sizes, the obtained BLEU scores
+were even tighter than in the case of the Cs-En setup;
 the differences between the best and the worst experiments were only 0.28~points
-and 0.37~points in case of the \emph{news-test2012} and \emph{news-test2013} sets
+and 0.37~points in the case of the \emph{news-test2012} and \emph{news-test2013} sets
 respectively.
 In fact, such small differences could be also attributed to the randomness of
 MERT.\footnote{We did not invest the computing resources necessary to estimate
@@ -362,10 +364,9 @@ eppex 2:n+2       &   77.0~M &  2.0~GB & 28.39 & 29.43 \\
 \hline
 \end{tabular}
 \caption{\label{fr-en-pt-size-and-bleu}
-Phrase table sizes and BLEU scores for the basic experiments on Fr-En setup.
+Phrase table sizes and BLEU scores for the basic experiments on the Fr-En setup.
 The \emph{eppex zero} configuration is not included, because the produced phrase table
-was the same as of the \emph{baseline}.
-}
+was the same as that of the \emph{baseline}.}
 \end{table}
 
 The \emph{eppex defensive} configuration scored best on the \emph{news-test2012} set,
@@ -373,10 +374,10 @@ but was closely followed by the \emph{sigfilter a+e} configuration that scored b
 the \emph{news-test2013} set.
 The slightly harsher variation \emph{sigfilter 30 a+e}, that not only pruned out
 all of the 1-1-1 phrase pairs, but also performed histogram pruning prior to
-the significance testing, performed nearly as well, indicating that the removal of
+significance pruning, performed nearly as well, indicating that the removal of
 1-1-1 phrase pairs did not hurt the quality of the baseline Fr-En translation model.
 This observation is further supported by the fact, that amongst the \eppex{} configurations,
-the \emph{1:n+1} configuration ranked as good as \emph{defensive}, although it produced more
+the \emph{1:n+1} configuration ranked as good as the \emph{defensive} configuration, although it produced a more
 than 3~times smaller phrase table and removed all the single-occurring phrase pairs.
 
 The BLEU scores obtained with translation models that had phrase translation probabilities
@@ -400,8 +401,8 @@ eppex 1:n+1   & 28.59 & 28.65 & \emph{28.53} & 29.53 & 29.56 & 29.78 \\
 \hline
 \end{tabular}
 \caption{\label{fr-en-smoothed-bleu}
-BLEU scores for the discounting experiments on Fr-En setup.
-The "none" columns shows the scores for runs without discounting, "GT" and "KN" columns
+BLEU scores for the discounting experiments on the Fr-En setup.
+The "none" columns show the scores for runs without discounting, "GT" and "KN" columns
 present scores obtained with Good-Turing and Kneser-Ney discounting respectively.}
 \end{table}
 
@@ -412,7 +413,7 @@ The highest improvement rates were observed in the baseline experiments (i.e. wi
 phrase tables), in a way confirming observations of \citet{johnson:sigfilter}:
 they had noticed that significance filtering of phrase tables can sometimes actually raise
 the BLEU score, but the effect is less prominent, if discounting is employed.
-The obtained results suggests that this observation holds for lossy-counted pruning as well.
+The obtained results suggest that this observation holds for lossy-counted pruning as well.
 
 \subsection{Memory and time requirements}
 
@@ -441,21 +442,21 @@ eppex 2:n+2   & 9.3 & 9.2 & -- & -- & -- & -- \\
 \end{tabular}
 \caption{\label{fr-en-time-benchmarks}
 Wallclock times and CPU usage values (in hours) of the phrase table
-construction for various experiments of Fr-En setup.
-The values of \emph{eppex 1:n+2} experiment were not properly measured.}
+construction for various experiments on the Fr-En setup.
+The values of the \emph{eppex 1:n+2} experiment were not properly measured.}
 \end{table}
 
 Again, \eppex{} was able to build the unpruned phrase table in almost twice
-as short time than the optimized baseline that run in parallel on 8~cores
-and use approximately the same amount of memory, as shown in \Tref{fr-en-vm-and-disk-usage-peaks}.
+as short a time than the optimized baseline that run in parallel on 8~cores
+and used approximately the same amount of memory, as shown in \Tref{fr-en-vm-and-disk-usage-peaks}.
 
 Since we only managed to accomplish the baseline extraction with the optimized
 configuration, the virtual memory peaks of baseline experiments were dominated by
 the size of memory buffer dedicated to the \texttt{sort} program.
 The epochal extraction without pruning consumed more than 200~GB of the memory,
-what was less than a half of RAM available on the exploited machine,
+which was less than a half of the RAM available on the machine used,
 but is a very considerable amount otherwise.
-However, even the mild \emph{defensive} pruning cut this demands to only $1/4$.
+However, even mild \emph{defensive} pruning cut this requirement to $1/4$.
 
 % Fr-En: virtual memory and disk usage peaks.
 \begin{table}[ht]
@@ -478,23 +479,23 @@ eppex 2:n+2    &  45.6~GB &      eppex &   2.0~GB \\
 \hline
 \end{tabular}
 \caption{\label{fr-en-vm-and-disk-usage-peaks}
-Virtual memory and disk usage peaks of the phrase table construction for various experiments of Fr-En setup.}
+Virtual memory and disk usage peaks of the phrase table construction for various experiments on the Fr-En setup.}
 \end{table}
 
 The monitored disk usage peaks of \eppex{} experiments were rounded up
-to multiples of two for some unknown reason, but this does not affected
+to multiples of two for some unknown reason, but this does not affect
 the overall picture.
 Despite being given a substantial memory buffer, the baseline still
-required a considerable temporary disk space, almost four times the
+required considerable temporary disk space, almost four times the
 actual phrase table size (42.5~GB).
 
 Finally, \Tref{fr-en-sigfilter-runtime-benchmarks} presents the runtime benchmarking
-values for different configurations of \texttt{sigfilter} tool.\footnote{Due a tight
-experiments schedule we run the \emph{sigfilter} experiments on Fr-En setup on the set of
-machines designated for Cs-En setup.}
+values for different configurations of the \texttt{sigfilter} tool.\footnote{Due a tight
+experiment schedule we run the \emph{sigfilter} experiments on the Fr-En setup on a set of
+machines designated for the Cs-En setup.}
 The observations are very similar to the corresponding ones in the Cs-En setup.
 Again, no significance filtering took less time than the optimized baseline phrase table
-construction (\emph{opt-c8-base}) and despite that the memory demands increased
+construction (\emph{opt-c8-base}) and despite the fact that the memory demands increased
 significantly, they were again below any of those of \eppex{}.
 
 % Fr-En: sigfilter runtime requirements
@@ -513,63 +514,63 @@ sigfilter 30      & 10.3~h & 13.8~h & 11.5~GB & indexing \\
 \hline
 \end{tabular}
 \caption{\label{fr-en-sigfilter-runtime-benchmarks}
-Wallclock times and CPU usage values, virtual memory peak value and the step,
-in which it occurred, of significance filtering for various settings of \emph{sigfilter} in Fr-En setup.}
+Benchmarking figures for various settings of \emph{sigfilter} in the Fr-En setup:
+wallclock time, CPU usage value and virtual memory peak with the phase in which it occurred.}
 \end{table}
 
-\section{Comparison to 2011 version}
+\section{Comparison to the 2011 version}
 \label{sec:cu-bojar-results}
 % Comparison of current eppex and phrase-extract performance vs. mid-2011 state
 
 \citet{przywara:eppex} presented an evaluation of an early version of \eppex{}
-that was able to only extract phrases. It performed a faster phrase
+that was only able to extract phrases. It performed a faster phrase
 table creation than the legacy \emph{phrase-extract} in such situations,
 where lossy counting resulted in significant filtration of extracted phrase
-pairs and consequent sub-steps (sorting, scoring and consolidation of both
-phrase table halves) had to process reduced amount of data;
-eventually the whole process of phrase table creation finished faster.
+pairs and the consequent sub-steps (sorting, scoring and consolidation of both
+phrase table halves) had to process a reduced amount of data;
+with the result that the whole process of phrase table creation finished faster.
 
 As we had all the parallel data used in their experiments available and
-we perform our runtime benchmarking in almost identical manner,
-we decided to carry out comparison between the early and current versions of
-both \eppex{} as well as \emph{phrase-extract} toolkit.
+we performed our runtime benchmarking in an almost identical manner,
+we decided to carry out a comparison between the early and current versions of
+both versions of \eppex{} as well as the \emph{phrase-extract} toolkit.
 
 \subsection{Implementation differences}
 
-The current version of \eppex{} differs from the early version mainly in the
-capability of performing not only phrase pairs extraction, but a complete
-phrase table construction (that is including phrase pairs scoring).
+The current version of \eppex{} differs from the early version mainly in its
+capability of performing not only phrase pair extraction, but a complete
+phrase table construction (that is including phrase pair scoring).
 The early version, however, could be used to extract orientation info
 the same way \emph{extract} can, while this functionality has been dropped
 from the current version as not related to the core task of phrase table creation.
-Following the upgrade of \emph{phrase-extract} suite, an option to read from
+Following the upgrade of the \emph{phrase-extract} suite, an option to read from
 gzipped input files and dump gzipped output files has been added to \eppex{}.
 Internally, there have been a multitude of performance tweaks,
 as performance optimization is the most important aim in \eppex{} development,
 but a full listing of implementation changes would be purposeless here.
 
-On the contrary, \emph{phrase-extract} suite has been updated mainly in order to
+On the contrary, the \emph{phrase-extract} suite has been updated mainly in order to
 provide a richer functionality, but three changes since the mid-2011 version
-had a sound impact on its runtime performance: the optimization of target phrases
-scanning in the \emph{scorer} implementation,\footnote{Commit 677378774aca30c8f0d4ca57267f7ac5ef7d7cb6.}
+had a significant impact on its runtime performance: the optimization of target phrase
+scanning in \emph{scorer} implementation,\footnote{Commit 677378774aca30c8f0d4ca57267f7ac5ef7d7cb6.}
 adding an option to gzip the output directly within the main three binaries
 (\emph{extract}, \emph{scorer} and \emph{consolidate})
 and the parallelization of both phrase extraction and phrase scoring
-steps.\footnote{See \texttt{extract-parallel.perl} and \texttt{score-parallel.perl}
+phases.\footnote{See \texttt{extract-parallel.perl} and \texttt{score-parallel.perl}
 in \texttt{<moses>/scripts/generic/}.}
 
 \subsection{Parameters of experiments}
 
 \Tref{cu-bojar-scenarios} presents all the experiments and their settings.
 Again, we have included one more optimized baseline with 7 cores, because
-the achieved speeding up is considerable.
+the acceleration achieved is considerable.
 The \emph{default baseline} is invoked with the same parameters as the \emph{2011
 baseline}, except for an option that turns on gzipping of temporary data and
-phrase table that is now implicitly activated from within the training script.
+the phrase table that is now implicitly activated from within the training script.
 Because of this, we also turn \verb|--GZOutput| on for all \eppex{} runs.
 We experimented with different pruning parameters: \emph{eppex-1-in} (milder
-pruning) and \emph{eppex-1-out} (harsher pruning) are using the same pruning
-parameters as the 2011 experiments and we also performed \emph{eppex zero}
+pruning) and \emph{eppex-1-out} (harsher pruning) use the same pruning
+parameters as the 2011 experiments and we also performed an \emph{eppex zero}
 experiment (an \eppex{} run with no pruning).
 
 % Detailed info of cu-bojar experiments
@@ -598,7 +599,7 @@ eppex 1-out     & \eppex{} with pruning thresholds set to remove
 \hline
 \end{tabular}
 \caption{\label{cu-bojar-scenarios}List of various experiments and their
-settings for "cu-bojar" setup. The parameters of "eppex 1-in" and "eppex 1-out"
+settings for the "cu-bojar" setup. The parameters of "eppex 1-in" and "eppex 1-out"
 conform to the corresponding 2011 experiments, "def-base" corresponds to the 2011
 "baseline" experiment except for (now activated implicitly) gzipping of
 temporary data.}
@@ -622,24 +623,24 @@ temporary data.}
 %  j) gzip pt
 
 \Tref{cu-bojar-time-benchmarks} compares wallclock times and CPU usage of all the
-experiments and in case of baseline and 2011 experiments also separately for phrase
-extraction and phrase scoring steps.
+experiments and in the case of the baseline and 2011 experiments also separately for phrase
+extraction and phrase scoring phases.
 
 The comparison between the old and current baselines reveals that the optimization of
-\emph{scorer} mentioned above resulted in a speed up by more than a factor of two.
-On the other hand the default phrase extraction became slightly more time demanding,
+\emph{scorer} mentioned above resulted in an increase in speed of more than a factor of two.
+On the other hand default phrase extraction became slightly more time consuming,
 but this may be explained by the fact that parallelization incurred some overhead
 that does not pay back when running only with a single core, but significantly cuts
 down the running time when using multiple cores: in our setup using 7~cores (along with
-more memory for sorting) lowered time of phrase extraction to 40\% and of phrase scoring
+more memory for sorting) lowered the time of phrase extraction to 40\% and of phrase scoring
 to almost 50\% of respective default measures.
 
-The comparison between 2011 and current version of \eppex{} also displays a significant
-speed up: with harsh pruning the phrase table construction is done in half an hour (took
+The comparison between 2011 and the current version of \eppex{} also displays a significant
+increase in speed: with harsh pruning the phrase table construction is done in half an hour (took
 almost two hours in 2011) and without any pruning the full phrase table was built in
 less than hour and half, thus \eppex{} proves to be a viable alternative to
-\emph{phrase-extract} also in situations, when pruning is not an option (being twice as
-fast than the optimized baseline).
+\emph{phrase-extract} also in situations when pruning is not an option (being twice as
+fast as the optimized baseline).
 
 \begin{table}[ht]
 \centering
@@ -665,16 +666,16 @@ eppex 1-out   & 0.5 & 0.5 & -- & -- & -- & -- \\
 \hline
 \end{tabular}
 \caption{\label{cu-bojar-time-benchmarks}
-Wallclock times and CPU usage values (in hours) of the phrase table
-construction for various experiments of "cu-bojar" setup.
-Asterisk denotes the particular measures from 2011 experiments.}
+Wallclock times and CPU usage values (in hours) of phrase table
+construction for various experiments of the "cu-bojar" setup.
+An asterisk denotes measurements from the 2011 experiments.}
 \end{table}
 
 \Tref{cu-bojar-vm-and-du-peaks} presents memory and disk usage peaks of all the experiments
-(except for disk usage peaks that are not available for 2011 experiments).
+(except for disk usage peaks that are not available for the 2011 experiments).
 
 Memory demands of the baseline remain low, the 0.1~GB difference between 2011 and now
-stems from the fact that our benchmarking script includes the main process into the set of
+stems from the fact that our benchmarking script includes the main process in the set of
 measured processes.
 An optimized baseline is the most memory demanding, but this is only because we assigned 12~GB
 of RAM to the sorting processes and both phrase table halves are sorted simultaneously after
@@ -684,8 +685,8 @@ Memory demands of the current version of \eppex{} are significantly lower than o
 in 2011, the harsh pruning setup required as much memory as the current version run without
 any pruning at all.
 
-The disk peak usage is significantly reduced in \emph{compressed} baseline, but rises almost to
-default levels in optimized baselines, despite the \verb|--sort-compress| option has been applied
+The disk usage peak is significantly reduced in the \emph{compressed} baseline, but rises almost to
+default levels in optimized baselines, despite the fact that the \verb|--sort-compress| option has been applied
 to them as well.
 We do not poses sufficient knowledge of the inner workings of \emph{GNU sort}, therefore we do not
 attempt to give an explanation of this peculiar behavior.
@@ -713,35 +714,35 @@ eppex 1-out   & 11.3~GB &  0.3~GB \\
 \hline
 \end{tabular}
 \caption{\label{cu-bojar-vm-and-du-peaks}
-Virtual memory and disk usage peaks of the phrase table construction for various experiments
-of "cu-bojar" setup. Asterisk denotes the particular measures from 2011 experiments.}
+Virtual memory and disk usage peaks in phrase table construction for various experiments
+of the "cu-bojar" setup. An asterisk denotes measurements from the 2011 experiments.}
 \end{table}
 
-\section{Memory demands of eppex}
+\section{The memory demands of eppex}
 \label{sec:eppex-memory-demands}
 
 We assessed the memory demands of \eppex{} by a procedure described in \Sref{sec:memory-benchmarking}.
-The comprehensive tables with virtual memory peaks and phrase tables sizes for the benchmarked
+The comprehensive tables with virtual memory peaks and phrase table sizes for the benchmarked
 configurations of \eppex{} are appended in \Aref{chap:benchmarking-tables}; here, we are going
 to comment on some of the more interesting figures.
 
-\subsection{Cs-En dataset}
+\subsection{The Cs-En dataset}
 
-The Czech-English translation model was built with two factors: truecased token and
-morphological tag.
-In the whole data, there were in average 14~Czech and 16.5~English words per sentence,
-and also each of the batches had a similar average sentence length.
-The phrase-pairs-per-sentence ratio was close to 22.\footnote{This ratio simply express
+The Czech-English translation model was constructed with two factors: a truecased token and
+a morphological tag.
+In the whole data, there were on average 14~Czech and 16.5~English words per sentence,
+and each of the batches had average sentence length close to the overall average.
+The phrase-pairs-per-sentence ratio was close to 22.\footnote{This ratio simply expresses
 how many unique phrase pairs were on average contributed by each parallel sentence in
 the corpus.}
 
-\Fref{fig:cs-en-vm-peaks} presents the virtual memory peaks measured on three most varying
-configurations of \eppex{} scenario (the complete figures are part of \Tref{cs-en-memory-benchmarking}):
+\Fref{fig:cs-en-vm-peaks} presents the virtual memory peaks measured on the three most varying
+configurations of the \eppex{} scenario (the complete figures are part of \Tref{cs-en-memory-benchmarking}):
 \emph{eppex zero} with no Lossy Counter instantiated,
 \emph{eppex def.} with three Lossy Counters instantiated and \emph{eppex 0:n} with
 a separate Lossy Counter instantiated for each phrase length.
 Judging by the shapes of curves connecting the points with measurements, there seems to be
-a close-to-linear correlation between the training data size and virtual memory peak in all
+a close-to-linear correlation between the training data size and the virtual memory peak in all
 three cases.
 
 \begin{figure}[!htb]
@@ -756,12 +757,12 @@ three cases.
 This observation inspired us to take a look onto the possibility of predicting the memory
 demands of the epochal extraction.
 Specifically, we were curious, if a virtual memory peak quickly determined by running
-\eppex{} on some subset of the training data make it possible to predict the amount of
+\eppex{} on some subset of the training data made it possible to predict the amount of
 memory required to process the whole data.
 
-For each batch of size $K$ with the virtual memory peak $vm_{K}$ we evaluated the predicted virtual
+For each batch of size $K$ with a virtual memory peak $vm_{K}$ we evaluated the predicted virtual
 memory peak as: $pred_{K} = vm_{K} / K \times N$, where $N$ is the size of the whole
-data.\footnote{Assuming the linear correlation, the ratio $vm_{K} / K$ is an estimation of the linear coefficient.}
+data.\footnote{Assuming a linear correlation, the ratio $vm_{K} / K$ is an estimation of the linear coefficient.}
 We then calculated the error of prediction $pred_{K}$ as the normalized difference between
 the prediction and true virtual memory peak $vm_{real}$: $err_{K} = (pred_{K} - vm_{real}) / vm_{real}$.
 \Fref{fig:cs-en-vm-peak-prediction} presents the error values for subsets of increasing size
@@ -778,14 +779,14 @@ expressed as percentages.
 \end{figure}
 
 With all three configurations, the prediction errors had a very similar course: predictions on small
-subsets were strongly overestimated, but the error continually declined with the increasing ratio
-of the training data used.
+subsets were strongly overestimated, but the error continually declined as the ratio
+of the training data used increased.
 A decent prediction, overestimating the total VM peak by no more than 20\%, was possible based on $1/4$
 of the training data.
 
-\subsection{Fr-En dataset}
+\subsection{The Fr-En dataset}
 
-The French-English training data contained only a single factor: input token in lowercase.
+The French-English training data contained only a single factor: an input token in lowercase.
 There were on average 30~French and 25.5~English tokens per sentence in the whole data,
 but in most of the batches the averages were below these values (down to 25.5~tokens
 per sentence in the case of French and 24~tokens per sentence in the case of English).
@@ -793,15 +794,15 @@ Compared to the Cs-En dataset, the sentences were on average almost twice as lon
 likewise the phrase-pairs-per-sentence ratio was twice as large, almost~46 in the case of
 unpruned phrase table.
 
-In the case of Fr-En data, we decided to point out the differences between the memory demands
-and the output sizes of three \eppex{} configurations instantiated with a separate Lossy Counting
+In the case of the Fr-En data, we decided to point out the differences between the memory demands
+and the output sizes of three \eppex{} configurations instantiated with separate Lossy Counting
 instances for each phrase length, as two of them have the same error margin and two of them
 prune with the same negative limit.
 
 \Fref{fig:fr-en-vm-peaks} illustrates the influence of error margin on \eppex{} memory demands
 (the complete figures are part of \Tref{fr-en-memory-benchmarking}).
 Both \emph{eppex 0:n} and \emph{eppex 1:n+1} configurations have the same error margins and
-their memory demands closely follow each other, with the latter having a bit lower memory
+their memory demands closely follow each other, with the latter having bit lower memory
 peaks, because of the harsher pruning.
 
 \begin{figure}[!htb]
@@ -813,8 +814,8 @@ peaks, because of the harsher pruning.
   \label{fig:fr-en-vm-peaks}
 \end{figure}
 
-Despite that \emph{eppex 0:n} and \emph{eppex 1:n+1} have a similar memory demands, their outputs
-differ significantly, as \Fref{fig:fr-en-phrase-table-sizes} presents (the complete figures are part
+Despite the fact that \emph{eppex 0:n} and \emph{eppex 1:n+1} have similar memory demands, their outputs
+differ significantly, as \Fref{fig:fr-en-phrase-table-sizes} shows (the complete figures are part
 of \Tref{fr-en-output-size-benchmarking}).
 The \emph{eppex 1:n+1} configuration pruned off all the singletons, so it consistently
 produced phrase tables substantially smaller than the \emph{eppex 0:n} configuration.
@@ -833,9 +834,9 @@ because in both cases it is determined by the common negative limit.
 One more observable phenomenon is the clearly visible plateau in the plot of phrase table sizes
 obtained by the \emph{eppex 0:n} configuration on the range of input sizes from 25~M to 35~M parallel sentences.
 A quick examination of the figures in \Tref{fr-en-output-size-benchmarking} confirms that, indeed, with
-the \emph{eppex 0:n} configuration, 268~M of phrase pairs is extracted from 25~M of parallel sentences,
-but only 1~M more is extracted from the additional 5~M of sentences and 2~M more from the additional
-10~M of sentences.
+the \emph{eppex 0:n} configuration, 268~million phrase pairs is extracted from 25~million parallel sentences,
+but only 1~million more is extracted from the additional 5~million sentences and 2~million more from the additional
+10~million sentences.
 
 The origin of this peculiarity lies in the great amount of phrase pairs with counts in the error
 margin zone, i.e. phrase pairs that are neither guaranteed to be removed nor retained.
@@ -843,11 +844,11 @@ If such a phrase pair happened to be extracted from a batch of a certain size, b
 additional occurrences in the batch of increased size, then the likelihood of its extraction
 goes down.
 
-Since our corpus was created from a several smaller corpora and we did not shuffle the sentences,
+Since our corpus was created from several smaller corpora and we did not shuffle the sentences,
 it is likely that the distribution of extracted phrase pairs rapidly changed as a result of data
 coming from a different parallel corpus and, consequently, the amount of phrase pairs in the error zone,
 that happened to be pruned, massively increased.
 
-Nevertheless, the definition of Lossy Counting limits guarantees that,
-whenever the limits are fixed, adding more items to the input stream results in at least
-as many phrase pairs extracted as from the non extended stream.
+Nevertheless, the definition of Lossy Counting limits guarantees that
+whenever the limits are fixed adding more items to the input stream results in at least
+as many phrase pairs being extracted as from the non extended stream.

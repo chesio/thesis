@@ -5,15 +5,15 @@
 \epigraph{This page is in Czech. Would you like to translate it?}{--- Google}
 
 % A catchy intro.
-It would make for a nice brain-teasing question, of which job interviewers
+It would make for a nice brain-teasing question, for which job interviewers
 at Google are famous,\footnote{For the actual tricky questions and puzzles
 asked by Google interviewers I recommend reading the book "Are You Smart
 Enough to Work at Google?" by William Poundstone.} to ask:
-"How many bilingual elves would Google had to employ in order to translate
+"How many bilingual elves would Google have to employ in order to translate
 all the words, sentences and web pages that are send to Google Translate
 service every day?"\footurl{http://translate.google.com}
-Obviously, it would be a hypothetical one. No bilingual elves are involved
-in translation of the bunch of texts send to Google Translate each day.
+Obviously, it would be a hypothetical question. No bilingual elves are involved
+in the translation of the cornucopia of texts send to Google Translate each day.
 And no human translators either: Google Translate is fully implemented using
 computer software only.
 
@@ -23,8 +23,8 @@ The approach Google Translate uses to deliver translations is described as
 or development of computer software capable of fully automated translation
 of text or speech from one natural language to another.
 The words "fully automated" are important here as machine translation should
-not be confused with approaches that only aims to design computer programs
-helping human translators to work more efficiently: these are typically
+not be confused with approaches that only aim to design computer programs
+to help human translators to work more efficiently: these are typically
 referred to as computer-aided translation (CAT) systems.
 
 % A brief look into history.
@@ -36,23 +36,23 @@ memorandum suggested:
 something to the solution of the world-wide translation problem through the use
 of electronic computers of great capacity, flexibility, and speed.
 \end{quote}
-The outset of the MT field in the 1950s has been marked with immense optimism,
-leading to prognoses that machine translation would be a solved problem within
-a few years \citep{hutchins:mt}, but they quickly proved to be unrealistic and
+The outset of the MT field in the 1950s was marked by immense optimism,
+leading to prognoses that machine translation would be a problem solved within
+a few years \citep{hutchins:mt}, but these quickly proved to be unrealistic and
 even nowadays no system exists that has reached the holy grail of machine translation:
 \emph{fully automatic high quality translation of unrestricted text}.
 
 % Introduce SMT. Slightly inspired by Preface of Koehn's book.
-However, the last 25~years have been very prolific for the MT.
+However, the last 25~years have been highly prolific for MT.
 A new paradigm arose, not only in MT but in natural language processing
-field in general, that employs automatic discovery of principles that
-rules human languages (and translation between them) by collecting
-statistics over the data rather than explicit definition of such rules
+field in general, that employs automatic discovery of the principles that
+rule human languages (and translation between them) by collecting
+statistics over the data rather than by the explicit definition of such rules
 by human experts.
 In \emph{statistical machine translation} (SMT) these statistics are
-collected by pairing the input and output side of the translation process.
+collected by pairing the input and output sides of the translation process.
 Co-occurrences of \emph{atomic units of translation} are used to
-estimate parameters of a statistical model that is afterwards used to
+estimate the parameters of a statistical model that is afterwards used to
 search for the most probable translation given the input text.
 The atomic units of translation are typically words or phrases and
 the respective systems are referred to as \emph{word-based} or
@@ -61,13 +61,13 @@ exclusively used to refer to any short sequence of words and bears no
 implicit linguistic notion.}
 
 % Introduce phrase table.
-Phrase-based systems internally utilize a table consisting of pairs of
+Internally phrase-based systems utilize a table consisting of pairs of
 phrases, one being the phrase from the source language and the other
-being the phrase from the target language, and various scores assigned to
+being the phrase from the target language, with various scores assigned to
 these pairs by the statistical model.
 This table acts as a dictionary, listing all possible translations of phrases
-in one language into phrases in another language along with indication of
-quality of such translation expressed by the scores, and is usually referred
+in one language into phrases in another language along with an indication of
+the quality of such a translation expressed by the scores, and is usually referred
 to as \emph{phrase translation table} or just \emph{phrase table}.
 Any reasonable measure can be used as a phrase table score, but a de facto
 standard is to use \emph{maximum likelihood probability} of the target language
@@ -76,71 +76,71 @@ phrase given the source language phrase and vice versa.
 % Sketch the problem (partially copy-pasted from eppex paper).
 To estimate maximum likelihood probabilities, \emph{frequency counts} of source
 phrases, target phrases and all their co-occurrences must be collected from
-the entire parallel corpus.
-For substantial coverage of source and target languages, such corpus is often
+an entire parallel corpus.
+For substantial coverage of source and target languages, such a corpus is often
 very big and in consequence all phrase pairs and their counts cannot fit in
 the physical memory of the computer.
 To overcome this limitation, phrase table construction methods often simply
-dump observed phrases to local disk and sort and count them on disk.
-This approach allows to construct phrase tables of size limited only by
+dump observed phrases to a local disk and sort and count them on the disk.
+This approach allows the construction of phrase tables of a size limited only by
 the capacity of the disk, with an obvious drawback that much more time is
 needed to build the table.
 
 % Underline the urgency of the problem.
-In recent years the amount of available parallel data increased significantly,
+In recent years the amount of available parallel data has increased significantly,
 but the more data is exploited in the process of MT system training,
-the more computational resources are necessary for handling of phrase tables:
+the more computational resources are necessary for the handling of phrase tables:
 large phrase tables not only make translation models expensive to store and process,
-but can even pose a challenging problem for further utilization of the system
-(e.g. in case of handheld devices or in otherwise constrained environments).
+but can even pose a challenging problem for the further utilization of the system
+(e.g. in the case of handheld devices or in otherwise constrained environments).
 
 % Introduce the idea of phrase table pruning.
-This arising problem attracted attention of MT researchers and several methods
+This mounting problem attracted the attention of MT researchers and several methods
 of \emph{phrase table pruning} have been proposed.
-The phrase table pruning methods are typically based on some pruning criterion
-that is activated with a user-defined threshold, but it is often possible to instead
-set a cutoff limit to remove given bottom-ratio of phrase pairs and thus have a finer
+Phrase table pruning methods are typically based on some pruning criteria
+that are activated with a user-defined threshold, but it is often possible instead to
+set a cutoff limit to remove any given bottom-ratio of phrase pairs and thus have finer
 control over the degree of pruning.
 
 % A systematic comparison of phrase table pruning techniques.
 A recent work by \citet{zens:systcomp} presented a systematic description of existing
-phrase table pruning techniques and also stated desiderata for a good phrase table pruning
+phrase table pruning techniques and also stated desiderata for any good phrase table pruning
 criterion:
 \begin{itemize}
   \item \emph{Soundness} -- the criterion should optimize some established
     information-theoretic measure of translation model quality.
-  \item \emph{Efficiency} -- pruning should be fast (linear in the size of the phrase table).
+  \item \emph{Efficiency} -- pruning should be fast (linear to the size of the phrase table).
   \item \emph{Self-containedness} -- pruning should use only information contained in the model
   (the phrase table) itself.
   \item \emph{Good empirical behavior} -- the criterion should be capable of pruning large parts
     of the phrase table without significant loss in translation quality.
 \end{itemize}
 
-These desiderata also served as a motivation for a proposal of a novel pruning method introduced
+These desiderata also served as a motivation for a proposal for a novel pruning method introduced
 in their work: \emph{relative entropy pruning} reportedly outperforms all the existing methods and
 achieves consistently high savings between 85\% and 95\% of phrase pairs removed from the phrase
-table with only a negligible losses in automatic measure of translation quality, the so-called
+table with only negligible losses in the automatic measure of translation quality, the so-called
 BLEU score \citep{papineni:bleu}.
 
-From the perspective of this work it is worth to note that all the established pruning methods
-mentioned by \citet{zens:systcomp} operates on complete phrase tables, i.e. no method attempts
-to prune phrase pairs immediately in the process of their extraction from parallel corpus.
+From the perspective of this work it is worth noting that all the established pruning methods
+mentioned by \citet{zens:systcomp} operate on complete phrase tables, i.e. no method attempts
+to prune phrase pairs immediately in the process of their extraction from the parallel corpus.
 
 \section{Aim of this work}
 
 % Introduce our solution.
-In this work, we examine capability of an algorithm that delivers approximate
-frequency counts over stream of input items \citep{manku:lossycounting} to
-work as on-the-fly filter applied to the phrase pairs extraction,
+In this work, we examine the capability of an algorithm that delivers approximate
+frequency counts over a stream of input items \citep{manku:lossycounting} to
+work as an on-the-fly filter applied to phrase pairs extraction,
 essentially speeding up the whole process and eliminating the need for
-any post-filtering of created phrase table.
+any post-filtering of the phrase table created.
 This approach has already been demonstrated as applicable by \citet{przywara:eppex}
 and this thesis is a direct follow-up of that effort.
 
 % What's our goal that should be confronted against in conclusions?
 The ultimate goal of this work is to implement a software tool that performs
-the filtrated phrase table construction using aforementioned algorithm.
-A successful implementation should allow to process parallel corpora of
+the filtrated phrase table construction using the afore-mentioned algorithm.
+A successful implementation should allow the processing of parallel corpora of
 significant sizes (tens of millions of sentences) with memory demands manageable
 by physical memories available on present computation servers (tens of GBs).
 Beside the implementation and its detailed description, the crucial part of
@@ -155,7 +155,7 @@ and developers \citep{koehn:moses}.\footurl{http://www.statmt.org/moses/}
 
 \section{Thesis outline}
 
-We start with more detailed introduction to the phrase-based SMT,
+We start with a more detailed introduction to the phrase-based SMT,
 carefully describe the process of phrase translation table construction
 and mention some of the existing pruning methods and their available
 implementations.
@@ -169,16 +169,16 @@ phrase table extraction tool, \emph{epochal extractor} (or shortly \eppex{}).
 Notably, various memory-management optimizations are mentioned.
 
 To assess \eppex{} usability in real world applications, we carried out a set
-of carefully crafted experiments aiming at comparison of resources usage as well as
+of carefully crafted experiments aimed at a comparison of resource usage as well as
 the ultimate translation quality of \eppex{} and some of the methods described
 in \Cref{chap:phrase-based}.
-The detailed design of experiments is the subject of \Cref{chap:experiments},
+The detailed design of these experiments is the subject of \Cref{chap:experiments},
 while the results are discussed in \Cref{chap:results}.
 
-In the final chapter, we comment on our results and provide a conclusion of
-what has been done and what can be done in the future work on this topic.
+In the final chapter, we comment on our results and draw conclusions from
+what has been done and what can be done in future work on this topic.
 
-In \Aref{chap:installation}, we give the instructions on how to get \eppex{} working on Linux machines.
+In \Aref{chap:getting-eppex}, we give instructions on how to get \eppex{} working on Linux machines.
 
 In \Aref{chap:usage}, all the program options of \eppex{} are explained with examples of their usage.
 

@@ -1,17 +1,17 @@
 \chapter{Benchmarking tables}
 \label{chap:benchmarking-tables}
 
-This appendix contains the full tables with memory benchmarking results and
+This appendix contains complete memory benchmarking results and
 phrase table sizes obtained by the procedure described in \Sref{sec:memory-benchmarking}.
 
-Figures below display a graphical overview of the virtual memory peaks measured on the Cs-En setup
+Figures below display graphical overviews of the virtual memory peaks measured on the Cs-En setup
 (\Fref{fig:cs-en-vm-peaks-summary}) and the Fr-En setup (\Fref{fig:fr-en-vm-peaks-summary}).
 
 \begin{figure}[!htb]
   \centering
   \input{summary-cs-en-vm-peaks}
   \caption{
-    A plot of the virtual memory peaks of several \eppex{} configurations invoked on subsets of the Cs-En training data.
+    Plot of the virtual memory peaks of several \eppex{} configurations invoked on subsets of the Cs-En training data.
   }
   \label{fig:cs-en-vm-peaks-summary}
 \end{figure}
@@ -20,7 +20,7 @@ Figures below display a graphical overview of the virtual memory peaks measured 
   \centering
   \input{summary-fr-en-vm-peaks}
   \caption{
-    A plot of the virtual memory peaks of several \eppex{} configurations invoked on subsets of the Fr-En training data.
+    Plot of the virtual memory peaks of several \eppex{} configurations invoked on subsets of the Fr-En training data.
   }
   \label{fig:fr-en-vm-peaks-summary}
 \end{figure}
@@ -73,10 +73,10 @@ full & 220~M & 253~M & 36.8~GB & 18.1~GB & 10.5~GB & 8.4~GB & 9.6~GB \\
 \hline
 \end{tabular}
 \caption{\label{cs-en-memory-benchmarking}
-Virtual memory peaks of the phrase table construction performed with
-various configurations of \eppex{} run on portions of Cs-En dataset.
-The input data size triple stands for: number of parallel sentences and number of words on the source and target side.
-The full corpus had almost 15.5~M of parallel sentences.}
+Virtual memory peaks of phrase table construction performed with
+various configurations of \eppex{} run on portions of the Cs-En dataset.
+The input data size column lists the number of parallel sentences and the number of words on the source and target sides.
+The full corpus had almost 15.5~M parallel sentences.}
 \end{table}
 
 % Output size benchmarking table for Cs-En
@@ -124,10 +124,9 @@ full & 220~M & 253~M & 336~M & 110~M & 86.2~M & 67.9~M & 25.7~M \\
 \hline
 \end{tabular}
 \caption{\label{cs-en-output-size-benchmarking}
-Phrase table sizes (in phrase pairs) obtained with various configurations of \eppex{}
-on portions of Cs-En dataset. The input data size triple stands for: number of
-parallel sentences and number of words on the source and target side.
-The full corpus had almost 15.5~M of parallel sentences.}
+Phrase table sizes (in phrase pairs) obtained with various configurations of \eppex{} on portions of the Cs-En dataset.
+The input data size column lists the number of parallel sentences and the number of words on the source and target sides.
+The full corpus had almost 15.5~M parallel sentences.}
 \end{table}
 
 \openright
@@ -174,10 +173,10 @@ full & 1173~M & 1001~M & 203~GB & 89.9~GB & 48.7~GB & 46.4~GB & 37.7~GB \\
 \hline
 \end{tabular}
 \caption{\label{fr-en-memory-benchmarking}
-Virtual memory peaks of the phrase table construction performed with
-various configurations of \eppex{} on portions of Fr-En dataset.
+Virtual memory peaks of phrase table construction performed with
+various configurations of \eppex{} run on portions of the Fr-En dataset.
 The input data size triple stands for: number of parallel sentences and number of words on the source and target side.
-The full corpus had more than 39~M of parallel sentences.}
+The full corpus had almost 39~M parallel sentences.}
 \end{table}
 
 % Output size benchmarking table for Fr-En
@@ -221,8 +220,7 @@ full & 1173~M & 1001~M & 1782~M & 463~M & 283~M & 128~M & 106~M \\
 \hline
 \end{tabular}
 \caption{\label{fr-en-output-size-benchmarking}
-Phrase table sizes (in phrase pairs) obtained with various configurations of \eppex{}
-on portions of Fr-En dataset. The input data size triple stands for: number of
-parallel sentences and number of words on the source and target side.
-The full corpus had more than 39~M of parallel sentences.}
+Phrase table sizes (in phrase pairs) obtained with various configurations of \eppex{} on portions of the Fr-En dataset.
+The input data size column lists the number of parallel sentences and the number of words on the source and target sides.
+The full corpus had almost 39~M parallel sentences.}
 \end{table}

@@ -1,4 +1,4 @@
-\chapter{Lossy Counting algorithm}
+\chapter{The Lossy Counting algorithm}
 \label{chap:lossy-counting}
 
 \setlength{\epigraphwidth}{1.0\textwidth}
@@ -6,33 +6,33 @@
 
 The \emph{Lossy Counting (LC) algorithm} \citep{manku:lossycounting} is
 a deterministic algorithm that computes approximate frequency counts
-over virtually infinite stream of input items.
+over a virtually infinite stream of input items.
 Although the counts are approximate, the error is guaranteed not to exceed
 a user-specified parameter.
 
-The algorithm has been initially developed to help with identification of
+The algorithm was initially developed to help with the identification of
 large network flows that is essential to network monitoring, but poses a big
-computational problem due to the variability of monitored packets and limited
+computational problem due to the variability of monitored packets and the limited
 memory of networking hardware.
 The specific design of the algorithm results in repeated pruning of low frequent
 items from the frequency counts list, as the algorithm runs, and thus maintains
-this list small-sized, but in the same time ensures that high frequent items are
+this list small-sized, but at the same time ensures that high frequent items are
 retained (and identified).
 
 Many statistically-driven methods of natural language processing internally
 employ the same kind of process: they gather frequency counts over a set of highly
-variable items in order to estimate the properties of statistical model they are
+variable items in order to estimate the properties of the statistical model they are
 based on.
-Thus, the idea to use Lossy Counting algorithm in the field of NLP is not new:
+Thus, the idea of using the Lossy Counting algorithm in the field of NLP is not new:
 \citet{goyal:streaminglm} used approximate n-gram frequency counts to build language
 models from billion-word monolingual corpora using a conventional desktop machine and
-applied these models successfully in SMT system achieving no significant loss in BLEU
+applied these models successfully in an SMT system achieving no significant loss in BLEU
 score. We shall note that their work particularly inspired this thesis.
 
 \section{Definition}
 \label{sec:lossy-counting-definition}
 
-At its initialization, Lossy Counting algorithm expects to be given two parameters:
+On initialization, the Lossy Counting algorithm expects to be given two parameters:
 \emph{support} $s \in (0,1)$ and \emph{error} $\epsilon \in (0,1)$, such
 that $\epsilon \ll s$.
 At any point of time, after being fed with $N$ items from the stream,
@@ -43,7 +43,7 @@ frequencies. It is guaranteed that:
   (\emph{no false negatives}).\footnote{\citet{manku:lossycounting} formulates this
     guarantee using term "exceeds", but from the definition of the algorithm and
     the supportive lemmas it is clear that the guarantee can be safely formulated with
-    "is greater or equal to" assertion -- proof is given in \Sref{sec:positive-limit-validity}.}
+    an "is greater or equal to" assertion -- proof is given in \Sref{sec:positive-limit-validity}.}
  \item No item whose true frequency is less than $(s - \epsilon)N$ is output
   (\emph{few false positives}).
  \item Estimated frequencies are less than the true frequencies by at most
@@ -51,7 +51,7 @@ frequencies. It is guaranteed that:
  \item The space used by the algorithm is $O\big(\frac{1}{\epsilon}~log(\epsilon N)\big)$.
 \end{itemize}
 
-Conceptually, Lossy Counting algorithm divides the incoming stream of items
+Conceptually, the Lossy Counting algorithm divides the incoming stream of items
 into epochs\footnote{In the original paper the term "buckets" is used.}
 of fixed size $w = \lceil \frac{1}{\epsilon} \rceil$
 (thus the name \emph{epochal extraction}).
@@ -66,11 +66,11 @@ Initially, $D$ is empty.
 When a new item $e$ arrives, a lookup for $e$ in $D$ is performed.
 If $e$ is already present, its frequency $f$ is incremented by one.
 Otherwise a new triple ($e$, 1, $I-1$) is added to $D$,
-where $I$ denotes the ID of current epoch as defined above.
+where $I$ denotes the ID of the current epoch as defined above.
 
 At the end of each epoch (determined by $N \equiv 0~mod~w$), the algorithm
 prunes off all items whose maximum true frequency is small.
-Formally, at the end of the epoch $I$, all triples satisfying the condition
+Formally, at the end of epoch $I$, all triples satisfying the condition
 $f + \Delta \leq I$ are removed from $D$.
 When all elements in the stream have been processed, the algorithm returns all
 triples ($e$, $f$, $\Delta$) where $f \geq (s-\epsilon)N$.
@@ -89,32 +89,32 @@ to survive the filtering.
 \label{sec:lossy-counting-applicability}
 
 % LC in the perspective of pruning methods
-From the perspective of phrase table pruning techniques discussed in
-\Sref{sec:phrase-table-pruning}, the construction of phrase table based on frequency counts
-collected via Lossy Counting algorithm has a similar effect to the count-based pruning of
-phrase table obtained by the standard extraction process:
+From the perspective of the phrase table pruning techniques discussed in
+\Sref{sec:phrase-table-pruning}, the construction of a phrase table based on frequency counts
+collected via the Lossy Counting algorithm has a similar effect to the count-based pruning of
+phrase tables obtained by the standard extraction process:
 specifically, the assertion, that \emph{no item whose true frequency is less than
 $(s - \epsilon)N$ will be output}, is functionally equal to the criterion of
 count-based pruning formulated in \Eref{eq:count-based-pruning}.
 
 % From initialization with thresholds to initialization with limits.
-The only issue with Lossy Counting algorithm being applied in the similar manner as
-the count-based pruning is the necessity to initialize the algorithm with such a values of
-\emph{support threshold} $s$ and \emph{error threshold} $\epsilon$ that will ensure
-the effective pruning threshold to be equal to the desired value of count-based
+The only issue with the Lossy Counting algorithm being applied in a similar manner to
+count-based pruning is the necessity to initialize the algorithm with precomputed values of
+\emph{support threshold} $s$ and \emph{error threshold} $\epsilon$ that ensure
+the effective pruning threshold stays equal to the desired value of the count-based
 motivated threshold $\theta_{c}$.
 In other words, for the desired value of $\theta_{c}$ the equation $\theta_{c} = (s - \epsilon)N$
-must hold in the moment the algorithm is asked to dump the output (after it read $N$ items).
-This is obviously not possible without an initial knowledge of the number of items
+must hold at the moment the algorithm is asked to dump the output (after it read $N$ items).
+This is obviously not possible without initial knowledge of the number of items
 that will be read from the input and thus either a predefined limit must be set in advance
-(lesser than the actual number of items in the stream) or a quick reading loop over the whole
-stream must be performed.
+(lesser than the actual number of items in the stream) or a quick reading loop must be applied
+across the whole stream.
 
-However, when the number of items that will be read from the input stream is known
+However, when the number of items that are to be read from the input stream is known
 in advance, it is possible to propose some modifications to the means of algorithm
 initialization.
 Instead of requiring the user to come up with \emph{support} and \emph{error} thresholds,
-we may offer a slightly more intuitive parameters that we call \emph{limits} for more clarity:
+we may offer slightly more intuitive parameters that we call \emph{limits} for more clarity:
 \begin{itemize}
   \item A \emph{negative limit} $n$ - a positive integer value such that no item
     whose true frequency is equal or less than $n$ will be output.
@@ -123,17 +123,17 @@ we may offer a slightly more intuitive parameters that we call \emph{limits} for
 \end{itemize}
 
 The actual values of \emph{support} $s$ and \emph{error} $\epsilon$ thresholds have then
-to be carefully derived from the definition of \emph{limits} to ensure their soundness and
-the knowledge of input stream size $N$ is crucial in these derivations.
+to be carefully derived from the definition of these \emph{limits} to ensure their soundness and
+a knowledge of the input stream size $N$ is crucial in such derivations.
 
-The \emph{support threshold} $s$ is instantiated with $p$ and $N$ as:
+\emph{Support threshold} $s$ is instantiated with $p$ and $N$ as:
 \begin{equation}
   s = p / N
 \end{equation}
 This way, we get $p = sN$, and since Lossy Counting guarantees that all items whose true
 frequency is greater or equal to $sN$ will be output, the definition of \emph{positive limit} is sound.
 
-The \emph{error threshold} $\epsilon$ is instantiated with $p$, $n$, $N$ and $\lambda \in (0,1)$ as:
+\emph{Error threshold} $\epsilon$ is instantiated with $p$, $n$, $N$ and $\lambda \in (0,1)$ as:
 \begin{equation}
 \label{eq:epsilon}
   \epsilon = (p - n - \lambda) / N
@@ -146,32 +146,32 @@ true frequency is less than $(s - \epsilon)N$ is output, the definition of
 Moreover, by limiting $\lambda < 1$ we ensured that $n$ is the largest integer with such
 a property, that is: $\lfloor (s - \epsilon)N \rfloor = n$.
 
-The definition of \emph{positive and negative limits} trivially enforces that $n < p$ and
+The definition of \emph{positive and negative limits} trivially enforces a condition that $n < p$ so that
 one theoretically interesting setting of \emph{limits} is $p = n + 1$.
 In such a case, Lossy Counting driven phrase table extraction produces exactly the same
-results as count-based pruning the table with $\theta_{c} = p$.
+results as count-based pruning of the table with $\theta_{c} = p$.
 Consequently, the algorithm must return exact frequency counts and indeed,
 the maximum error of estimation expressed by $\lfloor \epsilon N\rfloor $ evaluates to
 $\lfloor 1 - \lambda \rfloor = 0$ for $\lambda \in (0,1)$.
-However, since no estimation error is made, the space requirements of algorithm
+However, since no estimation error is made, the space requirements of the algorithm
 reach the upper bound for a given input size.
-A more space-conscious settings will therefore employ limits $p$ and $n$,
+More space-conscious settings therefore employ limits $p$ and $n$,
 such that $p > n + 1$, allowing for nonzero estimation error.
 
-It is very important to realize that although the degree of pruning and
-the space requirements of Lossy Counting algorithm are driven by the same factors,
+It is important to realize that although the degree of pruning and
+the space requirements of the Lossy Counting algorithm are driven by the same factors,
 there is no direct correlation between the two:
 \begin{itemize}
   \item The degree of pruning depends only on the values of \emph{negative} and
     \emph{positive} limits: the bigger the limits, the harsher the pruning.
-  \item The space requirements primarily depends on the value of \emph{error} threshold:
+  \item The space requirements primarily depend on the value of \emph{error} threshold:
     the bigger the error, the lower the space requirements.
-    The degree of pruning can also affect the space requirements, but it is
+    The degree of pruning affects the space requirements too, but it presents
     a secondary factor; as already demonstrated above, with no space for error,
-    the space requirements will reach the maximum, independently of the degree of pruning.
+    the space requirements reach the maximum, independently of the degree of pruning.
 \end{itemize}
 
-Recalling the formula for instantiation of \emph{error} threshold (recall \Eref{eq:epsilon}),
+Recalling the formula for instantiation of \emph{error} threshold (\Eref{eq:epsilon}),
 the primary rule for the space requirements can be expressed in terms of the limits as:
 the bigger the difference between the \emph{positive} and \emph{negative} limit,
 the lower the space requirements.
@@ -184,7 +184,7 @@ an example. Consider the following three LC instances:
   \item $LC_{3}$ with $N_{3}=1$ and $P_{3}=6$
 \end{enumerate}
 
-Based on the presented findings, the following observartions can be made:
+Based on the presented findings, the following observations can be made:
 \begin{itemize}
   \item Despite that $LC_{1}$ is likely to produce the smallest output (prune the most),
     it will have the largest space requirements of all three instances, because it is given
@@ -204,33 +204,33 @@ whose true frequency \emph{exceeds} $sN$ are output \citep[p. 3]{manku:lossycoun
 for the purpose of \emph{positive limit} definition we reformulated this guarantee using
 a stronger claim that all items whose true frequency \emph{is greater or equal to} $sN$ are
 output. Or more formally, we claimed that any item $e$ with true frequency $f_{e} \geq sN$
-will be kept in the output of Lossy Counting algorithm instantiated with
+will be kept in the output of the Lossy Counting algorithm instantiated with
 \emph{support threshold} $s$ and \emph{error threshold} $\epsilon$
 (we reuse the notation from \Sref{sec:lossy-counting-definition} in the remainder of this section).
 
-We are now going to prove this stronger claim using just the properties of Lossy Counting
+We are now going to prove this stronger claim using just the properties of the Lossy Counting
 algorithm and two supportive lemmas from the original paper:
 \begin{enumerate}
   \item If $e$ does not appear in $D$, then $f_{e} \leq \epsilon N$.
   \item If $(e,f,\Delta) \in D$, then $f \leq f_{e} \leq f + \epsilon N$.
 \end{enumerate}
 
-An item $e$ can be pruned off by Lossy Counting algorithm either at the end of an epoch or
+An item $e$ can be pruned off by the Lossy Counting algorithm either at the end of an epoch or
 during the final pruning that is executed when the output is requested.
 
-As for the first case, should the item $e$ be not present in $D$ in the moment of final
+As for the first case, should the item $e$ be not present in $D$ at the moment of final
 pruning as a result of an earlier end-of-epoch pruning, the first supportive lemma states
-that its true frequency $f_e \leq \epsilon N$, but since the initialization of the algorithm
+that its true frequency is $f_e \leq \epsilon N$, but since the initialization of the algorithm
 enforces $s > \epsilon$, for any item $e$ with true frequency $f_{e} \geq sN$ it trivially
-holds that $f_{e} > \epsilon N$ and thus it is proved by contradiction that any such item
+holds that $f_{e} > \epsilon N$ and thus it is proven by contradiction that any such item
 must have record in $D$.
 
 As for the second case, the final pruning criterion removes all items with estimated frequency
-$f < (s - \epsilon)N$. From the second lemma we know that estimated frequency $f$ is always
-equal or less than true frequency $f_{e}$, but even in the worst case scenario (the biggest
+$f < (s - \epsilon)N$. From the second lemma we know that the estimated frequency $f$ is always
+equal or less than the true frequency $f_{e}$, but even in the worst case scenario (the biggest
 estimation error possible) $f \geq f_{e} - \epsilon N$.
 Thus, for a phrase pair to be pruned it must hold that $f_{e} - \epsilon N \leq f < (s - \epsilon) N$.
-Ruling out $f$ and adding $\epsilon N$ to both sides of inequation simplifies it to $f_{e} < sN$,
+Cancelling out $f$ and adding $\epsilon N$ to both sides of the inequation simplifies it to $f_{e} < sN$,
 making it obvious that any item $e$ with $f_{e} \geq sN$ cannot be removed by the final pruning.
 
 % TODO: Comment on Lossy Counting from the perspective of desiderata mentioned in Introduction?

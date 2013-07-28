@@ -1,21 +1,21 @@
 \chapter{Getting Eppex}
-\label{chap:installation}
+\label{chap:getting-eppex}
 
 \section{Prerequisities}
 
 Only Boost is required to compile and run \eppex{}.
-If you had successfully compiled Moses then you probably already have all you need in place.
+If you have successfully compiled Moses then you probably already have all you need in place.
 
-Just in case you did not want to install Boost as a whole, but only the necessary
+Just in case you do not want to install Boost as a whole, but only the necessary
 parts of it, you will need to get two libraries (build them or install
 them via your packaging system): \emph{Program Options} and \emph{IOStreams}.
-\Eppex{} also requires working include path access to following
-header-only libraries: \emph{Integer}, \emph{Iterator}, \emph{Pool} and \emph{Tokenizer}.
+\Eppex{} also includes some headers from the following header-only Boost libraries:
+\emph{Integer}, \emph{Iterator}, \emph{Pool} and \emph{Tokenizer}.
 
-Besides that you will probably like to employ the power of hash tables
+Besides that you will probably want to employ the power of hash tables
 that comes with the recent version of C++ standard.\footurl{http://en.cppreference.com/w/cpp/container/unordered_set}
-Most of decent C++ compilers will have this feature available,
-although some may require to explicitly request compilation with C++11
+Most decent C++ compilers will have this feature available,
+although some may require you to explicitly request compilation with C++11
 features.\footnote{For example GCC requires the command-line parameter
 \texttt{-std=c++0x} to be passed when compiling (or \texttt{-std=c++11}
 with GCC 4.7 and later).}
@@ -24,9 +24,9 @@ with GCC 4.7 and later).}
 
 \emph{Eppex} is hosted on Github\footurl{https://www.github.com} in
 a fork\footurl{https://github.com/chesio/mosesdecoder}
-of core Moses repository\footurl{https://github.com/moses-smt/mosesdecoder}.
+of the core Moses repository\footurl{https://github.com/moses-smt/mosesdecoder}.
 If you have your own local clone of Moses repo then all you need is to add
-the fork as a new remote, fetch from it and checkout the remote branch
+the fork as a new remote, fetch it and checkout the remote branch
 \texttt{eppex} into some new local branch.
 \begin{verbatim}
  cd <your-mosesdecoder-dir>
@@ -35,30 +35,31 @@ the fork as a new remote, fetch from it and checkout the remote branch
  git checkout -b eppex eppex/eppex
 \end{verbatim}
 
-Important note: \eppex{} branch is based on \emph{RELEASE-1.0},
-not the current master. Should you like to use \eppex{} with the most
-recent Moses code, you may try merging branch \texttt{master} into \texttt{eppex}:
+Important note: the \eppex{} branch is based on \emph{RELEASE-1.0},
+not the current master. Should you wish to use \eppex{} with the most
+recent Moses code, you may try merging the branch \texttt{master} into \texttt{eppex}:
 \begin{verbatim}
  git merge master
 \end{verbatim}
 
 Be warned that you may encounter some merge conflicts in \emph{train-model.perl}
-as this script gets frequently updated.
+as this script frequently gets updated.
 In such a case feel free to contact the author of \eppex{},
 he will be happy to help you.
 
 \section{Installation}
+\label{sec:installation}
 
-\Eppex{} related files may be found in \texttt{contrib/eppex} directory of \eppex{} fork
+\Eppex{} related files may be found in the \texttt{contrib/eppex} directory of the \eppex{} fork
 and for the time being the executable has to be compiled separately from the Moses
 build.\footnote{For the build instructions on Moses, consult the file \texttt{BUILD-INSTRUCTIONS.txt}.}
 Some implementation features and functionality of \eppex{} is determined during compile-time
 and you are encouraged to alter the defaults to suit your needs and your compiler capabilities.
-The specific way of how to alter them depends on selected compilation method (\emph{Boost.Build} or
-\emph{make} -- see below), the default behavior when no changes are made is following:
+How to alter them specifically depends on the selected compilation method (\emph{Boost.Build} or
+\emph{make} -- see below), the default behavior when no changes are made is the following:
 \begin{itemize}
   \item \eppex{} uses \verb|std::map| and \verb|std::set| as associative containers
-  \item \eppex{} allows to extract phrase pairs of maximum length limit up to 8
+  \item \eppex{} allows extraction of phrase pairs of maximum length limit up to 8
 \end{itemize}
 
 Once compiled you will find \eppex{} binary in the \texttt{contrib/eppex} directory.
@@ -68,14 +69,14 @@ just do not forget to pass the full path to \emph{train-model.perl} invocation.
 \subsection*{Installation using Boost.Build}
 
 This approach is recommended since \emph{Boost.Build}\footurl{http://www.boost.org/boost-build2/doc/html/index.html}
-is required by Moses install process as well and if you do not have a working
+is required by the Moses install process as well and if you do not have a working
 \emph{Boost.Build} setup on your machine, you may try to use the one shipped with Moses:
-just run \emph{bjam} shell script from Moses root instead of the system \emph{bjam}.\footnote{Note
+just run \emph{bjam} shell script from the Moses root instead of the system \emph{bjam}.\footnote{Note
 that the first invocation will attempt to compile the actual \emph{bjam} executable from sources.}
 
 If you would like to compile \eppex{} with faster (unordered) associative containers
-just pass \verb|--with-hashtables| flag to \emph{bjam} command.
-The limit for maximum phrase length can be risen to 128 by adding
+just pass \verb|--with-hashtables| flag to the \emph{bjam} command.
+The limit for maximum phrase length can be raised to 128 by adding
 \verb|--allow-long-phrases|.
 \begin{verbatim}
   cd contrib/eppex
