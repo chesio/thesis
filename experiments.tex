@@ -187,15 +187,13 @@ count-based pruning on the fly.
 % sigfilter-like setups
 A more practically interesting scenario to consider is the possibility of approximating
 significance filtering with $\alpha \pm \epsilon$ thresholds with a proper setting of
-\emph{limits}: by setting the \emph{positive limit} to one, all of the 1-1-1 phrase pairs
-will be preserved (like in $\alpha - \epsilon$), while setting the \emph{negative limit} to
-one will result in their complete removal (like in $\alpha + \epsilon$).
-It is important to realize, that it is really just an approximation:
-with the former setting, all phrase pairs will be actually preserved,
-and with the latter, all single occurring phrase pairs (so called \emph{singletons})
-will be actually removed, not only 1-1-1 phrase pairs.
-On the other hand, the option to set a separate Lossy Counting allows us to come up with
-a mix of both approaches: define a less intensive $\alpha - \epsilon$-like pruning for
+\emph{limits}: by setting the \emph{positive limit} to~1, all of the 1-1-1 phrase pairs
+will be preserved (like in $\alpha - \epsilon$), while by setting the \emph{negative limit} to~1,
+all single occurring phrase pairs, so called \emph{singletons}, will be removed
+(like in $\alpha + \epsilon$).
+In addition, the option to set a separate Lossy Counting for each phrase pair length
+allows us to come up with a mix of both approaches:
+define a less intensive $\alpha - \epsilon$-like pruning for
 the shorter phrase pairs and a more intensive $\alpha + \epsilon$-like pruning for the
 longer phrase pairs.
 
@@ -315,7 +313,7 @@ output translations before evaluation, instead we lowercased the reference side 
 Input data preprocessing is essential to almost any natural language processing task
 and translation model training in phrase-based SMT is no exception.
 
-We treated our "Fr-En" data with the following preprocessing steps:
+We treated our French-English data with the following preprocessing steps:
 \begin{enumerate}
   \item White space cleaning:
   \begin{itemize}

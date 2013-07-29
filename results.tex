@@ -204,7 +204,7 @@ eppex 1:n+1    &  9.6~GB &      eppex &   0.7~GB \\
 \hline
 \end{tabular}
 \caption{\label{cs-en-wmt13-vm-and-disk-usage-peaks}
-Virtual memory and disk usage peaks of the phrase table construction for various experiments of "Cs-En" setup.}
+Virtual memory and disk usage peaks of the phrase table construction for various experiments of Cs-En setup.}
 \end{table}
 
 The default baseline experiment had the lowest memory demand of all experiments, it needed only 2~GB
@@ -373,12 +373,12 @@ The \emph{eppex defensive} configuration scored best on the \emph{news-test2012}
 but was closely followed by the \emph{sigfilter a+e} configuration that scored best on
 the \emph{news-test2013} set.
 The slightly harsher variation \emph{sigfilter 30 a+e}, that not only pruned out
-all of the 1-1-1 phrase pairs, but also performed histogram pruning prior to
+all of the single-occurring phrase pairs (singletons), but also performed histogram pruning prior to
 significance pruning, performed nearly as well, indicating that the removal of
-1-1-1 phrase pairs did not hurt the quality of the baseline Fr-En translation model.
+singletons did not hurt the quality of the baseline Fr-En translation model.
 This observation is further supported by the fact, that amongst the \eppex{} configurations,
-the \emph{1:n+1} configuration ranked as good as the \emph{defensive} configuration, although it produced a more
-than 3~times smaller phrase table and removed all the single-occurring phrase pairs.
+the \emph{1:n+1} configuration that removed all singletons too, ranked as good as
+the \emph{defensive} configuration, although it produced a more than 3~times smaller phrase table.
 
 The BLEU scores obtained with translation models that had phrase translation probabilities
 adjusted by either Good-Turing or Kneser-Ney discounting are shown in \Tref{fr-en-smoothed-bleu}.
