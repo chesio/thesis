@@ -41,7 +41,7 @@ This seemingly trivial extension makes for a non-trivial improvement with some
 imminent benefits:
 \begin{enumerate}
   \item By using phrases rather than words, this model is now implicitly able to deal
-    with non-compositional phrases
+    with non-compositional phrases.
   \item A phrase-based model is able to handle the local reordering of words, for example:
     switching from \emph{the noun follows adjective} to \emph{the adjective follows noun} order.
   \item Word context on the source side now plays a more important role, because it can be kept
@@ -188,9 +188,9 @@ $\phi(\bar{f}|\bar{e})$ are then calculated from these counts as follows:
   \phi(\bar{f}|\bar{e}) = \frac{C(\bar{f},\bar{e})}{C(\bar{e})}
 \end{equation}
 
-\Tref{phrase-table-europarl} presents an extract from the actual phrase table
+\Tref{phrase-table-europarl} presents an excerpt from the actual phrase table
 that was constructed from Europarl v6 Czech-English corpus.\footurl{http://www.statmt.org/europarl/archives.html}
-The extract lists some of the translation options of the English phrase "Europe" and
+The excerpt lists some of the translation options of the English phrase "europe" and
 indicates that there is more than 1000 such options in the full phrase table.
 
 One of the reasons behind the high number of translation options of a particular
@@ -266,7 +266,7 @@ No. & English ($\bar{f}$) & Czech ($\bar{e}$) & $\phi(\bar{e}|\bar{f})$ \\
 \hline
 \end{tabular}
 \caption{\label{phrase-table-europarl}
-An extract from an actual phrase table listing some of the possible translations of English
+An excerpt from an actual phrase table listing some of the possible translations of the English
 word "Europe" into Czech sorted by their maximum likelihood probability.
 The full table contained more than 26 millions phrase pairs and has been extracted
 from the Europarl v6 Czech-English corpus.}
@@ -278,8 +278,8 @@ from the Europarl v6 Czech-English corpus.}
 % Introduce train-model.perl and steps of training pipeline.
 
 It has already been said in the introduction that phrase table construction methods
-usually store all the temporary data on disk, because the amount of extracted
-phrase pairs is often too big to be fit in the physical memory of the computer.
+usually store all the temporary data on disk, because the number of extracted
+phrase pairs is often too big to fit in the physical memory of the computer.
 The phrase table construction process in \emph{Moses} also adheres to this concept.
 In the following text, we describe this process in great detail to give our reader
 a clear picture of its quite complex layout and all the steps and substeps involved.
@@ -332,7 +332,7 @@ are still implicitly parallelized.
 
 Let us now describe the phrase extraction and phrase scoring steps in greater detail.
 
-The \emph{phrase extraction phase} starts with optional splitting of all input files
+The \emph{phrase extraction phase} starts with an optional splitting of all input files
 (alignment information, both parts of the corpus and an optional weighting file) into $N$
 parts, where $N$ is the number of threads set by \verb|--cores|.
 Then, the actual extraction of phrases is done by running $N$ extractors in parallel,
@@ -549,7 +549,7 @@ to $\alpha + \epsilon$ results in the removal of all phrase pairs occurring exac
 In addition to setting the pruning threshold for p-values, the \emph{sigfilter} tool
 also allows the pruning of all but the top $K$ translation options of each source phrase,
 $K$ being referred to as \emph{cutoff} limit.\footnote{In other words \emph{sigfilter}
-also implements \emph{histogram pruning} method.}
+also implements the \emph{histogram pruning} method.}
 The combination of both is also possible: first, the cutoff limit is applied leaving
 only the top $K$ options; then, the remaining phrase pairs are pruned with respect to the
 p-value threshold.
@@ -578,8 +578,8 @@ a phrase pair encodes a translation event that might be derived from translation
 events represented by shorter phrase pairs with a similar overall translation
 probability. Then, it applies this model to phrase table pruning, removing
 the most redundant translation options.
-The reported results show that this method has little negative impact on
-translation quality and in some situations can even lead to small improvements,
+The reported results show that this method has only a little negative impact on
+translation quality and in some situations it can even lead to small improvements,
 because the pruning of redundant translation options effectively compresses
 the search space during decoding and a wider spectrum of options is explored.
 

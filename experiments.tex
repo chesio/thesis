@@ -279,7 +279,7 @@ The \emph{news-test2012} and \emph{news-test2013} datasets were used as the test
 
 To confront \eppex{} with even more challenging input data (in terms of their size),
 we built and evaluated a French-English MT system, as significantly more French-English parallel
-corpora were available as part of the WMT~13 Translation Task. Concretely, the training data for
+corpora were available as part of the WMT~13 Translation Task. Specifically, the training data for
 the French-English setup were gathered from the following parallel corpora:
 \begin{itemize}
   \item Europarl v7 (Fr-En data)\footurl{http://www.statmt.org/europarl/}
@@ -293,12 +293,12 @@ at the end of the section) is 39,143,703 sentences with 1,173,485,756 French and
 English tokens.
 
 GIZA++ \citep{och:giza}, the recommended word-aligner for Moses,\footurl{http://www.statmt.org/moses/?n=FactoredTraining.RunGIZA}
-was used to establish the word alignments over the lowercased form of each
-of the Fr-En parallel corpora, the particular alignments were then merged to
+was used to establish the word alignments over the lowercased forms of each
+of the Fr-En parallel corpora, the particular alignments were then concatenated to
 obtain a single word-alignment for the whole training data.
 The lowercased form of the training data was also used as the only factor on both sides of
 the translation model.
-To build the language model, only the target side of parallel corpora was used.
+To build the language model, only the target side of our parallel corpora was used.
 As in the Cs-En setup, no lexicalized reordering model was built and reordering was
 determined only by the built-in distortion model.
 
@@ -324,7 +324,7 @@ We treated our French-English data with the following preprocessing steps:
   \item Normalization of punctuation to plain ASCII quotes
   \item Tokenization -- splits the text into the atomic units of translation.
   \item Cleaning of any superfluous white space from tokenization -- ensures that the output contains only spaces and line-feed characters.
-  \item Special characters escaping (necessary in the case of Moses):
+  \item Special characters escaping (necessary for Moses):
   \begin{itemize}
     \item ampersands ("\&") are replaced by "\&amp;"
     \item pipes ("\textbar") are replaced by "\&pipe;"
@@ -466,5 +466,5 @@ For both datasets we created a list of batch sizes and with each batch of size $
   \item Finally, we used the temporary training data and lexical scores tables to perform several epochal
     extractions with some of the configurations mentioned in
     \Sref{sec:cs-en-results} (for Cs-En batches) and \Sref{sec:fr-en-results} (for Fr-En batches).
-    In each extraction, we measured the virtual memory peak and recorded phrase table size.
+    In each extraction, we measured the virtual memory peak and recorded the phrase table size.
 \end{enumerate}

@@ -16,7 +16,7 @@ computational problem due to the variability of monitored packets and the limite
 memory of networking hardware.
 The specific design of the algorithm results in repeated pruning of low frequent
 items from the frequency counts list, as the algorithm runs, and thus maintains
-this list small-sized, but at the same time ensures that high frequent items are
+this list small-sized, but at the same time it ensures that high frequent items are
 retained (and identified).
 
 Many statistically-driven methods of natural language processing internally
@@ -110,6 +110,7 @@ that will be read from the input and thus either a predefined limit must be set 
 (lesser than the actual number of items in the stream) or a quick reading loop must be applied
 across the whole stream.
 
+% TODO: (OBO) Nenapadnou zminku, ze tato parametrizace je nova.
 However, when the number of items that are to be read from the input stream is known
 in advance, it is possible to propose some modifications to the means of algorithm
 initialization.
@@ -187,16 +188,16 @@ an example. Consider the following three LC instances:
 Based on the presented findings, the following observations can be made:
 \begin{itemize}
   \item Despite that $LC_{1}$ is likely to produce the smallest output (prune the most),
-    it will have the largest space requirements of all three instances, because it is given
-    no space for error.
-  \item On the other hand, both $LC_{2}$ and $LC_{3}$ will run with the same estimation error
-    and as $LC_{3}$ will prune off at least the same part of input as $LC_{2}$, the latter is
-    likely to use less space.
-  \item In a general case, it is impossible to presume whether more pruning will happen
+    it is also likely to have the largest space requirements of all three instances,
+    because it is given no space for error.
+  \item On the other hand, both $LC_{2}$ and $LC_{3}$ deliver counts with the same (non-zero)
+    estimation error and as $LC_{3}$ prunes off at least the same part of input as $LC_{2}$,
+    it is likely to use less space.
+  \item In a general case, it is impossible to predict whether more pruning happens
     in the case of $LC_{1}$ or $LC_{3}$, because their limits are incomparable.
 \end{itemize}
 
-\section{A stronger no false negatives claim}
+\section{A stronger claim for no false negatives}
 \label{sec:positive-limit-validity}
 
 The original Lossy Counting guarantee about \emph{no false negatives} states that all items
@@ -223,7 +224,7 @@ pruning as a result of an earlier end-of-epoch pruning, the first supportive lem
 that its true frequency is $f_e \leq \epsilon N$, but since the initialization of the algorithm
 enforces $s > \epsilon$, for any item $e$ with true frequency $f_{e} \geq sN$ it trivially
 holds that $f_{e} > \epsilon N$ and thus it is proven by contradiction that any such item
-must have record in $D$.
+must have a record in $D$.
 
 As for the second case, the final pruning criterion removes all items with estimated frequency
 $f < (s - \epsilon)N$. From the second lemma we know that the estimated frequency $f$ is always

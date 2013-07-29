@@ -52,9 +52,14 @@ The \emph{eppex zero} experiment is performed to establish the maximum memory de
 for the input data of a given size.
 The \emph{eppex defensive} experiment has the positive and negative limits set to achieve the same
 level of pruning as the \emph{eppex 1-in} experiment that performed very well in 2011 experiments.
-The remaining \eppex{} experiments have a separate Lossy Counter set for every phrase length:
-the negative limit is the same for all instances, but the positive limit is set in correspondence
-to a phrase length to allow for a bigger estimation errors in the case of longer phrase pairs.
+The remaining \eppex{} experiments have a separate Lossy Counter set for every phrase length
+from one (single-word phrases) to seven (the same maximum phrase length as extracted by the baseline
+system by default).
+We set the negative limit to be the same for all instances, but the positive limit is set in correspondence
+to the phrase length to allow for a bigger estimation errors for longer phrase pairs.
+Full details of \eppex{} configuration options are given in \Cref{chap:usage}.
+For example, the \verb|--limits| of the \emph{eppex 1:n+1} configuration allow to drop singleton phrases
+of all lengths and ensure that all phrases of length $n$ occurring at least $n+1$ times will be preserved.
 
 \subsection{Translation phrase table size and quality}
 
@@ -96,11 +101,10 @@ On the other hand, the pruning of all singletons in the \emph{eppex 1:n+1} exper
 resulted in the worst scores on both sets and therefore seems already too harsh for
 the Cs-En setup.
 
-% TODO: Proof-read the paragraph:
 Interestingly, there is no clear differentiation of what was the best \emph{sigfilter}
-configuration: especially, in the case of \emph{wmt-13} test data all the scores
-happen to occur within a tiny range of $[0.2559, 0.2563]$, despite the phrase table sizes
-differs significantly, from 60.2~M to 301.9~M of phrase pairs.
+configuration: especially, in the case of \emph{news-test2013} test data all the scores
+happen to occur within a tiny range of $[25.59, 25.63]$, despite the phrase table sizes
+differ significantly, from 60.2~M to 301.9~M phrase pairs.
 
 \subsection{Memory and time requirements}
 
@@ -267,7 +271,8 @@ Also an interesting observation is that the optimized baseline phrase table cons
 \Tref{fr-en-80-scenarios} presents the list of the basic experimental phrase table extractions
 performed on the Fr-En dataset.
 In addition to these basic experiments, we ran discounting variants with either
-\emph{Good-Turing} or \emph{Kneser-Ney} discounting, the full list is shown in \Tref{fr-en-80-smoothed-scenarios}.
+\emph{Good-Turing} or \emph{Kneser-Ney} discounting \citep[Chapter 6]{manning:stat-nlp},
+the full list is shown in \Tref{fr-en-80-smoothed-scenarios}.
 
 % Fr-En: description and parameters of experiments
 \begin{table}[ht]
@@ -379,6 +384,7 @@ singletons did not hurt the quality of the baseline Fr-En translation model.
 This observation is further supported by the fact, that amongst the \eppex{} configurations,
 the \emph{1:n+1} configuration that removed all singletons too, ranked as good as
 the \emph{defensive} configuration, although it produced a more than 3~times smaller phrase table.
+This suggests that in a gigaword parallel corpus all reasonable words already appear twice or more.
 
 The BLEU scores obtained with translation models that had phrase translation probabilities
 adjusted by either Good-Turing or Kneser-Ney discounting are shown in \Tref{fr-en-smoothed-bleu}.
@@ -456,7 +462,7 @@ the size of memory buffer dedicated to the \texttt{sort} program.
 The epochal extraction without pruning consumed more than 200~GB of the memory,
 which was less than a half of the RAM available on the machine used,
 but is a very considerable amount otherwise.
-However, even mild \emph{defensive} pruning cut this requirement to $1/4$.
+However, even mild \emph{defensive} pruning cut this requirement to $1/2$.
 
 % Fr-En: virtual memory and disk usage peaks.
 \begin{table}[ht]
@@ -539,7 +545,8 @@ both versions of \eppex{} as well as the \emph{phrase-extract} toolkit.
 
 The current version of \eppex{} differs from the early version mainly in its
 capability of performing not only phrase pair extraction, but a complete
-phrase table construction (that is including phrase pair scoring).
+phrase table construction (that is including phrase pair scoring) and even
+Good-Turing and Kneser-Ney discounting.
 The early version, however, could be used to extract orientation info
 the same way \emph{extract} can, while this functionality has been dropped
 from the current version as not related to the core task of phrase table creation.
@@ -851,4 +858,4 @@ that happened to be pruned, massively increased.
 
 Nevertheless, the definition of Lossy Counting limits guarantees that
 whenever the limits are fixed adding more items to the input stream results in at least
-as many phrase pairs being extracted as from the non extended stream.
+as many phrase pairs being extracted as from the non-extended stream.

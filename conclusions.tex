@@ -12,7 +12,7 @@ the process of phrase table creation in Statistical Machine Translation systems.
 To tackle this task, we implemented a software tool that builds a complete phrase
 translation table with maximum likelihood scores derived from the frequency
 counts as approximated by the lossy counting of phrase pairs extracted from
-parallel corpora during the process of translation model training.
+parallel corpora.
 Because internally the Lossy Counting algorithm splits the input stream into
 epochs, we dubbed our tool \emph{eppex}, an acronym for \emph{epochal phrase
 pairs extractor}.
@@ -80,7 +80,7 @@ toolkit rather than a definitive replacement.
 \section{Future work}
 
 We are aware, that in its current state, \eppex{} is a usable tool,
-but a potential user of \eppex{} could be discouraged by the lack of more
+but a potential user of \eppex{} could be discouraged by the lack of some
 finer control over its memory demands incurred during
 runtime.\footnote{Without neglecting the importance of good program design,
 we cannot disregard the empirically determined principle that often the easiest
@@ -110,7 +110,7 @@ The first approach is to make the program aware of its memory consumption and im
 some means of resolving the situation when all available memory is exhausted.
 The second approach is to control program memory consumption from outside:
 as soon as its memory consumption exceeds a predefined limit, it can simply be terminated, 
-and run again with more harsh pruning (e.g. by raising the positive limit).
+and run again with harsher pruning (e.g. by raising the positive limit).
 Obviously, the second approach does not require any changes to the existing version of
 program, just a bit of scripting.
 

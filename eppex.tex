@@ -9,9 +9,9 @@
 \label{chap:eppex}
 
 \setlength{\epigraphwidth}{1.0\textwidth}
-\epigraph{Your program can always have twice as much time to run, but not always have twice as much memory.}{--- RNDr. Rudolf Kryl, "Programming II" course}
+\epigraph{Your program can always have twice as much time to run, but not always twice as much memory.}{--- RNDr. Rudolf Kryl, "Programming II" course}
 
-\Eppex{} is a phrase pairs extraction and scoring tool capable of obtaining approximate
+\Eppex{} is a tool for phrase pairs extraction and scoring capable of obtaining approximate
 frequency counts of extracted phrase pairs by using the Lossy Counting algorithm
 (thus the name \eppex{}, an acronym for \emph{epochal phrase pairs extraction}).
 It is designed to be an alternative to standard phrase extraction and scoring tools that
@@ -194,8 +194,8 @@ will largely depend on the overhead imposed by the referencing scheme and if the
 too heavy, the memory spared on the most frequent words can easily be depleted by
 the massive amount of words occurring only once.
 
-The second factor might be tricky to consider in programs with non-linear work flow,
-for example when the amount of items within a program's scope depends on some external
+The second factor might be tricky to consider in programs with a non-linear work flow,
+for example when the number of items within a program's scope depends on some external
 factor (time of day etc.), but in the case of streamline input processing this value is
 most often linear with respect to the input size.
 
@@ -209,7 +209,7 @@ With C++ we have two basic options, how to reference an object:
 
 We may note that both options are fundamentally the same:
 the pointer is basically a numeric index to the container of a maximum size (entire memory)
-and the numeric index is just a pointer to the restrained part of the memory (container).
+and the numeric index is just a pointer to the restrained part of the memory (the container).
 The pointer is easier to dereference, but comes in single size only -- the size of
 a \emph{processor unit word}, which on 64-bit architecture is 8~bytes long.
 On the other hand, to dereference the numeric index, a corresponding container must be
@@ -334,7 +334,7 @@ On the other hand, there is a natural limit to these lengths incurred by the max
 in practice, even more restrictive limits are usually enforced to secure the feasibility of the
 extracted translation model.
 
-From the perspective of effective implementation, it is useful to break phrase pair
+From the perspective of an effective implementation, it is useful to break phrase pair
 structure into three subcomponents -- words, phrases and alignments -- and analyze them
 independently.
 
@@ -414,12 +414,12 @@ The main motivation for such a decision was the finding that phrase pair alignme
 have a Zipfian-like frequency distribution, as \Fref{fig:alignment-dist} illustrates.
 To obtain the plot, we extracted all (41.3~M) phrase pairs of lengths up to~7 from
 the Czech-English part of the Europarl v6 parallel corpus and for each alignment counted
-the number of distinct phrase pairs it has been matched with.
+the number of distinct phrase pairs it has been observed with.
 The extracted data contained more than 506~K of unique alignments and the most frequent
-alignment "\texttt{0-0 1-1}" was matched with more than 1.5~M phrase pairs.
+alignment "\texttt{0-0 1-1}" was seen with more than 1.5~M phrase pairs.
 The number of unique phrase pairs suggests that the numeric index has to span at least
 3 bytes.
-Interestingly, no phrase pair was matched with more than 9~different alignments.
+Interestingly, no phrase pair was seen with more than 9~different alignments.
 
 \begin{figure}[ht]
   \input{alignments-distribution}
