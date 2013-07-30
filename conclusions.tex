@@ -40,11 +40,11 @@ The results we obtained, showed, that \eppex{} was capable of prune off
 substantial amounts of phrase pairs (up to 95\% of the phrase table) without
 a significant loss in the ultimate translation quality as confirmed by the
 automatic evaluation measure BLEU.
-The differences between the baseline and \eppex{} scores were always below
+The differences between the baseline and \eppex{} scores were below
 0.6~points of BLEU.
-In fact, \eppex{} often performed slightly better than the baseline,
+In fact, \eppex{} often scored slightly better than the baseline,
 although we observed that, when the phrase tables were treated with
-state-of-the-art discounting techniques, the baseline scored better.
+state-of-the-art discounting techniques, the baseline performed better.
 
 The \emph{sigfilter} tool seemed to perform slightly better than \eppex{}
 in the case of a French-English translation model based on massive training
@@ -82,15 +82,17 @@ toolkit rather than a definitive replacement.
 We are aware, that in its current state, \eppex{} is a usable tool,
 but a potential user of \eppex{} could be discouraged by the lack of some
 finer control over its memory demands incurred during
-runtime.\footnote{Without neglecting the importance of good program design,
-we cannot disregard the empirically determined principle that often the easiest
-and also cheapest solution to the performance limitations imposed by hardware
-is to buy better hardware. After all, no certain amount of memory is enough
-for all time.}
+runtime.
+
+%\footnote{Without neglecting the importance of good program design,
+%we cannot disregard the empirically determined principle that often the easiest
+%and also cheapest solution to the performance limitations imposed by hardware
+%is to buy better hardware. After all, no certain amount of memory is enough
+%for all time.}
 
 Addressing this possible concern, we see two possible ways to improve \eppex{}:
 \begin{enumerate}
-  \item Provide the user with a method to safely determine the maximum amount
+  \item Provide the user with a method to properly determine the maximum amount
     of memory that \eppex{} would require to process a particular training data.
   \item Provide the user with an option to set a limit on the maximum amount
     of memory utilized by the program.

@@ -147,6 +147,8 @@ The reference counting feature seems to be useful for our phrase-counting proble
 but it would imply relying on proprietary implementation that is not enforced by
 the C++ standard, which is a bad design choice for any open-source software.
 
+\newpage
+
 Therefore, whenever the memory footprint of string storage is more important than
 the convenience and flexibility of their handling, C-string is a better choice
 than any STL string implementation.
@@ -164,14 +166,6 @@ details reveals later, we are not interested in the proper reference counting,
 because the items we store this way are never individually destroyed.
 Therefore, we rather refer to this simpler version of the reference counting as \emph{object
 unification}.
-
-%For example, when counting $n$-grams in a text corpus, instead of keeping $n$ strings
-%within each $n$-gram object, it might be more efficient to just keep $n$ references to
-%unique, separately stored copies of such strings.\footnote{An observant reader may realize
-%that the task of items counting itself implicitly requires objects unification. In fact,
-%the example was deliberately picked to demonstrate that there are two aspects to objects
-%unification: it is a procedure inherent to some tasks, such as items counting, but also
-%a technique to achieve some memory savings in general.}
 
 Obviously, object unification is not applicable universally and, in general,
 its efficiency depends on the following factors:
@@ -272,7 +266,7 @@ The key differences between hash tables and binary-search trees are:
   \item When iterating over a binary-search tree, the items are returned in the order provided by
   the "less-than" comparison operator, whereas iteration over hash table returns the items in an arbitrary
   order.
-  \item Lookup, insertion and deletion operations with hash tables have an amortized constant
+  \item Lookup, insertion and deletion operations with hash tables have (amortized) constant
   average cost per operation (one call to the hash function plus one or more equality comparisons),
   whereas with binary-search tree these operations have a cost dependent on the number of items
   in the tree ($N$): each operation requires $O\big(log_2(N)\big)$ comparisons.
@@ -334,12 +328,9 @@ On the other hand, there is a natural limit to these lengths incurred by the max
 in practice, even more restrictive limits are usually enforced to secure the feasibility of the
 extracted translation model.
 
-From the perspective of an effective implementation, it is useful to break phrase pair
+From the perspective of an effective implementation, it is helpful to break phrase pair
 structure into three subcomponents -- words, phrases and alignments -- and analyze them
 independently.
-
-%Let us first analyze the properties of each of these components independently and then
-%conclude with the description of how they can be fit together to build a phrase pair.
 
 \subsubsection*{Words}
 
@@ -386,6 +377,7 @@ accounted for 27\% and 40\% of the phrase tables, see \Cref{chap:results}.}
 The source and target phrases in such phrase pairs not only diminish the
 efficiency of object unification, as they occur only once, but phrase pairs as such
 pose a very likely candidate for pruning.
+
 In contrast to the pruning of word data as discussed earlier, the pruning of phrase
 data can have a very significant impact on the program memory footprint.
 With the phrase data stored in a unique copy, to remove this copy we would have to
@@ -460,15 +452,15 @@ field of the array, so its layout is as follows:
     holding the alignment index and related frequency counter
 \end{itemize}
 
-Note that thanks to the fact that we store each piece of alignment data separately, we do not
+As we store each piece of alignment data separately, we do not
 have to keep track of their lengths, because they are kept together with their unique copy.
 
 The memory for the array is acquired via the operator \texttt{new}.
 We experimented with an implementation using memory-pooled allocation,
 but it ran terribly slow, presumably because of the frequent deallocation
-of the phrase pair data.\footnote{Phrase pair data are deallocated not only
-when a particular phrase pair is pruned, but also when a new alignment is
-encountered and to accommodate it, the data has to be moved to a bigger array.}
+of the phrase pair data.\footnote{Phrase pair data are not only deallocated
+when a particular phrase pair is pruned, but they are also reallocated when
+a new alignment is encountered (to accommodate it).}
 Quite possibly, we did not employ the best memory pool implementation for such
 a purpose, so we keep this option in mind for future work.
 

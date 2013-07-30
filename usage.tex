@@ -190,6 +190,8 @@ Let us finish this chapter with some examples that demonstrate some typical
 patterns of \eppex{} usage. Because input file specification is always required,
 we will only mark it by \verb|<input>| in command line snippets below.
 
+\newpage
+
 Grab counts of phrase pairs of lengths up to 8 that would be extracted from
 the input corpus and store them in the file \texttt{counts.txt}:
 \begin{verbatim}
@@ -222,4 +224,11 @@ The phrase table will be stored gzipped in the file \texttt{phrase-table.gz}
 and will contain phrase pairs of length up to (default maximum) 7.
 \begin{verbatim}
   eppex <input> --phrase-table-file phrase-table --GZOutput
+\end{verbatim}
+
+Construct a complete phrase table (as above), but include also lexical weights
+based on the lexical translation tables \texttt{lex.f2e} and \texttt{lex.e2f}.
+\begin{verbatim}
+  eppex <input> --phrase-table-file phrase-table --GZOutput \\
+    --direct-lex-table lex.f2e --inverse-lex-table lex.e2f
 \end{verbatim}

@@ -50,6 +50,12 @@ imminent benefits:
     whole sentences.
 \end{enumerate}
 
+Word-based models are no longer widely used for translation, but they are still important
+in the training process of phrase-based models: a by-product of the word-based models
+is that they establish alignments between words from both parts of parallel corpus.
+These word-alignments are crucial for the phrase pair extraction algorithm that is mentioned
+later.
+
 \subsection{Mathematical background}
 
 The phrase translation model is based on a noisy channel model \citep{koehn:spbt}.
@@ -96,7 +102,10 @@ The software that implements decoding, simply called \emph{decoder}, therefore h
 several strategies to limit the search space in order to speed up the decoding process.
 One of such strategies is, when a particular source phrase $\bar{f}_i$ is examined,
 to limit the search to only $K$ target phrases $\bar{e}_i$ that rank best
-with respect to the values of $\phi(\bar{f}_i|\bar{e}_i)$.
+with respect to the values of $\phi(\bar{f}_i|\bar{e}_i)$.\footnote{This is in fact
+a phrase table pruning technique, see \Sref{sec:simple-statistics-pruning}.}
+
+\newpage
 
 Putting mathematical definitions aside, the role of all three components in the search for
 the best translation (decoding) can be explained in a more intuitive way:
@@ -121,7 +130,7 @@ It has the general form:
   exp \Big( \sum_i^n \lambda_i h_i(x_i) \Big)
 \end{equation}
 
-The $h_i(x)$ represents quantities that are functions of variables $x_i$,
+The $h_i(x)$ represents quantities that are functions of model variables $x_i$,
 while $\lambda_i$ stands for the model parameters.
 
 The original definition of a phrase-based SMT model (\Eref{eq:pbsmt}) can be reformulated to
@@ -286,7 +295,7 @@ a clear picture of its quite complex layout and all the steps and substeps invol
 
 Moses release 1.0\footurl{http://www.statmt.org/moses/?n=Moses.Releases} comes
 with a training script that incorporates all the steps involved in the creation of
-ready-to-go translation systems from the parallel corpus, including phrase table creation.
+ready-to-go translation systems from the parallel corpus, including phrase table construction.
 In the \emph{train-model.perl} script, this whole training process is covered in
 9 consecutive steps\footurl{http://www.statmt.org/moses/?n=FactoredTraining.HomePage},
 including word alignment, lexical table construction, phrase table construction and more.

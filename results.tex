@@ -109,7 +109,8 @@ differ significantly, from 60.2~M to 301.9~M phrase pairs.
 \subsection{Memory and time requirements}
 
 \Tref{cs-en-wmt13-time-benchmarks} presents the amount of time necessary to finish
-phrase table extraction with various systems and their configurations.
+phrase table extraction with various systems and their configurations and also
+the measured CPU consumption.
 
 % Cs-En: baseline and eppex wall clock and CPU time values
 \begin{table}[ht]
@@ -154,6 +155,7 @@ its temporary data, did not help decrease the total execution time.
 More precisely, it did help in the phrase extraction phase (ca. $-0.8~h$), but did the very opposite
 in the scoring phase (ca. $+0.9~h$), so the overall impact on the total wall clock time was eventually
 marginally negative (ca. $+0.2~h$).
+
 A reasonable explanation for such, perhaps unexpected, behavior stems from the fact that in the phrase
 extraction phase both phrase table halves are sorted simultaneously, whereas in the scoring phase
 only the indirect half is sorted.
@@ -215,11 +217,14 @@ The default baseline experiment had the lowest memory demand of all experiments,
 of memory to finish.
 With non-default settings the memory consumption tripled when multiple cores were utilized (in \emph{multi-base}
 and \emph{comp-base} experiments), except for cases when it was dominated by the size of buffer dedicated
-to the \texttt{sort} routine (in optimized experiments).
+to the \texttt{sort} routine (in optimized experiments).\footnote{Because of the parallel run of sort processes
+in the phrase extraction step, the virtual memory peak is approximately twice the size of the buffer.
+It is quite important to keep that in mind, when training the baseline system.}
 
 \Eppex{} memory demands are largely dependent on the amount of pruning requested: with \emph{zero}
 pruning almost 37~GB of memory was consumed, mild \emph{defensive} pruning required only half as much
 memory and harsh \emph{1:n+1} pruning only $1/4$ (but still almost 10~GB).
+
 The comparison of VM peaks and phrase table sizes of \emph{eppex 0:n+1} and \emph{eppex 1:n+1}
 experiments confirms the findings from \Sref{sec:lossy-counting-applicability}:
 because of the harsher limits, \emph{eppex 1:n+1} produced a half as big phrase table as \emph{eppex 0:n+1},
@@ -231,9 +236,9 @@ The disk usage peak exceeded 200~GB in the baseline experiments without compress
 As noted before, \eppex{} produces no temporary data, therefore in all experiments the
 disk usage peaks strictly copied the size of the produced phrase tables.
 
-Finally, \Tref{cs-en-wmt13-sigfilter-runtime-benchmarks} presents runtime benchmarking
+Finally, \Tref{cs-en-wmt13-sigfilter-runtime-benchmarks} presents benchmarking
 figures for all configurations of the \texttt{sigfilter} tool.
-Even a simple histogram pruning required more time than any pruning with the
+Even a simple histogram pruning required more time than any pruning with
 \eppex{}.\footnote{This is partially due a design flaw in the \texttt{sigfilter} tool:
 a SALM-indexed corpus is always required to proceed, even though it is not necessary in
 the case of histogram pruning. The unnecessary SALM indexing accounts for a large part
@@ -261,9 +266,10 @@ Benchmarking figures for various settings of \emph{sigfilter} in the Cs-En setup
 wallclock time, CPU usage value and virtual memory peak with the phase in which it occurred.}
 \end{table}
 
-Also an interesting observation is that the optimized baseline phrase table construction
-(\emph{opt-c8-base}) took one hour less then the fastest significance filtering
-(\emph{sigfilter 30 a+e}).
+%Also an interesting observation is that the optimized baseline phrase table construction
+%(\emph{opt-c8-base}) took one hour less then the fastest significance filtering
+%(\emph{sigfilter 30 a+e}).
+% Not that much interesting ;)
 
 \section{The Fr-En dataset}
 \label{sec:fr-en-results}
@@ -302,12 +308,12 @@ that allowed \texttt{sort} to use 100~G of memory.
 The non-optimized attempts usually died in the middle of sorting with \texttt{sort} complaining
 about missing temporary files.
 We did not investigate the exact reason, but our raw guess is that the number of temporary
-files reached some system-imposed limit, as there were thousands of temporary files left in
+files reached some system-imposed limit, as there were thousands of them left in
 the working directory after the sorting process died.
 
 The evaluated \eppex{} configurations are basically the same as in the case of the Cs-En setup,
 only that we included an additional, harsher configuration \emph{eppex 2:n+2}, in which all phrase
-pairs with true frequency count below~3 were pruned.
+pairs with true frequency below~3 were pruned.
 
 % Fr-En: smoothed experiments
 \begin{table}[ht]
@@ -645,11 +651,9 @@ to almost 50\% of respective default measures.
 The comparison between 2011 and the current version of \eppex{} also displays a significant
 increase in speed: with harsh pruning the phrase table construction is done in half an hour (took
 almost two hours in 2011) and without any pruning the full phrase table was built in
-less than hour and half, thus \eppex{} proves to be a viable alternative to
-\emph{phrase-extract} also in situations when pruning is not an option (being twice as
-fast as the optimized baseline).
+less than hour and half.
 
-\begin{table}[ht]
+\begin{table}[!htb]
 \centering
 \begin{tabular}{ | c | r r | r r | r r | }
 \hline
@@ -681,23 +685,6 @@ An asterisk denotes measurements from the 2011 experiments.}
 \Tref{cu-bojar-vm-and-du-peaks} presents memory and disk usage peaks of all the experiments
 (except for disk usage peaks that are not available for the 2011 experiments).
 
-Memory demands of the baseline remain low, the 0.1~GB difference between 2011 and now
-stems from the fact that our benchmarking script includes the main process in the set of
-measured processes.
-An optimized baseline is the most memory demanding, but this is only because we assigned 12~GB
-of RAM to the sorting processes and both phrase table halves are sorted simultaneously after
-phrase extraction.
-
-Memory demands of the current version of \eppex{} are significantly lower than of the 2011 version:
-in 2011, the harsh pruning setup required as much memory as the current version run without
-any pruning at all.
-
-The disk usage peak is significantly reduced in the \emph{compressed} baseline, but rises almost to
-default levels in optimized baselines, despite the fact that the \verb|--sort-compress| option has been applied
-to them as well.
-We do not poses sufficient knowledge of the inner workings of \emph{GNU sort}, therefore we do not
-attempt to give an explanation of this peculiar behavior.
-
 \begin{table}[ht]
 \centering
 \begin{tabular}{ | c | r | r | }
@@ -710,7 +697,7 @@ def-base      &  1.2~GB & 51.8~GB \\
 multi-base    &  3.9~GB & 53.6~GB \\
 comp-base     &  3.9~GB & 14.3~GB \\
 opt-base      & 24.1~GB & 43.7~GB \\
-opt-c7-base   & 24.1~GB & 43.7~GB \\
+%opt-c7-base   & 24.1~GB & 43.7~GB \\
 eppex zero    & 16.8~GB &  3.7~GB \\
 \hline
 eppex 1-in*   & 19.2~GB &      -- \\
@@ -725,12 +712,28 @@ Virtual memory and disk usage peaks in phrase table construction for various exp
 of the "cu-bojar" setup. An asterisk denotes measurements from the 2011 experiments.}
 \end{table}
 
+\newpage
+
+Memory demands of the default baseline remain low, the 0.1~GB difference between 2011 and now
+stems from the fact that our benchmarking script includes the main process in the set of
+measured processes.
+
+Memory demands of the current version of \eppex{} are significantly lower than of the 2011 version:
+in 2011, the harsh pruning setup required as much memory as the current version run without
+any pruning at all.
+
+The disk usage peak is significantly reduced in the \emph{compressed} baseline, but rises almost to
+default levels in optimized baselines, despite the fact that the \verb|--sort-compress| option has been applied
+to them as well.
+We do not poses sufficient knowledge of the inner workings of \emph{GNU sort}, therefore we do not
+attempt to give an explanation of this peculiar behavior.
+
 \section{The memory demands of eppex}
 \label{sec:eppex-memory-demands}
 
 We assessed the memory demands of \eppex{} by a procedure described in \Sref{sec:memory-benchmarking}.
 The comprehensive tables with virtual memory peaks and phrase table sizes for the benchmarked
-configurations of \eppex{} are appended in \Aref{chap:benchmarking-tables}; here, we are going
+configurations of \eppex{} are part of \Aref{chap:benchmarking-tables}; here, we are going
 to comment on some of the more interesting figures.
 
 \subsection{The Cs-En dataset}
@@ -826,6 +829,7 @@ differ significantly, as \Fref{fig:fr-en-phrase-table-sizes} shows (the complete
 of \Tref{fr-en-output-size-benchmarking}).
 The \emph{eppex 1:n+1} configuration pruned off all the singletons, so it consistently
 produced phrase tables substantially smaller than the \emph{eppex 0:n} configuration.
+
 In fact, the degree of pruning of \emph{eppex 1:n+1} is very close to the \emph{eppex 1:n+2} configuration,
 because in both cases it is determined by the common negative limit.
 
