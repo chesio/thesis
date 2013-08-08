@@ -1,0 +1,13 @@
+Cílem této práce je ověření praktické použitelnosti algoritmu pro přibližné
+počítání četností jako základu pro implementaci filtru frázových tabulek
+v systémech pro statistický strojový překlad. Algoritmus navíc dokáže odstranit fráze
+s nízkou četností přímo během extrakce tabulky.
+Provedená implementace umožnila vytvářet značně filtrované tabulky, které však
+v měřeních kvality překladu pomocí automatické metriky BLEU dosahovaly obdobných
+skóre jako nefiltrované tabulky.
+Důležitým výsledkem této práce je plně funkční program pro extrakci frázových tabulek,
+pojmenovaný eppex, schopný nahradit stávající programy se stejnou funkčností,
+jež jsou součástí volně šířitelného systému pro statistický strojový překlad Moses.
+Značná část práce je věnována experimentálnímu vyhodnocení systémových nároků
+programu a kvality vytvářených frázových tabulek, při kterém jsou jako trénovací
+data použity paralelní korpusy o celkové velikosti 2 miliard slov.
